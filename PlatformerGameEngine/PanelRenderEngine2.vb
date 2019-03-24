@@ -27,6 +27,7 @@ Public Class PanelRenderEngine2
 
         Dim frames() As Frame
         Dim tags() As Tag
+        Dim name As String
 
         Dim currentFrame As UInteger
         Dim location As PointF          'location of the entity (either top left or center, not sure yet)
@@ -96,8 +97,10 @@ Public Class PanelRenderEngine2
     Public Structure Frame
         'a frame is what is actually rendered, can be made up of multiple sprites
 
-        Dim pixels(,) As Color
-        Dim dimensions As Size
+        'Dim pixels(,) As Color
+        'Dim dimensions As Size
+        Dim sprites() As Sprite
+        Dim offsets() As Point
 
         Public Sub New(compositeSprites() As Sprite, offsets() As Point)
             'creates a new frame by combining sprites
@@ -106,21 +109,11 @@ Public Class PanelRenderEngine2
                 DisplayError(compositeSprites.Length & " sprites provided for new frame, but " & offsets.Length & " offsets provided for them")
             End If
 
-            dimensions = New Size(0, 0)     'gives dimensions a value so it can be compared to
 
-            'this part is used to find the max X and Y dimensions of the frame
-            For index As Integer = 0 To UBound(compositeSprites)
-                Dim maxSize As New Size(compositeSprites(index).pixels.GetUpperBound(0) + offsets(index).X, compositeSprites(index).pixels.GetUpperBound(1) + offsets(index).Y)
+        End Sub
 
-                If maxSize.Width > dimensions.Width Then
-                    dimensions.Width = maxSize.Width
-                End If
-                If maxSize.Height > dimensions.Height Then
-                    dimensions.Height = maxSize.Height
-                End If
-            Next index
-
-            ReDim pixels(dimensions.Width - 1, dimensions.Height - 1)
+        Public Function ToColourArray() As Color(,)
+            Dim pixels(Dimensions.Width - 1, Dimensions.Height - 1) As Color
 
             For x As Integer = 0 To pixels.GetUpperBound(0)
                 For y As Integer = 0 To pixels.GetUpperBound(1)
@@ -129,11 +122,11 @@ Public Class PanelRenderEngine2
             Next x
 
             'this is the part which actually sets the frame's pixels
-            For index As Integer = 0 To UBound(compositeSprites)
-                For x As Integer = offsets(index).X To compositeSprites(index).pixels.GetUpperBound(0)
-                    For y As Integer = offsets(index).Y To compositeSprites(index).pixels.GetUpperBound(1)
+            For index As Integer = 0 To UBound(sprites)
+                For x As Integer = offsets(index).X To sprites(index).pixels.GetUpperBound(0)
+                    For y As Integer = offsets(index).Y To sprites(index).pixels.GetUpperBound(1)
                         If x >= 0 And y >= 0 Then       'checks that x and y are both positive
-                            Dim pixelColour As Color = compositeSprites(index).pixels(x, y)
+                            Dim pixelColour As Color = sprites(index).pixels(x, y)
 
                             If pixelColour <> Color.Transparent Then
                                 pixels(x, y) = pixelColour
@@ -142,7 +135,23 @@ Public Class PanelRenderEngine2
                     Next y
                 Next x
             Next index
-        End Sub
+        End Function
+
+        Public Function Dimensions() As Size
+            'returns the max X and Y of the frame
+
+            Dim result As New Size
+            For index As Integer = 0 To UBound(sprites)
+                Dim maxSize As New Size(sprites(index).pixels.GetUpperBound(0) + offsets(index).X, sprites(index).pixels.GetUpperBound(1) + offsets(index).Y)
+
+                If maxSize.Width > Dimensions.Width Then
+                    result.Width = maxSize.Width
+                End If
+                If maxSize.Height > Dimensions.Height Then
+                    result.Height = maxSize.Height
+                End If
+            Next index
+        End Function
 
         Public Sub Trim()
             'removes any outermost rows or columns which only have transparent pixels in them
@@ -182,9 +191,12 @@ Public Class PanelRenderEngine2
                 result = False
             Else
                 'checks that none of the pixels are different
+                Dim pixels1(,) As Color = frame1.ToColourArray
+                Dim pixels2(,) As Color = frame2.ToColourArray
+
                 For x As Integer = 0 To frame1.dimensions.Width - 1
                     For y As Integer = 0 To frame1.dimensions.Width - 1
-                        If frame1.pixels(x, y) <> frame2.pixels(x, y) Then
+                        If pixels1(x, y) <> pixels2(x, y) Then
                             result = False
                         End If
                     Next y
@@ -259,14 +271,15 @@ Public Class PanelRenderEngine2
         For entityIndex As Integer = 0 To UBound(entities)
             Dim currentEntity As Entity = entities(entityIndex)
             Dim renderFrame As Frame = currentEntity.frames(currentEntity.currentFrame)
+            Dim renderPixels(,) As Color = renderFrame.ToColourArray
 
-            For x As Integer = 0 To renderFrame.dimensions.Width - 1
-                For y As Integer = 0 To renderFrame.dimensions.Height - 1
+            For x As Integer = 0 To renderFrame.Dimensions.Width - 1
+                For y As Integer = 0 To renderFrame.Dimensions.Height - 1
                     Dim rotation As Single = currentEntity.rotation
                     Dim scale As Single = currentEntity.scale
                     Dim pixelCentre As New PointF(currentEntity.location.X + x * scale, currentEntity.location.Y + y * scale)
 
-                    DrawPixel(pixelCentre, renderFrame.pixels(x, y), rotation, scale)
+                    DrawPixel(pixelCentre, renderPixels(x, y), rotation, scale)
                 Next y
             Next x
         Next entityIndex
