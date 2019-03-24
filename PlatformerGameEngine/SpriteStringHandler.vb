@@ -11,6 +11,7 @@ Public Module SpriteStringHandler
         Dim result As String = ""
 
         result += gridSize.Width & "x" & gridSize.Height & vbNewLine        'dimensions
+
         For colourIndex As Integer = 1 To UBound(colours)
             result += ColorTranslator.ToHtml(colours(colourIndex)) & ","        'list of colours in hex form
         Next colourIndex

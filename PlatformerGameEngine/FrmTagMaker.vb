@@ -7,9 +7,8 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 Public Class FrmTagMaker
 
     Public dataTypes() As String = {"number", "text", "tag"}
-    Public createdTag As PRE2.Tag
+    Public createdTag As New PRE2.Tag
     Public userFinished As Boolean = False
-
 
 
     Private Sub FrmTagMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -27,6 +26,7 @@ Public Class FrmTagMaker
     End Sub
 
     Private Sub btnArgAdd_Click(sender As Object, e As EventArgs) Handles btnArgAdd.Click
+
         Select Case cmbDataType.SelectedIndex
             Case 0      'number
                 Dim userInput As String = InputBox("Please enter a numerical value", "Enter Number", "0.0")
@@ -35,16 +35,14 @@ Public Class FrmTagMaker
                     If IsNumeric(userInput) = False Then
                         PRE2.DisplayError(userInput & " is not a number")
                     Else
-                        lstArguments.Items.Add("num:" & userInput)
-                        AddArgument(Val(userInput))
+                        AddArgument(Val(userInput), cmbDataType.SelectedIndex)
                     End If
                 End If
             Case 1      'string
                 Dim userInput As String = InputBox("Please enter text", "Enter text")
 
                 If userInput.Length > 0 Then
-                    lstArguments.Items.Add("text:" & userInput)
-                    AddArgument(userInput)
+                    AddArgument(userInput, cmbDataType.SelectedIndex)
                 End If
             Case 2      'tag
                 Dim tagMaker As New FrmTagMaker
@@ -52,8 +50,7 @@ Public Class FrmTagMaker
                 tagMaker.ShowDialog()
 
                 If tagMaker.userFinished = True Then
-                    lstArguments.Items.Add("tag:" & tagMaker.createdTag.name)
-                    AddArgument(tagMaker.createdTag)
+                    AddArgument(tagMaker.createdTag, cmbDataType.SelectedIndex)
                 End If
         End Select
     End Sub
@@ -76,17 +73,36 @@ Public Class FrmTagMaker
     Private Sub btnFinish_Click(sender As Object, e As EventArgs) Handles btnFinish.Click
         'pressed by the user when they are done creating the tag
 
-        createdTag = New PRE2.Tag
+        createdTag.name = txtName.Text
+
         If Len(createdTag.name) > 0 Then            'not a valid tag if it doesn't have a name
             userFinished = True
         End If
         Me.Close()
     End Sub
 
-    Private Sub AddArgument(argument As Object)
+    Public Sub AddArgument(argument As Object, dataTypeIndex As Integer)
         'adds the given argument to the user's created tag's arguments
 
-        ReDim Preserve createdTag.args(UBound(createdTag.args) + 1)
+        Select Case dataTypeIndex
+            Case 0      'number
+                If IsNumeric(argument) = False Then
+                    PRE2.DisplayError(argument & " is not a number")
+                    Exit Sub
+                Else
+                    lstArguments.Items.Add("num:" & Trim(Str(argument)))
+                End If
+            Case 1      'text
+                lstArguments.Items.Add("text:" & argument)
+            Case 2      'string
+                lstArguments.Items.Add("tag:" & argument.name)
+        End Select
+
+        Try
+            ReDim Preserve createdTag.args(UBound(createdTag.args) + 1)
+        Catch ex As Exception
+            ReDim createdTag.args(0)
+        End Try
 
         createdTag.args(UBound(createdTag.args)) = argument
     End Sub
@@ -98,7 +114,12 @@ Public Class FrmTagMaker
             createdTag.args(index - 1) = createdTag.args(index)
         Next index
 
-        ReDim Preserve createdTag.args(UBound(createdTag.args) - 1)
+        'used for reducing the length of the array of the arguments
+        If UBound(createdTag.args) > 0 Then
+            ReDim Preserve createdTag.args(UBound(createdTag.args) - 1)
+        Else        'if removing only argument, then array becomes nothing
+            createdTag.args = Nothing
+        End If
     End Sub
 
 

@@ -427,6 +427,4 @@ Public Class FrmSpriteMaker
             Return SpriteStringHandler.Create(colourIndices, gridSize, usedColours)
         End Get
     End Property
-
-
 End Class
