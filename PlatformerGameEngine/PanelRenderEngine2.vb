@@ -102,6 +102,7 @@ Public Class PanelRenderEngine2
         Dim sprites() As Sprite
         Dim offsets() As Point
 
+
         Public Sub New(compositeSprites() As Sprite, offsets() As Point)
             'creates a new frame by combining sprites
 
@@ -211,8 +212,9 @@ Public Class PanelRenderEngine2
         'sprites loaded from .sprt files and used to create frames
 
         Dim pixels(,) As Color
+        Dim fileName As String
 
-        Public Sub New(ByRef fileLocation As String)
+        Public Sub New(fileLocation As String)
             'creates a new sprite by reading it from a file
 
             If IO.File.Exists(fileLocation) = True Then
@@ -224,6 +226,8 @@ Public Class PanelRenderEngine2
                 If SpriteHandler.ValidSpriteText(fileText, fileLocation) Then
                     pixels = SpriteHandler.ReadPixelColours(fileText)
                 End If
+
+                FindFileName(fileLocation)
             Else
                 DisplayError("Couldn't find file " & fileLocation)
             End If
@@ -241,6 +245,31 @@ Public Class PanelRenderEngine2
                     pixels(x, y) = colours(colourIndices(x, y))
                 Next y
             Next x
+        End Sub
+
+        Public Sub FindFileName(fileLocation As String)
+            'finds the extra part of the file location, relative to the sprites folder
+            'eg D:\Users\Example\sprites\mario\MarioIdle.sprt -> \mario\marioIdle.sprt
+
+            Dim spriteFolderName As String = "sprites"
+            Dim folders() As String = fileLocation.Split("\")
+            fileName = ""
+
+            If folders.Contains(spriteFolderName) = True Then
+                Dim foundFolder As Boolean = False
+
+                For index As Integer = 0 To UBound(folders)
+                    If foundFolder = True Then
+                        fileName += "\" & folders(index)
+                    End If
+
+                    If folders(index) = spriteFolderName Then
+                        foundFolder = True
+                    End If
+                Next index
+            Else
+                DisplayError("Sprite at " & fileLocation & " is not in folder " & spriteFolderName)
+            End If
         End Sub
     End Structure
 
