@@ -30,7 +30,11 @@ Public Class FrmMenu
         delayTimer.Stop()
 
         menuButtons = {btnMenu1, btnMenu2, btnMenu3}
-        menuLayouts(0) = New MenuOptions With {.buttonText = {"Load Game", "Tools"}, .behaviours = {"LoadGame", "OpenToolsMenu"}, .previousMenuIndex = -1}
+        menuLayouts(0) = New MenuOptions With {
+            .buttonText = {"Load Game", "Tools"},
+            .behaviours = {"LoadGame", "OpenToolsMenu"},
+            .previousMenuIndex = -1
+        }
         SetMenu(0)
         For index As Integer = 0 To UBound(menuButtons)
             AddHandler menuButtons(index).Click, AddressOf MenuButtonClicked
@@ -59,6 +63,8 @@ Public Class FrmMenu
                     OpenSpriteMaker()
                 Case "OpenLevelEditor"
                     OpenLevelEditor()
+                Case "OpenEntityMaker"
+                    OpenEntityMaker()
             End Select
         Else
             MsgBox("This button doesn't do anything")
@@ -74,7 +80,11 @@ Public Class FrmMenu
     Private Sub OpenToolsMenu()
         'changes the menu layout to one relevant to the tools menu
 
-        Dim toolsMenuLayout As New MenuOptions With {.buttonText = {"Sprite Maker"}, .behaviours = {"OpenSpriteMaker"}, .previousMenuIndex = currentMenuIndex}
+        Dim toolsMenuLayout As New MenuOptions With {
+            .buttonText = {"Sprite Maker", "Entity Maker", "Level Editor"},
+            .behaviours = {"OpenSpriteMaker", "OpenEntityMaker", "OpenLevelEditor"},
+            .previousMenuIndex = currentMenuIndex
+        }
         ReDim Preserve menuLayouts(UBound(menuLayouts) + 1)
         menuLayouts(UBound(menuLayouts)) = toolsMenuLayout
         currentMenuIndex = UBound(menuLayouts)
@@ -124,5 +134,12 @@ Public Class FrmMenu
         'opens the level editor tool
 
         MsgBox("Not ready yet")
+    End Sub
+
+    Private Sub OpenEntityMaker()
+        'opens the entity maker tool
+
+        Dim entityMaker As New FrmEntityMaker
+        entityMaker.ShowDialog()
     End Sub
 End Class
