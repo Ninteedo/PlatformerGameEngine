@@ -132,7 +132,7 @@ Partial Class FrmTagMaker
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.BackColor = System.Drawing.SystemColors.ControlDarkDark
+        Me.BackColor = System.Drawing.SystemColors.ControlDark
         Me.ClientSize = New System.Drawing.Size(535, 281)
         Me.Controls.Add(Me.btnCancel)
         Me.Controls.Add(Me.btnFinish)

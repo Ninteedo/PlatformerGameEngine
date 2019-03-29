@@ -8,8 +8,13 @@ Public Class PanelRenderEngine2
 
     Public panelCanvasGameArea As PaintEventArgs
     Public entities() As Entity
-    Public sprites() As Sprite
+    Public loadedSprites() As Sprite
+    Public renderScale As Single = 20
     'Dim gameResolution As Size = panelCanvasGameArea.ClipRectangle.Size
+
+    Public spriteFolderLocation As String
+    Public entityFolderLocation As String
+    Public levelFolderLocation As String
 
     Public Structure Tag
         Dim name As String
@@ -19,6 +24,43 @@ Public Class PanelRenderEngine2
             name = tagName
             args = arguments
         End Sub
+
+        Public Sub New(ByVal tagString As String)
+            'creates a tag from a string
+
+            If Mid(tagString, 1, 4) = "tag(" And Mid(tagString, tagString.Length, 1) = ")" Then     'checks that string is actually a tag
+                tagString = tagString.Remove(1, 4)      'removes "tag("
+                tagString = tagString.Remove(tagString.Length, 1)   'removes ")"
+
+                Dim values() As String = tagString.Split("\")
+
+                name = values(0)
+                ReDim args(UBound(values) - 1)
+                For argIndex As Integer = 1 To UBound(values)
+                    If IsNumeric(values(argIndex)) = True Then      'number
+                        args(argIndex - 1) = Val(values(argIndex))
+                    ElseIf New Tag(values(argIndex)).name <> Nothing Then       'another tag
+                        args(argIndex - 1) = New Tag(values(argIndex))
+                    Else                'plain string
+                        args(argIndex - 1) = values(argIndex)
+                    End If
+                Next argIndex
+            End If
+        End Sub
+
+        Public Overrides Function ToString() As String
+            'turns this tag into a string
+
+            Dim result As String = "tag(" & name
+
+            For Each argument As Object In args
+                result += "\" & argument.ToString
+            Next argument
+
+            result += ")"
+
+            Return result
+        End Function
     End Structure
 
     Public Structure Entity
@@ -101,6 +143,7 @@ Public Class PanelRenderEngine2
         'Dim dimensions As Size
         Dim sprites() As Sprite
         Dim offsets() As Point
+        Dim fileLocation As String
 
 
         Public Sub New(compositeSprites() As Sprite, offsets() As Point)
@@ -136,6 +179,8 @@ Public Class PanelRenderEngine2
                     Next y
                 Next x
             Next index
+
+            Return pixels
         End Function
 
         Public Function Dimensions() As Size
@@ -143,7 +188,7 @@ Public Class PanelRenderEngine2
 
             Dim result As New Size
             For index As Integer = 0 To UBound(sprites)
-                Dim maxSize As New Size(sprites(index).pixels.GetUpperBound(0) + offsets(index).X, sprites(index).pixels.GetUpperBound(1) + offsets(index).Y)
+                Dim maxSize As New Size(sprites(index).pixels.GetLength(0) + offsets(index).X, sprites(index).pixels.GetLength(1) + offsets(index).Y)
 
                 If maxSize.Width > Dimensions.Width Then
                     result.Width = maxSize.Width
@@ -152,6 +197,8 @@ Public Class PanelRenderEngine2
                     result.Height = maxSize.Height
                 End If
             Next index
+
+            Return result
         End Function
 
         Public Sub Trim()
@@ -188,15 +235,15 @@ Public Class PanelRenderEngine2
 
             Dim result As Boolean = True
 
-            If frame1.dimensions <> frame2.dimensions Then      'checks that they are the same size
+            If frame1.Dimensions <> frame2.Dimensions Then      'checks that they are the same size
                 result = False
             Else
                 'checks that none of the pixels are different
                 Dim pixels1(,) As Color = frame1.ToColourArray
                 Dim pixels2(,) As Color = frame2.ToColourArray
 
-                For x As Integer = 0 To frame1.dimensions.Width - 1
-                    For y As Integer = 0 To frame1.dimensions.Width - 1
+                For x As Integer = 0 To frame1.Dimensions.Width - 1
+                    For y As Integer = 0 To frame1.Dimensions.Width - 1
                         If pixels1(x, y) <> pixels2(x, y) Then
                             result = False
                         End If
@@ -206,6 +253,24 @@ Public Class PanelRenderEngine2
 
             Return result
         End Function
+
+        Public Sub AddSprite(newSprite As Sprite, offset As Point)
+            'adds a sprite to the frame
+
+            If IsNothing(sprites) = True Then
+                ReDim sprites(0)
+            Else
+                ReDim Preserve sprites(UBound(sprites) + 1)
+            End If
+            sprites(UBound(sprites)) = newSprite
+
+            If IsNothing(offsets) = True Then
+                ReDim offsets(0)
+            Else
+                ReDim Preserve offsets(UBound(offsets) + 1)
+            End If
+            offsets(UBound(offsets)) = offset
+        End Sub
     End Structure
 
     Public Structure Sprite
@@ -227,7 +292,7 @@ Public Class PanelRenderEngine2
                     pixels = SpriteHandler.ReadPixelColours(fileText)
                 End If
 
-                FindFileName(fileLocation)
+                FindSpriteFileName(fileLocation)
             Else
                 DisplayError("Couldn't find file " & fileLocation)
             End If
@@ -247,7 +312,7 @@ Public Class PanelRenderEngine2
             Next x
         End Sub
 
-        Public Sub FindFileName(fileLocation As String)
+        Public Sub FindSpriteFileName(fileLocation As String)
             'finds the extra part of the file location, relative to the sprites folder
             'eg D:\Users\Example\sprites\mario\MarioIdle.sprt -> \mario\marioIdle.sprt
 
@@ -273,12 +338,68 @@ Public Class PanelRenderEngine2
         End Sub
     End Structure
 
+    Public Sub LoadSprite(fileLocation As String)
+        'loads a sprite from a given location
+
+        If IO.File.Exists(fileLocation) Then
+            Dim newSprite As New Sprite(fileLocation)
+            'Dim fileName As String = newSprite.fileName
+
+            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) = True Then      'checks that the same sprite isn't already loaded
+                If IsNothing(loadedSprites) = True Then
+                    ReDim loadedSprites(0)
+                Else
+                    ReDim Preserve loadedSprites(UBound(loadedSprites) + 1)
+                End If
+                loadedSprites(UBound(loadedSprites)) = newSprite
+            End If
+        End If
+    End Sub
+
+    Public Function FindLoadedSprite(fileName As String) As Sprite
+        'returns a loaded sprite with the given file name if it is already loaded
+
+        Try
+            For index As Integer = 0 To UBound(loadedSprites)
+                If loadedSprites(index).fileName = fileName Then
+                    Return loadedSprites(index)
+                End If
+            Next index
+        Catch ex As Exception
+            Return Nothing
+        End Try
+
+        Return Nothing
+    End Function
+
     Shared Sub DisplayError(message As String)
         'displays a given error message to the user
 
         MsgBox(message, MsgBoxStyle.Exclamation)
     End Sub
 
+    Public Shared Function FindFolderPath(path As String, folderName As String) As String
+        'returns the location of the folder with the given name in the string
+
+        Dim folders() As String = path.Split("\")
+        Dim result As String = ""
+
+        If folders.Contains(folderName) = True Then
+            Dim foundFolder As Boolean = False
+
+            For index As Integer = UBound(folders) To 0 Step -1
+                If foundFolder = True Then
+                    result = result.Insert(1, folders(index) & "\")
+                End If
+
+                If folders(index) = folderName Then
+                    foundFolder = True
+                End If
+            Next index
+        End If
+
+        Return result
+    End Function
 
     Private Sub Initialisation()
         EntityInitialisation()
@@ -296,22 +417,29 @@ Public Class PanelRenderEngine2
     Public Sub DoGameRender()
         'renders everything
 
+        'Dim nextRender As BufferedGraphics
+        'nextRender.Graphics. = panelCanvasGameArea.ClipRectangle
+
+        panelCanvasGameArea.Graphics.Clear(Color.Black)
+
         'entity rendering
-        For entityIndex As Integer = 0 To UBound(entities)
-            Dim currentEntity As Entity = entities(entityIndex)
-            Dim renderFrame As Frame = currentEntity.frames(currentEntity.currentFrame)
-            Dim renderPixels(,) As Color = renderFrame.ToColourArray
+        If IsNothing(entities) = False Then
+            For entityIndex As Integer = 0 To UBound(entities)
+                Dim currentEntity As Entity = entities(entityIndex)
+                Dim renderFrame As Frame = currentEntity.frames(currentEntity.currentFrame)
+                Dim renderPixels(,) As Color = renderFrame.ToColourArray
 
-            For x As Integer = 0 To renderFrame.Dimensions.Width - 1
-                For y As Integer = 0 To renderFrame.Dimensions.Height - 1
-                    Dim rotation As Single = currentEntity.rotation
-                    Dim scale As Single = currentEntity.scale
-                    Dim pixelCentre As New PointF(currentEntity.location.X + x * scale, currentEntity.location.Y + y * scale)
+                For x As Integer = 0 To renderFrame.Dimensions.Width - 1
+                    For y As Integer = 0 To renderFrame.Dimensions.Height - 1
+                        Dim rotation As Single = currentEntity.rotation
+                        Dim scale As Single = renderScale / 2
+                        Dim pixelCentre As New PointF(currentEntity.location.X + x * (scale * 3 / 2), currentEntity.location.Y + y * (scale * 3 / 2))
 
-                    DrawPixel(pixelCentre, renderPixels(x, y), rotation, scale)
-                Next y
-            Next x
-        Next entityIndex
+                        DrawPixel(pixelCentre, renderPixels(x, y), rotation, scale)
+                    Next y
+                Next x
+            Next entityIndex
+        End If
     End Sub
 
     Private Sub DrawPixel(center As PointF, colour As Color, Optional rotation As Single = 0.0, Optional scale As Single = 1.0)
@@ -331,10 +459,27 @@ Public Class PanelRenderEngine2
     Private Function VertexOfPolygon(center As PointF, index As Integer, sides As Integer, rotation As Single, scale As Single) As PointF
         'returns the point of a vertex of a polygon with given attributes
 
-        Dim angleDegrees As Single = 360 / sides + rotation
+        Dim angleDegrees As Single = (360 / sides) * (index + 0.5) + rotation
         Dim angleRads As Single = (Math.PI / 180) * angleDegrees
 
         Return New PointF(center.X + (scale * Math.Cos(angleRads)), center.Y + (scale * Math.Sin(angleRads)))
     End Function
 
+    Public Shared Function ModArrayLength(arrayToMod() As Object, lengthChange As Integer) As Object()
+        'changes the length of the given array by the given amount
+
+        Dim result() As Object = arrayToMod
+
+        If IsNothing(arrayToMod) = False Then
+            If UBound(result) + lengthChange >= 0 Then
+                ReDim Preserve result(UBound(result) + lengthChange)
+            Else
+                result = Nothing
+            End If
+        Else
+            ReDim result(lengthChange)
+        End If
+
+        Return result
+    End Function
 End Class

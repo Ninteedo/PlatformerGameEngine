@@ -1,0 +1,20 @@
+x(num:xLocation) - the X location of this sprite
+y(num:yLocation) - the Y location of this entity
+rot(num:rotation) - the rotation of this entity in degrees
+scale(num:scale) - how many pixels wide/tall the pixels on the screen take up
+
+xVel(num:speed) - the X velocity of this entity
+yVel(num:speed) - the Y velocity of this entity
+xAcc(num:change) - the rate of change of X velocity
+yAcc(num:change) - the rate of change of Y velocity
+grav() - if entity has this tag then is effected by gravity
+
+modRot(num:change) - changes the rotation of this entity by the specified number of degrees
+modScale(num:change) - changes the scale of this entity
+
+onDeath([tag:behaviours]) - defines what an entity does if it dies
+
+setFrame(num:frameIndex) - changes the displayed frame of this entity
+timer(num:interval,[tag:behaviours]) - adds a timer which executes the specified behaviors once it meets the interval
+
+setBackgroundColour(text:colour) - changes the colour of the background
