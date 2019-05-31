@@ -16,7 +16,7 @@ Public Class FrmEntityMaker
     Private Sub Initialisation()
         delayTimer.Stop()
 
-        rendererEngine = New PRE2
+        renderer = New PRE2
         RefreshPanelCanvas()
 
         LayoutInitialisation()
@@ -26,7 +26,10 @@ Public Class FrmEntityMaker
 
     Private Sub RefreshPanelCanvas()
         Dim panelCanvas As New PaintEventArgs(pnlFramePreview.CreateGraphics, New Rectangle(New Point(0, 0), pnlFramePreview.Size))
-        rendererEngine.panelCanvasGameArea = panelCanvas
+        renderer.panelCanvasGameArea = panelCanvas
+
+
+        renderer.DoGameRender({ent})
     End Sub
 
     Private Sub LayoutInitialisation()
@@ -56,6 +59,10 @@ Public Class FrmEntityMaker
         lblSpriteListTitle.Location = New Point(lstFrames.Right + 5, lblFrameListTitle.Top)
         lstSprites.Location = New Point(lblSpriteListTitle.Left, lblSpriteListTitle.Bottom + 5)
         btnSpriteLoad.Location = New Point(lstSprites.Left, lstSprites.Bottom + 5)
+
+        lblName.Location = New Point(lstSprites.Right + 10, lstSprites.Top)
+        txtName.Location = New Point(lblName.Right + 5, lblName.Top)
+
     End Sub
 
     'save load
@@ -79,62 +86,30 @@ Public Class FrmEntityMaker
     End Property
 
     Private Sub GetFolderLocations()
-        'asks the user to select the location of the folders
-        'TRY TO REMOVE THE NEED FOR THIS
+        'asks the user to select the game loader file
 
-        'change this to loading folder locations from a level file, or just selecting save location and sprite folder
+        Dim openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Title = "Select Loader File"}
+        If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
+            If IO.File.Exists(openDialog.FileName) = True Then
+                Dim reader As New IO.StreamReader(openDialog.FileName)
+                Dim loaderText As String = reader.ReadToEnd
+                reader.Close()
 
-        MsgBox("Please select the top level folder for the game", MsgBoxStyle.OkOnly)
-        Dim openDialog As New FolderBrowserDialog
-
-        Do While gameLocation = Nothing OrElse gameLocation = ""
-            'PRE2.DisplayError("Game folder location MUST be selected")
-            openDialog.ShowDialog()
-
-            gameLocation = openDialog.SelectedPath
-
-            If gameLocation = Nothing OrElse gameLocation = "" Then
-                If MsgBox("Game folder location MUST be selected", MsgBoxStyle.RetryCancel) = MsgBoxResult.Cancel Then
-                    End
-                End If
+                Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
+                'renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "levelFolder")
+                renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "entityFolder")
+                renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "spriteFolder")
+                'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "roomFolder")
+            Else
+                PRE2.DisplayError("Couldn't find file " & openDialog.FileName)
             End If
-        Loop
-
-        MsgBox("Please select the sprite folder", MsgBoxStyle.OkOnly)
-
-        Do While rendererEngine.spriteFolderLocation = Nothing OrElse rendererEngine.spriteFolderLocation = ""
-            'PRE2.DisplayError("Game folder location MUST be selected")
-            openDialog.ShowDialog()
-
-            rendererEngine.spriteFolderLocation = openDialog.SelectedPath
-
-            If rendererEngine.spriteFolderLocation = Nothing OrElse rendererEngine.spriteFolderLocation = "" Then
-                If MsgBox("Sprite folder location MUST be selected", MsgBoxStyle.RetryCancel) = MsgBoxResult.Cancel Then
-                    End
-                End If
-            End If
-        Loop
-
-        MsgBox("Please select the entity folder", MsgBoxStyle.OkOnly)
-
-        Do While rendererEngine.entityFolderLocation = Nothing OrElse rendererEngine.entityFolderLocation = ""
-            'PRE2.DisplayError("Game folder location MUST be selected")
-            openDialog.ShowDialog()
-
-            rendererEngine.entityFolderLocation = openDialog.SelectedPath
-
-            If rendererEngine.entityFolderLocation = Nothing OrElse rendererEngine.entityFolderLocation = "" Then
-                If MsgBox("Entity folder location MUST be selected", MsgBoxStyle.RetryCancel) = MsgBoxResult.Cancel Then
-                    End
-                End If
-            End If
-        Loop
+        End If
     End Sub
 
     Private Sub btnOpen_Click(sender As Button, e As EventArgs) Handles btnOpen.Click
         'asks the user to select a .sprt file and reads it
 
-        Dim openDialog As New OpenFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .Multiselect = False, .CheckFileExists = True}
+        Dim openDialog As New OpenFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .Multiselect = False, .CheckFileExists = True, .InitialDirectory = renderer.entityFolderLocation}
 
         If openDialog.ShowDialog = DialogResult.OK Then
             saveLocation = openDialog.FileName
@@ -147,7 +122,7 @@ Public Class FrmEntityMaker
     Private Sub btnSaveAs_Click(sender As Button, e As EventArgs) Handles btnSaveAs.Click
         'asks the user to select a save location, then saves the sprite there and enables the regular save button
 
-        Dim saveDialog As New SaveFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt"}
+        Dim saveDialog As New SaveFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .InitialDirectory = renderer.entityFolderLocation}
 
         If saveDialog.ShowDialog = DialogResult.OK Then
             saveLocation = saveDialog.FileName
@@ -187,7 +162,7 @@ Public Class FrmEntityMaker
 
             reader.Close()
 
-            ent = EntityStringHandler.ReadEntityString(fileText, rendererEngine)
+            ent = EntityStringHandler.ReadEntityString(fileText, renderer)
 
             frames = ent.frames
             tags = ent.tags
@@ -199,7 +174,7 @@ Public Class FrmEntityMaker
 
     Dim ent As PRE2.Entity          'the user's created entity
 
-    
+
     'sprites
 
     Dim sprites() As PRE2.Sprite
@@ -211,8 +186,8 @@ Public Class FrmEntityMaker
 
         If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
             For index As Integer = 0 To UBound(openDialog.FileNames)
-                rendererEngine.LoadSprite(openDialog.FileNames(index))
-                lstSprites.Items.Add(rendererEngine.loadedSprites(UBound(rendererEngine.loadedSprites)).fileName)       'THIS WILL CAUSE LOGIC ERRORS
+                renderer.LoadSprite(openDialog.FileNames(index))
+                lstSprites.Items.Add(renderer.loadedSprites(UBound(renderer.loadedSprites)).fileName)       'THIS WILL CAUSE LOGIC ERRORS
             Next index
         End If
     End Sub
@@ -230,18 +205,18 @@ Public Class FrmEntityMaker
     'frames
 
     Dim frames() As PRE2.Frame
-    Dim rendererEngine As PRE2
+    Dim renderer As PRE2
 
     Private Sub DrawFramePreview(frameToDraw As PRE2.Frame)
         'draws the given frame in the preview box
 
         If IsNothing(frameToDraw.sprites) = False Then
-            Dim previewEntity As New PRE2.Entity({frameToDraw}, {}, New PointF(0, 0)) 'New PointF(rendererEngine.panelCanvasGameArea.ClipRectangle.Width / 2, rendererEngine.panelCanvasGameArea.ClipRectangle.Height / 2))
+            Dim previewEntity As New PRE2.Entity({frameToDraw}, {}, New PointF(0, 0)) 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
 
-            ReDim rendererEngine.entities(0)
-            rendererEngine.entities(0) = previewEntity
+            ReDim renderer.entities(0)
+            renderer.entities(0) = previewEntity
 
-            Dim newPanelDimensions As New Size(frameToDraw.Dimensions.Width * rendererEngine.renderScale, frameToDraw.Dimensions.Height * rendererEngine.renderScale)
+            Dim newPanelDimensions As New Size(frameToDraw.Dimensions.Width * renderer.renderScale, frameToDraw.Dimensions.Height * renderer.renderScale)
             pnlFramePreview.MaximumSize = newPanelDimensions
             pnlFramePreview.MinimumSize = newPanelDimensions
             pnlFramePreview.Size = newPanelDimensions
@@ -249,7 +224,7 @@ Public Class FrmEntityMaker
 
             RefreshPanelCanvas()
 
-            rendererEngine.DoGameRender({previewEntity})
+            renderer.DoGameRender({previewEntity})
         End If
     End Sub
 
@@ -305,15 +280,15 @@ Public Class FrmEntityMaker
             btnFrameRemove.Enabled = True
             DrawFramePreview(frames(lstFrames.SelectedIndex))
             'RefreshFramesList()
-			
-			If lstSprites.SelectedIndex > -1 Then
-				btnFrameAddSprite.Enabled = True
-			Else
-				btnFrameAddSprite.Enabled = False
-			End If
+
+            If lstSprites.SelectedIndex > -1 Then
+                btnFrameAddSprite.Enabled = True
+            Else
+                btnFrameAddSprite.Enabled = False
+            End If
         Else
             btnFrameRemove.Enabled = False
-			btnFrameAddSprite.Enabled = False
+            btnFrameAddSprite.Enabled = False
         End If
     End Sub
 
@@ -322,20 +297,20 @@ Public Class FrmEntityMaker
 
         Dim spriteIndex As Integer = lstSprites.SelectedIndex
         Dim frameIndex As Integer = lstFrames.SelectedIndex
-		Dim offset As Point
-		Dim userInput As String = InputBox("Enter offset for current sprite e.g. (10,5)", "Enter Offset", "0,0")
+        Dim offset As Point
+        Dim userInput As String = InputBox("Enter offset for current sprite e.g. (10,5)", "Enter Offset", "0,0")
         Dim inputSplit() As String = userInput.Split(",")
-		
-		If userInput <> "" Then
+
+        If userInput <> "" Then
             If inputSplit.Length = 2 AndAlso IsNumeric(Trim(inputSplit(0))) = True And IsNumeric(Trim(inputSplit(1))) = True Then
                 offset = New Point(Int(Trim(inputSplit(0))), Int(Trim(inputSplit(1))))
-                frames(frameIndex).AddSprite(rendererEngine.loadedSprites(spriteIndex), offset)
+                frames(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
 
                 DrawFramePreview(frames(frameIndex))
             Else
                 PRE2.DisplayError("Offsets need to be provided in the form x,y e.g. 10,5")
             End If
-		End If
+        End If
     End Sub
 
     'tags
@@ -349,11 +324,11 @@ Public Class FrmEntityMaker
         tagMaker.ShowDialog()
 
         If tagMaker.userFinished = True Then
-            Try
-                ReDim Preserve tags(UBound(tags) + 1)
-            Catch ex As Exception
+            If IsNothing(tags) = True Then
                 ReDim tags(0)
-            End Try
+            Else
+                ReDim Preserve tags(UBound(tags) + 1)
+            End If
 
             tags(UBound(tags)) = tagMaker.createdTag
 
@@ -410,8 +385,12 @@ Public Class FrmEntityMaker
     End Sub
 
     Private Sub btnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
-        If IsNothing(frames(lstFrames.SelectedIndex)) = False Then
-            DrawFramePreview(frames(lstFrames.SelectedIndex))
+        If IsNothing(frames) = False Then
+            If IsNothing(frames(lstFrames.SelectedIndex)) = False Then
+                DrawFramePreview(frames(lstFrames.SelectedIndex))
+            End If
+        Else
+            renderer.DoGameRender({})       'if there are no frames then clears the render
         End If
     End Sub
 End Class
