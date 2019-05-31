@@ -1,6 +1,6 @@
 ﻿'Richard Holmes
 '23/03/2019
-'Platformer engine, actual game executor
+'Game loader and executor, uses PanelRenderEngine2
 
 Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
@@ -13,6 +13,7 @@ Public Class FrmGame
 
         AddHandler delayTimer.Tick, AddressOf Initialisation
         delayTimer.Start()
+        AddHandler frameTimer.Tick, AddressOf GameTick
     End Sub
 
     Private Sub Initialisation()
@@ -21,25 +22,43 @@ Public Class FrmGame
         delayTimer.Stop()
 
         renderer = New PRE2 With {.panelCanvasGameArea = New PaintEventArgs(pnlGame.CreateGraphics, New Rectangle(New Point(0, 0), pnlGame.Size))}
+        LoadGame()
     End Sub
 
 
     Public Class Room
+        'a room is a collection of entities which are all used at once
+
         Public entityInstances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
     End Class
 
     Public Class Level
+        'class to store entity defaults and rooms
+
         Public entityDefaults() As PRE2.Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
         Public parameters() As PRE2.Tag            'essentially global variables for the level
         Public rooms() As Room                     'stores each room in a 2D array, indexed from the uppermost
         Public roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
+        Public currentRoomCoords As Point          'stores the coordinates of which room is being used currently
 
+        Public Function RoomWithCoords(coords As Point) As Room
+            'returns the room with the coords provided
+
+            For index As Integer = 0 To UBound(roomCoords)
+                If coords = roomCoords(index) Then
+                    Return rooms(index)
+                End If
+            Next index
+
+            PRE2.DisplayError("Couldn't find a room with coordinates " & Str(coords.X) & "," & Str(coords.Y))
+            Return Nothing
+        End Function
     End Class
 
     'save load
 
-    Dim gameFolder As String = ""
     Public loaderFileLocation As String
+	Public levelFiles(0) As String
 
     Private Sub LoadGame()      'this loads the game
         If IO.File.Exists(loaderFileLocation) = True Then
@@ -52,12 +71,42 @@ Public Class FrmGame
             renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
             renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "entityFolder")
             renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
+			renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
 
-
+			'loads the file names of each level, keeps going until a level isn't provided
+            Dim index As Integer = 0
+            Dim finished As Boolean = False
+			Do
+				Dim currentFile As String = renderer.FindProperty(loaderFileText, "level" & Trim(Str(index + 1)))
+				If IsNothing(currentFile) = False Then
+					ReDim Preserve levelFiles(index)
+                    levelFiles(index) = currentFile
+                Else
+                    finished = True
+                End If
+            Loop Until finished = True
+			
+			'loads level 1
+            PlayLevel(1)
         Else
             PRE2.DisplayError("Could not find file: " & loaderFileLocation)
         End If
     End Sub
+	
+	Public Sub PlayLevel(levelNumber As UInteger)
+		'loads the level into memory and starts playing it
+	
+		If IsNothing(levelFiles(levelNumber)) = True Then
+			PRE2.DisplayError("No known level number " & levelNumber)
+		Else
+            currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1))
+            currentRoom = currentLevel.RoomWithCoords(New Point(0, 0))      'sets the starting room to the one with coords 0,0
+            Const frameRate As Single = 60
+
+            frameTimer.Interval = 1000 / frameRate
+            frameTimer.Start()
+		End If
+	End Sub
 
     Private Function LoadLevelFile(fileLocation As String) As Level
         If IO.File.Exists(fileLocation) = True Then
@@ -110,8 +159,8 @@ Public Class FrmGame
                     ReDim Preserve thisLevel.entityDefaults(UBound(thisLevel.entityDefaults) + 1)
                 End If
                 thisLevel.entityDefaults(UBound(thisLevel.entityDefaults)) = newEntity
-            Case "loadRoom"     'loads a room from a file (file location, room coords)
-                Dim newRoom As Room = LoadRoomFile(attributes(0), thisLevel)
+            Case "loadRoom"     'loads a room from a file (file location, room coords (x,y))
+                Dim newRoom As Room = LoadRoomFile(renderer.roomFolderLocation & attributes(0), thisLevel)
                 Dim coords As New Point(Int(attributes(1).Split(",")(0)), Int(attributes(1).Split(",")(1)))
 
                 If IsNothing(thisLevel.rooms) = True Then
@@ -259,8 +308,19 @@ Public Class FrmGame
     End Sub
 
     Dim renderer As PRE2            'panel render engine 2
+    Public currentLevel As Level
+    Public currentRoom As Room
+    Public playerEntity As PRE2.Entity
+    Dim frameTimer As New Timer
 
+    Private Sub GameTick()
+        Dim entitiesToRender() As PRE2.Entity
+        entitiesToRender = currentRoom.entityInstances
+        ReDim Preserve entitiesToRender(UBound(entitiesToRender) + 1)
+        entitiesToRender(UBound(entitiesToRender)) = playerEntity
 
+        renderer.DoGameRender(entitiesToRender)
+    End Sub
 
 
 
