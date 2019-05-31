@@ -62,31 +62,29 @@ Public Class FrmGame
 
     Private Sub LoadGame()      'this loads the game
         If IO.File.Exists(loaderFileLocation) = True Then
-            Dim reader As New IO.StreamReader(loaderFileLocation)
-            Dim loaderFileText As String = reader.ReadToEnd
-            reader.Close()
+            Dim loaderFileText As String = PRE2.ReadFile(loaderFileLocation)
 
             'loads locations of each folder
             Dim topLevelFolder As String = loaderFileLocation.Remove(loaderFileLocation.LastIndexOf("\") + 1)
             renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
             renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "entityFolder")
             renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
-			renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
+            renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
 
-			'loads the file names of each level, keeps going until a level isn't provided
+            'loads the file names of each level, keeps going until a level isn't provided
             Dim index As Integer = 0
             Dim finished As Boolean = False
-			Do
-				Dim currentFile As String = renderer.FindProperty(loaderFileText, "level" & Trim(Str(index + 1)))
-				If IsNothing(currentFile) = False Then
-					ReDim Preserve levelFiles(index)
+            Do
+                Dim currentFile As String = renderer.FindProperty(loaderFileText, "level" & Trim(Str(index + 1)))
+                If IsNothing(currentFile) = False Then
+                    ReDim Preserve levelFiles(index)
                     levelFiles(index) = currentFile
                 Else
                     finished = True
                 End If
             Loop Until finished = True
-			
-			'loads level 1
+
+            'loads level 1
             PlayLevel(1)
         Else
             PRE2.DisplayError("Could not find file: " & loaderFileLocation)
@@ -110,9 +108,7 @@ Public Class FrmGame
 
     Private Function LoadLevelFile(fileLocation As String) As Level
         If IO.File.Exists(fileLocation) = True Then
-            Dim reader As New IO.StreamReader(fileLocation)
-            Dim levelString As String = reader.ReadToEnd
-            reader.Close()
+            Dim levelString As String = PRE2.ReadFile(fileLocation)
 
             Dim thisLevel As New Level
 
@@ -183,9 +179,7 @@ Public Class FrmGame
 
     Private Function LoadRoomFile(fileLocation As String, ByRef thisLevel As Level) As Room
         If IO.File.Exists(fileLocation) = True Then
-            Dim reader As New IO.StreamReader(fileLocation)
-            Dim roomString As String = reader.ReadToEnd()
-            reader.Close()
+            Dim roomString As String = PRE2.ReadFile(fileLocation)
 
             Dim thisRoom As New Room
             Dim lines() As String = roomString.Split(Environment.NewLine)
@@ -283,10 +277,7 @@ Public Class FrmGame
 
     Private Function LoadEntity(fileLocation As String) As PRE2.Entity
         If IO.File.Exists(fileLocation) = True Then
-            Dim reader As New IO.StreamReader(fileLocation)
-            Dim fileText As String = reader.ReadToEnd
-
-            reader.Close()
+            Dim fileText As String = PRE2.ReadFile(fileLocation)
 
             Dim result As PRE2.Entity = EntityStringHandler.ReadEntityString(fileText, renderer)
 
@@ -300,10 +291,9 @@ Public Class FrmGame
 
     Private Sub LoadSprite(fileLocation As String)
         If IO.File.Exists(fileLocation) = True Then
-            Dim reader As New IO.StreamReader(fileLocation)
-            Dim fileText As String = reader.ReadToEnd
+            Dim fileText As String = PRE2.ReadFile(fileLocation)
 
-            reader.Close()
+            'this is not finished, might be replaced by PRE2
         End If
     End Sub
 

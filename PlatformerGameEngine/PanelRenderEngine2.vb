@@ -534,10 +534,27 @@ Public Class PanelRenderEngine2
     End Function
 
     Public Shared Function ReadFile(fileLocation As String) As String
+        'returns the contents of a text file at a given location
+
         If IO.File.Exists(fileLocation) = True Then
             Dim reader As New IO.StreamReader(fileLocation)
+            Dim fileText As String = reader.ReadToEnd()
+            reader.Close()
+
+            Return fileText
         Else
             DisplayError("Couldn't find file " & fileLocation)
+            Return Nothing
         End If
     End Function
+
+    Public Shared Sub WriteFile(fileLocation As String, message As String)
+        Dim writer As New IO.StreamWriter(fileLocation)
+
+        For Each c As Char In message
+            writer.Write(c)
+        Next c
+
+        writer.Close()
+    End Sub
 End Class

@@ -91,9 +91,7 @@ Public Class FrmEntityMaker
         Dim openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Title = "Select Loader File"}
         If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
             If IO.File.Exists(openDialog.FileName) = True Then
-                Dim reader As New IO.StreamReader(openDialog.FileName)
-                Dim loaderText As String = reader.ReadToEnd
-                reader.Close()
+                Dim loaderText As String = PRE2.ReadFile(openDialog.FileName)
 
                 Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
                 'renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "levelFolder")
@@ -126,7 +124,7 @@ Public Class FrmEntityMaker
 
         If saveDialog.ShowDialog = DialogResult.OK Then
             saveLocation = saveDialog.FileName
-            SaveTextToFile(EntityString, saveLocation)
+            PRE2.WriteFile(saveLocation, EntityString)
 
             btnSave.Enabled = True
         End If
@@ -136,31 +134,17 @@ Public Class FrmEntityMaker
         'saves the file to the already selected location
 
         If IO.File.Exists(saveLocation) Then
-            SaveTextToFile(EntityString, saveLocation)
+            PRE2.WriteFile(saveLocation, EntityString)
         Else
             PRE2.DisplayError("Couldn't find file at " & saveLocation)
         End If
-    End Sub
-
-    Private Sub SaveTextToFile(text As String, fileLocation As String)
-        Dim writer As New IO.StreamWriter(fileLocation)
-        Dim toWrite As String = text
-
-        For Each c As Char In toWrite
-            writer.Write(c)
-        Next c
-
-        writer.Close()
     End Sub
 
     Private Sub ReadEntityFromFile(fileLocation As String)
         'reads the entity stored in a given file
 
         If IO.File.Exists(fileLocation) = True Then
-            Dim reader As New IO.StreamReader(fileLocation)
-            Dim fileText As String = reader.ReadToEnd
-
-            reader.Close()
+            Dim fileText As String = PRE2.ReadFile(fileLocation)
 
             ent = EntityStringHandler.ReadEntityString(fileText, renderer)
 
