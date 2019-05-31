@@ -12,37 +12,41 @@ Module EntityStringHandler
         Dim result As String = ent.name & vbCrLf
 
         'adds a list of frames and which sprites make them up
-        For frameIndex As Integer = 0 To UBound(ent.frames)
-            Dim currentFrame As PRE2.Frame = ent.frames(frameIndex)
+        If IsNothing(ent.frames) = False Then
+            For frameIndex As Integer = 0 To UBound(ent.frames)
+                Dim currentFrame As PRE2.Frame = ent.frames(frameIndex)
 
-            For spriteIndex As Integer = 0 To UBound(currentFrame.sprites)
-                Dim currentSprite As PRE2.Sprite = currentFrame.sprites(spriteIndex)
+                For spriteIndex As Integer = 0 To UBound(currentFrame.sprites)
+                    Dim currentSprite As PRE2.Sprite = currentFrame.sprites(spriteIndex)
 
-                If currentSprite.fileName <> Nothing Then
-                    'eg Sprite1\25,0/
-                    result += currentSprite.fileName & ":" & Trim(Str(currentFrame.offsets(spriteIndex).X)) & "," & Trim(Str(currentFrame.offsets(spriteIndex).Y)) & "/"
-                Else
-                    PRE2.DisplayError("Unknown file name for sprite #" & Trim(Str(spriteIndex + 1)) & " of frame #" & Trim(Str(frameIndex + 1)) & " for entity " & ent.name)
-                End If
-            Next spriteIndex
+                    If currentSprite.fileName <> Nothing Then
+                        'eg Sprite1\25,0/
+                        result += currentSprite.fileName & ":" & Trim(Str(currentFrame.offsets(spriteIndex).X)) & "," & Trim(Str(currentFrame.offsets(spriteIndex).Y)) & "/"
+                    Else
+                        PRE2.DisplayError("Unknown file name for sprite #" & Trim(Str(spriteIndex + 1)) & " of frame #" & Trim(Str(frameIndex + 1)) & " for entity " & ent.name)
+                    End If
+                Next spriteIndex
 
-            result = result.Remove(Len(result) - 1, 1) & ";"        'removes the last / and adds ;
-        Next frameIndex
+                result = result.Remove(Len(result) - 1, 1) & ";"        'removes the last / and adds ;
+            Next frameIndex
+        End If
 
         result = result.Remove(Len(result) - 1, 1)      'removes the last ;
 
         'adds a line for tags
-        For tagIndex As Integer = 0 To UBound(ent.tags)
-            Dim currentTag As PRE2.Tag = ent.tags(tagIndex)
+        If IsNothing(ent.tags) = False Then
+            For tagIndex As Integer = 0 To UBound(ent.tags)
+                Dim currentTag As PRE2.Tag = ent.tags(tagIndex)
 
-            result += currentTag.name
+                result += currentTag.name
 
-            For argIndex As Integer = 0 To UBound(currentTag.args)
-                result += "\" & currentTag.args(argIndex).ToString
-            Next argIndex
+                For argIndex As Integer = 0 To UBound(currentTag.args)
+                    result += "\" & currentTag.args(argIndex).ToString
+                Next argIndex
 
-            result += "/"
-        Next tagIndex
+                result += "/"
+            Next tagIndex
+        End If
 
         result = result.Remove(Len(result) - 1, 1)      'removes last /
 
