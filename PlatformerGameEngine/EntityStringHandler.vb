@@ -9,7 +9,7 @@ Module EntityStringHandler
     Public Function CreateEntityString(ent As PRE2.Entity) As String
         'creates a string which can be saved to a file
 
-        Dim result As String = ""
+        Dim result As String = ent.name & vbCrLf
 
         'adds a list of frames and which sprites make them up
         For frameIndex As Integer = 0 To UBound(ent.frames)
@@ -49,15 +49,19 @@ Module EntityStringHandler
         Return result
     End Function
 
-    Public Function ReadEntityString(entityString As String, ByRef renderEngine As PRE2, folderLocation As String) As PRE2.Entity
+    Public Function ReadEntityString(entityString As String, ByRef renderEngine As PRE2) As PRE2.Entity
         'reads a string, as created in CreateEntityString, returning an entity
 
         Dim result As New PRE2.Entity
         Dim lines() As String = entityString.Split(Environment.NewLine)     'there should be 2 lines
         Dim currentLine As String
 
-        'loads the frames of the entity
+        'loads the name of the entity
         currentLine = lines(0)
+        result.name = currentLine
+
+        'loads the frames of the entity
+        currentLine = lines(1)
         Dim framesValues() As String = currentLine.Split(";")
         ReDim result.frames(UBound(framesValues))
         For frameIndex As Integer = 0 To UBound(framesValues)
@@ -73,7 +77,7 @@ Module EntityStringHandler
                 Dim spriteFile As String = values(0)
                 Dim offset As New Point(Val(values(1).Split(",")(0)), Val(values(1).Split(",")(1)))
 
-                renderEngine.LoadSprite(folderLocation & spriteFile)
+                renderEngine.LoadSprite(renderEngine.spriteFolderLocation & spriteFile)
                 newFrame.sprites(spriteIndex) = renderEngine.FindLoadedSprite(spriteFile)
                 newFrame.offsets(spriteIndex) = offset
             Next spriteIndex
@@ -82,7 +86,7 @@ Module EntityStringHandler
         Next frameIndex
 
         'loads the tags
-        currentLine = lines(1)
+        currentLine = lines(2)
         Dim tagStrings() As String = currentLine.Split("/")
         ReDim result.tags(UBound(tagStrings))
         For tagIndex As Integer = 0 To UBound(tagStrings)

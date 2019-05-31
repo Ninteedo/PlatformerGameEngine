@@ -69,6 +69,7 @@ Public Class FrmEntityMaker
             'Dim tags() As PRE2.Tag
 
             Dim ent As New PRE2.Entity With {
+                .name = txtName.Text,
                 .frames = frames,
                 .tags = tags
             }
@@ -80,6 +81,8 @@ Public Class FrmEntityMaker
     Private Sub GetFolderLocations()
         'asks the user to select the location of the folders
         'TRY TO REMOVE THE NEED FOR THIS
+
+        'change this to loading folder locations from a level file, or just selecting save location and sprite folder
 
         MsgBox("Please select the top level folder for the game", MsgBoxStyle.OkOnly)
         Dim openDialog As New FolderBrowserDialog
@@ -184,7 +187,7 @@ Public Class FrmEntityMaker
 
             reader.Close()
 
-            ent = EntityStringHandler.ReadEntityString(fileText, rendererEngine, rendererEngine.spriteFolderLocation)
+            ent = EntityStringHandler.ReadEntityString(fileText, rendererEngine)
 
             frames = ent.frames
             tags = ent.tags
@@ -246,7 +249,7 @@ Public Class FrmEntityMaker
 
             RefreshPanelCanvas()
 
-            rendererEngine.DoGameRender()
+            rendererEngine.DoGameRender({previewEntity})
         End If
     End Sub
 

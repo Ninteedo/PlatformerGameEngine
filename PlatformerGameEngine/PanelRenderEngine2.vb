@@ -15,6 +15,7 @@ Public Class PanelRenderEngine2
     Public spriteFolderLocation As String
     Public entityFolderLocation As String
     Public levelFolderLocation As String
+    Public roomsFolderLocation
 
     Public Structure Tag
         Dim name As String
@@ -28,7 +29,9 @@ Public Class PanelRenderEngine2
         Public Sub New(ByVal tagString As String)
             'creates a tag from a string
 
-            If Mid(tagString, 1, 4) = "tag(" And Mid(tagString, tagString.Length, 1) = ")" Then     'checks that string is actually a tag
+            'checks that string is actually a tag
+            If Mid(tagString, 1, 4) = "tag(" And Mid(tagString, tagString.Length, 1) = ")" Then
+
                 tagString = tagString.Remove(1, 4)      'removes "tag("
                 tagString = tagString.Remove(tagString.Length, 1)   'removes ")"
 
@@ -86,6 +89,8 @@ Public Class PanelRenderEngine2
             rotation = startRotation
             scale = startScale
         End Sub
+
+
 
         Public Function FindTag(tagName As String) As Tag
             'returns the first tag this entity has with the given name
@@ -378,6 +383,11 @@ Public Class PanelRenderEngine2
         MsgBox(message, MsgBoxStyle.Exclamation)
     End Sub
 
+    Public Sub Log(message As String, warnLevel As Integer)
+        'logs something noteworthy, eg an error or a warning or a debug
+        'warn levels are 0:info, 1:warn, 2:error, 3:fatal
+    End Sub
+
     Public Shared Function FindFolderPath(path As String, folderName As String) As String
         'returns the location of the folder with the given name in the string
 
@@ -401,6 +411,23 @@ Public Class PanelRenderEngine2
         Return result
     End Function
 
+    Public Function FindProperty(fileText As String, propertyName As String) As String     'returns the property in a file with a given name, property: value
+        Dim lines() As String = fileText.Split(Environment.NewLine)
+        Dim result As String = ""
+
+        For Each line As String In lines
+            Dim currentProperty As String = line.Split(":")(0)
+
+            If currentProperty = propertyName Then
+                Return Trim(line.Split(":")(1))         'issue: cant have colons anywhere else in the line
+            End If
+        Next line
+
+        Log("Couldn't find property " & propertyName, 1)
+
+        Return Nothing
+    End Function
+
     Private Sub Initialisation()
         EntityInitialisation()
     End Sub
@@ -414,7 +441,9 @@ Public Class PanelRenderEngine2
 
     'actual rendering part of the program
 
-    Public Sub DoGameRender()
+    Dim previousEntityNamesOrdered() As String
+
+    Public Sub DoGameRender(entityList() As Entity)
         'renders everything
 
         'Dim nextRender As BufferedGraphics
@@ -422,10 +451,27 @@ Public Class PanelRenderEngine2
 
         panelCanvasGameArea.Graphics.Clear(Color.Black)
 
+        'find used layer numbers
+        Dim layers(0) As Integer
+        For Each entity In entityList
+            Dim layer As Integer = If(IsNumeric(entity.FindTag("layer")), Int(entity.FindTag("layer")), 0)      'default is 0
+
+            If layers.Contains(layer) = False Then
+                ReDim Preserve layers(UBound(layers) + 1)
+                layers(UBound(layers)) = layer
+            End If
+        Next
+
+        'sort entities by render layers
+        Dim sortedEntityIndices() As Integer
+
+
+
+
         'entity rendering
-        If IsNothing(entities) = False Then
-            For entityIndex As Integer = 0 To UBound(entities)
-                Dim currentEntity As Entity = entities(entityIndex)
+        If IsNothing(entityList) = False Then
+            For entityIndex As Integer = 0 To UBound(entityList)
+                Dim currentEntity As Entity = entityList(entityIndex)
                 Dim renderFrame As Frame = currentEntity.frames(currentEntity.currentFrame)
                 Dim renderPixels(,) As Color = renderFrame.ToColourArray
 
