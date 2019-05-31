@@ -31,8 +31,8 @@ Public Class FrmMenu
 
         menuButtons = {btnMenu1, btnMenu2, btnMenu3}
         menuLayouts(0) = New MenuOptions With {
-            .buttonText = {"Load Game", "Tools"},
-            .behaviours = {"LoadGame", "OpenToolsMenu"},
+            .buttonText = {"Load Game", "Options", "Tools"},
+            .behaviours = {"LoadGame", "OpenOptionsMenu", "OpenToolsMenu"},
             .previousMenuIndex = -1
         }
         SetMenu(0)
@@ -57,6 +57,8 @@ Public Class FrmMenu
             Select Case layout.behaviours(buttonIndex)      'does whatever the behaviour linked to the button is
                 Case "LoadGame"
                     LoadGame()
+                Case "OpenOptionsMenu"
+
                 Case "OpenToolsMenu"
                     OpenToolsMenu()
                 Case "OpenSpriteMaker"
@@ -74,7 +76,29 @@ Public Class FrmMenu
     Private Sub LoadGame()
         'loads the game selected by the user
 
-        MsgBox("Not ready yet")
+        Dim openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Multiselect = False}
+        MsgBox("Please select the game loader file")
+        If openDialog.ShowDialog() = Windows.Forms.DialogResult.OK Then
+            Dim game As New FrmGame With {.loaderFileLocation = openDialog.FileName}
+
+            game.ShowDialog()
+        End If
+    End Sub
+
+    Private Sub OpenOptionsMenu()
+        'changes the menu layout to one relevant to the options menu
+
+        'Dim optionsMenuLayout As New MenuOptions With {
+        '    .buttonText = {},
+        '    .behaviours = {},
+        '    .previousMenuIndex = currentMenuIndex
+        '    }
+        'ReDim Preserve menuLayouts(UBound(menuLayouts) + 1)
+        'menuLayouts(UBound(menuLayouts)) = optionsMenuLayout
+        'currentMenuIndex = UBound(menuLayouts)
+        'SetMenu(currentMenuIndex)
+
+        'open FrmOptions
     End Sub
 
     Private Sub OpenToolsMenu()
@@ -99,8 +123,10 @@ Public Class FrmMenu
         For index As Integer = 0 To UBound(menuButtons)
             If index <= UBound(layout.buttonText) AndAlso IsNothing(layout.buttonText(index)) = False Then
                 menuButtons(index).Text = layout.buttonText(index)
+                menuButtons(index).Visible = True
             Else
                 menuButtons(index).Text = Trim(Str(index + 1))
+                menuButtons(index).Visible = False
             End If
         Next index
 
@@ -133,7 +159,8 @@ Public Class FrmMenu
     Private Sub OpenLevelEditor()
         'opens the level editor tool
 
-        MsgBox("Not ready yet")
+        Dim levelEditor As New FrmLevelEditor
+        levelEditor.ShowDialog()
     End Sub
 
     Private Sub OpenEntityMaker()
