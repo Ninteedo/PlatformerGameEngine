@@ -15,7 +15,7 @@ Public Class PanelRenderEngine2
     Public spriteFolderLocation As String
     Public entityFolderLocation As String
     Public levelFolderLocation As String
-    Public roomsFolderLocation
+    Public roomFolderLocation As String
 
     Public Structure Tag
         Dim name As String
@@ -95,11 +95,13 @@ Public Class PanelRenderEngine2
         Public Function FindTag(tagName As String) As Tag
             'returns the first tag this entity has with the given name
 
-            For index As Integer = 0 To UBound(tags)
-                If tags(index).name = tagName Then
-                    Return tags(index)
-                End If
-            Next index
+            If IsNothing(tags) = False Then
+                For index As Integer = 0 To UBound(tags)
+                    If tags(index).name = tagName Then
+                        Return tags(index)
+                    End If
+                Next index
+            End If
 
             Return Nothing
         End Function
@@ -123,7 +125,7 @@ Public Class PanelRenderEngine2
         End Sub
 
         Public Sub RemoveTag(tagName As String)
-            'removes a tag with given name
+            'removes a tag with given name, removes all tags with the name
 
             Dim tagIndex As Integer = 0
 
@@ -172,12 +174,12 @@ Public Class PanelRenderEngine2
 
             'this is the part which actually sets the frame's pixels
             For index As Integer = 0 To UBound(sprites)
-                For x As Integer = offsets(index).X To sprites(index).pixels.GetUpperBound(0)
-                    For y As Integer = offsets(index).Y To sprites(index).pixels.GetUpperBound(1)
+                For x As Integer = offsets(index).X To offsets(index).X + sprites(index).pixels.GetUpperBound(0)
+                    For y As Integer = offsets(index).Y To offsets(index).Y + sprites(index).pixels.GetUpperBound(1)
                         If x >= 0 And y >= 0 Then       'checks that x and y are both positive
-                            Dim pixelColour As Color = sprites(index).pixels(x, y)
+                            Dim pixelColour As Color = sprites(index).pixels(x - offsets(index).X, y - offsets(index).Y)
 
-                            If pixelColour <> Color.Transparent Then
+                            If pixelColour.A <> 0 Then
                                 pixels(x, y) = pixelColour
                             End If
                         End If
@@ -191,14 +193,14 @@ Public Class PanelRenderEngine2
         Public Function Dimensions() As Size
             'returns the max X and Y of the frame
 
-            Dim result As New Size
+            Dim result As New Size(0, 0)
             For index As Integer = 0 To UBound(sprites)
                 Dim maxSize As New Size(sprites(index).pixels.GetLength(0) + offsets(index).X, sprites(index).pixels.GetLength(1) + offsets(index).Y)
 
-                If maxSize.Width > Dimensions.Width Then
+                If maxSize.Width > result.Width Then
                     result.Width = maxSize.Width
                 End If
-                If maxSize.Height > Dimensions.Height Then
+                If maxSize.Height > result.Height Then
                     result.Height = maxSize.Height
                 End If
             Next index
@@ -463,7 +465,7 @@ Public Class PanelRenderEngine2
         Next
 
         'sort entities by render layers
-        Dim sortedEntityIndices() As Integer
+        'Dim sortedEntityIndices() As Integer
 
 
 
@@ -472,18 +474,20 @@ Public Class PanelRenderEngine2
         If IsNothing(entityList) = False Then
             For entityIndex As Integer = 0 To UBound(entityList)
                 Dim currentEntity As Entity = entityList(entityIndex)
-                Dim renderFrame As Frame = currentEntity.frames(currentEntity.currentFrame)
-                Dim renderPixels(,) As Color = renderFrame.ToColourArray
+                If IsNothing(currentEntity.frames) = False AndAlso currentEntity.currentFrame <= UBound(currentEntity.frames) And currentEntity.currentFrame >= 0 Then
+                    Dim renderFrame As Frame = currentEntity.frames(currentEntity.currentFrame)
+                    Dim renderPixels(,) As Color = renderFrame.ToColourArray
 
-                For x As Integer = 0 To renderFrame.Dimensions.Width - 1
-                    For y As Integer = 0 To renderFrame.Dimensions.Height - 1
-                        Dim rotation As Single = currentEntity.rotation
-                        Dim scale As Single = renderScale / 2
-                        Dim pixelCentre As New PointF(currentEntity.location.X + x * (scale * 3 / 2), currentEntity.location.Y + y * (scale * 3 / 2))
+                    For x As Integer = 0 To renderFrame.Dimensions.Width - 1
+                        For y As Integer = 0 To renderFrame.Dimensions.Height - 1
+                            Dim rotation As Single = currentEntity.rotation
+                            Dim scale As Single = renderScale / 2
+                            Dim pixelCentre As New PointF(currentEntity.location.X + x * (scale * 3 / 2), currentEntity.location.Y + y * (scale * 3 / 2))
 
-                        DrawPixel(pixelCentre, renderPixels(x, y), rotation, scale)
-                    Next y
-                Next x
+                            DrawPixel(pixelCentre, renderPixels(x, y), rotation, scale)
+                        Next y
+                    Next x
+                End If
             Next entityIndex
         End If
     End Sub
@@ -528,4 +532,12 @@ Public Class PanelRenderEngine2
 
         Return result
     End Function
+	
+	Public Shared Function ReadFile(fileLocation As String) As String
+		If IO.File.Exists(fileLocation) = True Then
+			Dim reader As New IO.StreamReader(fileLocation)
+		Else
+			DisplayError("Couldn't find file " & fileLocation)
+		End If
+	End Function
 End Class
