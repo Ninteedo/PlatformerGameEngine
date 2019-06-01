@@ -26,20 +26,20 @@ Public Class FrmGame
     End Sub
 
 
-    Public Class Room
+    Public Structure Room
         'a room is a collection of entities which are all used at once
 
-        Public entityInstances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
-    End Class
+        Dim instances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
+    End Structure
 
-    Public Class Level
+    Public Structure Level
         'class to store entity defaults and rooms
 
-        Public entityDefaults() As PRE2.Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
-        Public parameters() As PRE2.Tag            'essentially global variables for the level
-        Public rooms() As Room                     'stores each room in a 2D array, indexed from the uppermost
-        Public roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
-        Public currentRoomCoords As Point          'stores the coordinates of which room is being used currently
+        Dim templates() As PRE2.Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
+        Dim parameters() As PRE2.Tag            'essentially global variables for the level
+        Dim rooms() As Room                     'stores each room in a 2D array, indexed from the uppermost
+        Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
+        Dim currentRoomCoords As Point          'stores the coordinates of which room is being used currently
 
         Public Function RoomWithCoords(coords As Point) As Room
             'returns the room with the coords provided
@@ -53,12 +53,12 @@ Public Class FrmGame
             PRE2.DisplayError("Couldn't find a room with coordinates " & Str(coords.X) & "," & Str(coords.Y))
             Return Nothing
         End Function
-    End Class
+    End Structure
 
     'save load
 
     Public loaderFileLocation As String
-	Public levelFiles(0) As String
+    Public levelFiles(0) As String
 
     Private Sub LoadGame()      'this loads the game
         If IO.File.Exists(loaderFileLocation) = True Then
@@ -90,32 +90,32 @@ Public Class FrmGame
             PRE2.DisplayError("Could not find file: " & loaderFileLocation)
         End If
     End Sub
-	
-	Public Sub PlayLevel(levelNumber As UInteger)
-		'loads the level into memory and starts playing it
-	
-		If IsNothing(levelFiles(levelNumber)) = True Then
-			PRE2.DisplayError("No known level number " & levelNumber)
-		Else
-            currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1))
+
+    Public Sub PlayLevel(levelNumber As UInteger)
+        'loads the level into memory and starts playing it
+
+        If IsNothing(levelFiles(levelNumber)) = True Then
+            PRE2.DisplayError("No known level number " & levelNumber)
+        Else
+            currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer)
             currentRoom = currentLevel.RoomWithCoords(New Point(0, 0))      'sets the starting room to the one with coords 0,0
             Const frameRate As Single = 60
 
             frameTimer.Interval = 1000 / frameRate
             frameTimer.Start()
-		End If
-	End Sub
+        End If
+    End Sub
 
-    Private Function LoadLevelFile(fileLocation As String) As Level
+    Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2) As Level
         If IO.File.Exists(fileLocation) = True Then
             Dim levelString As String = PRE2.ReadFile(fileLocation)
 
-            Dim thisLevel As New Level
+            Dim thisLevel As Level = New Level
 
             Dim lines() As String = levelString.Split(Environment.NewLine)
 
             For lineIndex As Integer = 0 To UBound(lines)
-                ParseLevelLine(lines(lineIndex), thisLevel)
+                ParseLevelLine(lines(lineIndex), thisLevel, renderEngine)
             Next lineIndex
 
             Return thisLevel
@@ -128,7 +128,7 @@ Public Class FrmGame
 
 
 
-    Private Sub ParseLevelLine(line As String, ByRef thisLevel As Level)
+    Public Shared Sub ParseLevelLine(line As String, ByRef thisLevel As Level, renderEngine As PRE2)
         'reads a line and loads/adds to/changes the level accordingly
 
         Try     'maybe clean this up
@@ -146,17 +146,17 @@ Public Class FrmGame
             Case "loadEnt"      'loads an entity from a file (file location, name)
                 Dim newEntity As PRE2.Entity
 
-                newEntity = LoadEntity(attributes(0))
+                newEntity = LoadEntity(attributes(0), renderEngine)
                 newEntity.AddTag(New PRE2.Tag("name", {attributes(1)}))
 
-                If IsNothing(thisLevel.entityDefaults) = True Then
-                    ReDim thisLevel.entityDefaults(0)
+                If IsNothing(thisLevel.templates) = True Then
+                    ReDim thisLevel.templates(0)
                 Else
-                    ReDim Preserve thisLevel.entityDefaults(UBound(thisLevel.entityDefaults) + 1)
+                    ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) + 1)
                 End If
-                thisLevel.entityDefaults(UBound(thisLevel.entityDefaults)) = newEntity
+                thisLevel.templates(UBound(thisLevel.templates)) = newEntity
             Case "loadRoom"     'loads a room from a file (file location, room coords (x,y))
-                Dim newRoom As Room = LoadRoomFile(renderer.roomFolderLocation & attributes(0), thisLevel)
+                Dim newRoom As Room = LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel)
                 Dim coords As New Point(Int(attributes(1).Split(",")(0)), Int(attributes(1).Split(",")(1)))
 
                 If IsNothing(thisLevel.rooms) = True Then
@@ -177,7 +177,7 @@ Public Class FrmGame
         End Select
     End Sub
 
-    Private Function LoadRoomFile(fileLocation As String, ByRef thisLevel As Level) As Room
+    Public Shared Function LoadRoomFile(fileLocation As String, ByRef thisLevel As Level) As Room
         If IO.File.Exists(fileLocation) = True Then
             Dim roomString As String = PRE2.ReadFile(fileLocation)
 
@@ -196,7 +196,7 @@ Public Class FrmGame
         End If
     End Function
 
-    Private Sub ParseRoomLine(line As String, ByRef thisRoom As Room, ByRef thisLevel As Level)
+    Public Shared Sub ParseRoomLine(line As String, ByRef thisRoom As Room, ByRef thisLevel As Level)
 
         Dim lineType As String = line.Split(":")(0)          'line type decides what the current line does, eg loadEnt
         Dim attributes() As String = line.Split(":")(1).Split("/")     'the specifics of what the line does, the order matters, delimited by /
@@ -206,9 +206,9 @@ Public Class FrmGame
                 Dim entityTemplate As New PRE2.Entity
 
                 'finds the entity template with the name
-                For index As Integer = 0 To UBound(thisLevel.entityDefaults)
-                    If thisLevel.entityDefaults(index).FindTag("name").args(0) = attributes(0) Then
-                        entityTemplate = thisLevel.entityDefaults(index)
+                For index As Integer = 0 To UBound(thisLevel.templates)
+                    If thisLevel.templates(index).FindTag("name").args(0) = attributes(0) Then
+                        entityTemplate = thisLevel.templates(index)
                     End If
                 Next index
 
@@ -233,21 +233,21 @@ Public Class FrmGame
                         newEnt.AddTag(currentTag)
                     Next index
 
-                    If IsNothing(thisRoom.entityInstances) = True Then
-                        ReDim thisRoom.entityInstances(0)
+                    If IsNothing(thisRoom.instances) = True Then
+                        ReDim thisRoom.instances(0)
                     Else
-                        ReDim Preserve thisRoom.entityInstances(UBound(thisRoom.entityInstances) + 1)
+                        ReDim Preserve thisRoom.instances(UBound(thisRoom.instances) + 1)
                     End If
-                    thisRoom.entityInstances(UBound(thisRoom.entityInstances)) = newEnt
+                    thisRoom.instances(UBound(thisRoom.instances)) = newEnt
                 End If
 
             Case "editEnt"      'modifies an instance of an entity (instance name, tags)
                 Dim entityInstance As PRE2.Entity
 
                 'finds the entity instance with the name
-                For index As Integer = 0 To UBound(thisRoom.entityInstances)
-                    If thisRoom.entityInstances(index).FindTag("name").args(0) = attributes(0) Then
-                        entityInstance = thisRoom.entityInstances(index)
+                For index As Integer = 0 To UBound(thisRoom.instances)
+                    If thisRoom.instances(index).FindTag("name").args(0) = attributes(0) Then
+                        entityInstance = thisRoom.instances(index)
                     End If
                 Next index
 
@@ -275,11 +275,11 @@ Public Class FrmGame
 
     'End Sub
 
-    Private Function LoadEntity(fileLocation As String) As PRE2.Entity
+    Public Shared Function LoadEntity(fileLocation As String, renderEngine As PRE2) As PRE2.Entity
         If IO.File.Exists(fileLocation) = True Then
             Dim fileText As String = PRE2.ReadFile(fileLocation)
 
-            Dim result As PRE2.Entity = EntityStringHandler.ReadEntityString(fileText, renderer)
+            Dim result As PRE2.Entity = EntityStringHandler.ReadEntityString(fileText, renderEngine)
 
             Return result
         Else
@@ -305,7 +305,7 @@ Public Class FrmGame
 
     Private Sub GameTick()
         Dim entitiesToRender() As PRE2.Entity
-        entitiesToRender = currentRoom.entityInstances
+        entitiesToRender = currentRoom.instances
         ReDim Preserve entitiesToRender(UBound(entitiesToRender) + 1)
         entitiesToRender(UBound(entitiesToRender)) = playerEntity
 
