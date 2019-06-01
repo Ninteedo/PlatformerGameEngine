@@ -64,6 +64,24 @@ Public Class PanelRenderEngine2
 
             Return result
         End Function
+
+        Public Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
+            'used for = and <> operators
+
+            If tag1.name = tag2.name AndAlso tag1.args Is tag2.args Then
+                Return True
+            Else
+                Return False
+            End If
+        End Function
+
+        Public Shared Operator =(tag1 As Tag, tag2 As Tag) As Boolean
+            Return AreTagsIdentical(tag1, tag2)
+        End Operator
+
+        Public Shared Operator <>(tag1 As Tag, tag2 As Tag) As Boolean
+            Return Not AreTagsIdentical(tag1, tag2)
+        End Operator
     End Structure
 
     Public Structure Entity
@@ -527,10 +545,32 @@ Public Class PanelRenderEngine2
                 result = Nothing
             End If
         Else
-            ReDim result(lengthChange)
+            If lengthChange >= 0 Then
+                ReDim result(lengthChange)
+            End If
         End If
 
         Return result
+    End Function
+
+    Public Shared Function RemoveElementFromArray(oldArray(), indexToRemove) As Object
+        'returns the given array but with an element removed
+
+        If indexToRemove >= 0 And indexToRemove <= UBound(oldArray) Then
+            Dim result() As Object = oldArray
+
+            For index As Integer = indexToRemove To UBound(result) - 1
+                result(index) = result(index + 1)
+            Next index
+
+            ReDim Preserve result(UBound(result) - 1)
+
+            Return result
+        Else
+            DisplayError("Tried to remove an element at index " & indexToRemove & " in an array with a max index of " & UBound(oldArray))
+
+            Return oldArray
+        End If
     End Function
 
     Public Shared Function ReadFile(fileLocation As String) As String
