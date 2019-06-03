@@ -22,10 +22,10 @@ Partial Class FrmLevelEditor
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.pnlGame = New System.Windows.Forms.Panel()
-        Me.btnSave = New System.Windows.Forms.Button()
-        Me.btnSaveAs = New System.Windows.Forms.Button()
-        Me.btnOpen = New System.Windows.Forms.Button()
+        Me.pnlRender = New System.Windows.Forms.Panel()
+        Me.btnRoomSave = New System.Windows.Forms.Button()
+        Me.btnRoomSaveAs = New System.Windows.Forms.Button()
+        Me.btnRoomOpen = New System.Windows.Forms.Button()
         Me.lblTemplatesList = New System.Windows.Forms.Label()
         Me.lstTemplates = New System.Windows.Forms.ListBox()
         Me.btnLoadEntity = New System.Windows.Forms.Button()
@@ -40,7 +40,8 @@ Partial Class FrmLevelEditor
         Me.numTagScale = New System.Windows.Forms.NumericUpDown()
         Me.lblTagScale = New System.Windows.Forms.Label()
         Me.flwSaveLoad = New System.Windows.Forms.FlowLayoutPanel()
-        Me.tblTags = New System.Windows.Forms.TableLayoutPanel()
+        Me.lblRoomTitle = New System.Windows.Forms.Label()
+        Me.tblTagsSummary = New System.Windows.Forms.TableLayoutPanel()
         Me.lblTagName = New System.Windows.Forms.Label()
         Me.txtTagName = New System.Windows.Forms.TextBox()
         Me.btnInstanceCreate = New System.Windows.Forms.Button()
@@ -48,58 +49,78 @@ Partial Class FrmLevelEditor
         Me.btnInstanceDuplicate = New System.Windows.Forms.Button()
         Me.btnInstanceDelete = New System.Windows.Forms.Button()
         Me.lstTags = New System.Windows.Forms.ListBox()
-        Me.TableLayoutPanel1 = New System.Windows.Forms.TableLayoutPanel()
+        Me.tblTagsDetailed = New System.Windows.Forms.TableLayoutPanel()
         Me.btnTagAdd = New System.Windows.Forms.Button()
         Me.btnTagEdit = New System.Windows.Forms.Button()
         Me.btnTagRemove = New System.Windows.Forms.Button()
+        Me.tblRoom = New System.Windows.Forms.TableLayoutPanel()
+        Me.FlowLayoutPanel1 = New System.Windows.Forms.FlowLayoutPanel()
+        Me.lblLevelTitle = New System.Windows.Forms.Label()
+        Me.btnLevelOpen = New System.Windows.Forms.Button()
+        Me.btnLevelSaveAs = New System.Windows.Forms.Button()
+        Me.btnLevelSave = New System.Windows.Forms.Button()
+        Me.TableLayoutPanel1 = New System.Windows.Forms.TableLayoutPanel()
+        Me.btnParamAdd = New System.Windows.Forms.Button()
+        Me.lstParams = New System.Windows.Forms.ListBox()
+        Me.btnParamEdit = New System.Windows.Forms.Button()
+        Me.btnParamRemove = New System.Windows.Forms.Button()
+        Me.TableLayoutPanel2 = New System.Windows.Forms.TableLayoutPanel()
+        Me.btnLevelRoomAdd = New System.Windows.Forms.Button()
+        Me.lstRooms = New System.Windows.Forms.ListBox()
+        Me.btnLevelRoomRemove = New System.Windows.Forms.Button()
+        Me.btnRoomEditCoords = New System.Windows.Forms.Button()
         CType(Me.numTagLocX, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.numTagLocY, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.numTagLayer, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.numTagScale, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.flwSaveLoad.SuspendLayout()
-        Me.tblTags.SuspendLayout()
+        Me.tblTagsSummary.SuspendLayout()
         Me.tblEntities.SuspendLayout()
+        Me.tblTagsDetailed.SuspendLayout()
+        Me.tblRoom.SuspendLayout()
+        Me.FlowLayoutPanel1.SuspendLayout()
         Me.TableLayoutPanel1.SuspendLayout()
+        Me.TableLayoutPanel2.SuspendLayout()
         Me.SuspendLayout()
         '
-        'pnlGame
+        'pnlRender
         '
-        Me.pnlGame.BackColor = System.Drawing.Color.Black
-        Me.pnlGame.Location = New System.Drawing.Point(12, 12)
-        Me.pnlGame.Name = "pnlGame"
-        Me.pnlGame.Size = New System.Drawing.Size(800, 600)
-        Me.pnlGame.TabIndex = 1
+        Me.pnlRender.BackColor = System.Drawing.Color.Black
+        Me.pnlRender.Location = New System.Drawing.Point(12, 12)
+        Me.pnlRender.Name = "pnlRender"
+        Me.pnlRender.Size = New System.Drawing.Size(800, 600)
+        Me.pnlRender.TabIndex = 1
         '
-        'btnSave
+        'btnRoomSave
         '
-        Me.btnSave.Enabled = False
-        Me.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnSave.Location = New System.Drawing.Point(215, 3)
-        Me.btnSave.Name = "btnSave"
-        Me.btnSave.Size = New System.Drawing.Size(100, 69)
-        Me.btnSave.TabIndex = 3
-        Me.btnSave.Text = "Save"
-        Me.btnSave.UseVisualStyleBackColor = True
+        Me.btnRoomSave.Enabled = False
+        Me.btnRoomSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnRoomSave.Location = New System.Drawing.Point(330, 3)
+        Me.btnRoomSave.Name = "btnRoomSave"
+        Me.btnRoomSave.Size = New System.Drawing.Size(100, 69)
+        Me.btnRoomSave.TabIndex = 3
+        Me.btnRoomSave.Text = "Save"
+        Me.btnRoomSave.UseVisualStyleBackColor = True
         '
-        'btnSaveAs
+        'btnRoomSaveAs
         '
-        Me.btnSaveAs.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnSaveAs.Location = New System.Drawing.Point(109, 3)
-        Me.btnSaveAs.Name = "btnSaveAs"
-        Me.btnSaveAs.Size = New System.Drawing.Size(100, 69)
-        Me.btnSaveAs.TabIndex = 2
-        Me.btnSaveAs.Text = "Save As..."
-        Me.btnSaveAs.UseVisualStyleBackColor = True
+        Me.btnRoomSaveAs.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnRoomSaveAs.Location = New System.Drawing.Point(224, 3)
+        Me.btnRoomSaveAs.Name = "btnRoomSaveAs"
+        Me.btnRoomSaveAs.Size = New System.Drawing.Size(100, 69)
+        Me.btnRoomSaveAs.TabIndex = 2
+        Me.btnRoomSaveAs.Text = "Save As..."
+        Me.btnRoomSaveAs.UseVisualStyleBackColor = True
         '
-        'btnOpen
+        'btnRoomOpen
         '
-        Me.btnOpen.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnOpen.Location = New System.Drawing.Point(3, 3)
-        Me.btnOpen.Name = "btnOpen"
-        Me.btnOpen.Size = New System.Drawing.Size(100, 69)
-        Me.btnOpen.TabIndex = 1
-        Me.btnOpen.Text = "Open"
-        Me.btnOpen.UseVisualStyleBackColor = True
+        Me.btnRoomOpen.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnRoomOpen.Location = New System.Drawing.Point(118, 3)
+        Me.btnRoomOpen.Name = "btnRoomOpen"
+        Me.btnRoomOpen.Size = New System.Drawing.Size(100, 69)
+        Me.btnRoomOpen.TabIndex = 1
+        Me.btnRoomOpen.Text = "Open"
+        Me.btnRoomOpen.UseVisualStyleBackColor = True
         '
         'lblTemplatesList
         '
@@ -154,7 +175,7 @@ Partial Class FrmLevelEditor
         'lblTags
         '
         Me.lblTags.AutoSize = True
-        Me.tblTags.SetColumnSpan(Me.lblTags, 2)
+        Me.tblTagsSummary.SetColumnSpan(Me.lblTags, 2)
         Me.lblTags.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblTags.Location = New System.Drawing.Point(3, 0)
         Me.lblTags.Name = "lblTags"
@@ -230,40 +251,54 @@ Partial Class FrmLevelEditor
         '
         'flwSaveLoad
         '
-        Me.flwSaveLoad.Controls.Add(Me.btnOpen)
-        Me.flwSaveLoad.Controls.Add(Me.btnSaveAs)
-        Me.flwSaveLoad.Controls.Add(Me.btnSave)
-        Me.flwSaveLoad.Location = New System.Drawing.Point(818, 12)
+        Me.tblRoom.SetColumnSpan(Me.flwSaveLoad, 2)
+        Me.flwSaveLoad.Controls.Add(Me.lblRoomTitle)
+        Me.flwSaveLoad.Controls.Add(Me.btnRoomOpen)
+        Me.flwSaveLoad.Controls.Add(Me.btnRoomSaveAs)
+        Me.flwSaveLoad.Controls.Add(Me.btnRoomSave)
+        Me.flwSaveLoad.Location = New System.Drawing.Point(3, 3)
         Me.flwSaveLoad.Name = "flwSaveLoad"
-        Me.flwSaveLoad.Size = New System.Drawing.Size(319, 76)
+        Me.flwSaveLoad.Size = New System.Drawing.Size(459, 76)
         Me.flwSaveLoad.TabIndex = 16
         '
-        'tblTags
+        'lblRoomTitle
         '
-        Me.tblTags.ColumnCount = 3
-        Me.tblTags.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
-        Me.tblTags.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
-        Me.tblTags.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
-        Me.tblTags.Controls.Add(Me.lblTagLocation, 0, 2)
-        Me.tblTags.Controls.Add(Me.lblTagLayer, 0, 3)
-        Me.tblTags.Controls.Add(Me.numTagLocY, 2, 2)
-        Me.tblTags.Controls.Add(Me.numTagLayer, 1, 3)
-        Me.tblTags.Controls.Add(Me.lblTags, 0, 0)
-        Me.tblTags.Controls.Add(Me.numTagLocX, 1, 2)
-        Me.tblTags.Controls.Add(Me.numTagScale, 1, 4)
-        Me.tblTags.Controls.Add(Me.lblTagScale, 0, 4)
-        Me.tblTags.Controls.Add(Me.lblTagName, 0, 1)
-        Me.tblTags.Controls.Add(Me.txtTagName, 1, 1)
-        Me.tblTags.Location = New System.Drawing.Point(1168, 104)
-        Me.tblTags.Name = "tblTags"
-        Me.tblTags.RowCount = 5
-        Me.tblTags.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblTags.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-        Me.tblTags.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-        Me.tblTags.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-        Me.tblTags.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-        Me.tblTags.Size = New System.Drawing.Size(381, 215)
-        Me.tblTags.TabIndex = 17
+        Me.lblRoomTitle.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.lblRoomTitle.AutoSize = True
+        Me.lblRoomTitle.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblRoomTitle.Location = New System.Drawing.Point(3, 19)
+        Me.lblRoomTitle.Margin = New System.Windows.Forms.Padding(3, 0, 10, 0)
+        Me.lblRoomTitle.Name = "lblRoomTitle"
+        Me.lblRoomTitle.Size = New System.Drawing.Size(102, 37)
+        Me.lblRoomTitle.TabIndex = 4
+        Me.lblRoomTitle.Text = "Room"
+        '
+        'tblTagsSummary
+        '
+        Me.tblTagsSummary.ColumnCount = 3
+        Me.tblTagsSummary.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblTagsSummary.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblTagsSummary.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblTagsSummary.Controls.Add(Me.lblTagLocation, 0, 2)
+        Me.tblTagsSummary.Controls.Add(Me.lblTagLayer, 0, 3)
+        Me.tblTagsSummary.Controls.Add(Me.numTagLocY, 2, 2)
+        Me.tblTagsSummary.Controls.Add(Me.numTagLayer, 1, 3)
+        Me.tblTagsSummary.Controls.Add(Me.lblTags, 0, 0)
+        Me.tblTagsSummary.Controls.Add(Me.numTagLocX, 1, 2)
+        Me.tblTagsSummary.Controls.Add(Me.numTagScale, 1, 4)
+        Me.tblTagsSummary.Controls.Add(Me.lblTagScale, 0, 4)
+        Me.tblTagsSummary.Controls.Add(Me.lblTagName, 0, 1)
+        Me.tblTagsSummary.Controls.Add(Me.txtTagName, 1, 1)
+        Me.tblTagsSummary.Location = New System.Drawing.Point(348, 85)
+        Me.tblTagsSummary.Name = "tblTagsSummary"
+        Me.tblTagsSummary.RowCount = 5
+        Me.tblTagsSummary.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblTagsSummary.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+        Me.tblTagsSummary.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+        Me.tblTagsSummary.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+        Me.tblTagsSummary.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+        Me.tblTagsSummary.Size = New System.Drawing.Size(381, 215)
+        Me.tblTagsSummary.TabIndex = 17
         '
         'lblTagName
         '
@@ -276,7 +311,7 @@ Partial Class FrmLevelEditor
         '
         'txtTagName
         '
-        Me.tblTags.SetColumnSpan(Me.txtTagName, 2)
+        Me.tblTagsSummary.SetColumnSpan(Me.txtTagName, 2)
         Me.txtTagName.Dock = System.Windows.Forms.DockStyle.Top
         Me.txtTagName.Location = New System.Drawing.Point(79, 28)
         Me.txtTagName.MaxLength = 32
@@ -286,6 +321,7 @@ Partial Class FrmLevelEditor
         '
         'btnInstanceCreate
         '
+        Me.btnInstanceCreate.Enabled = False
         Me.btnInstanceCreate.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnInstanceCreate.Location = New System.Drawing.Point(172, 514)
         Me.btnInstanceCreate.Name = "btnInstanceCreate"
@@ -307,9 +343,10 @@ Partial Class FrmLevelEditor
         Me.tblEntities.Controls.Add(Me.lblTemplatesList, 0, 0)
         Me.tblEntities.Controls.Add(Me.btnInstanceDuplicate, 1, 3)
         Me.tblEntities.Controls.Add(Me.btnInstanceDelete, 1, 4)
-        Me.tblEntities.Location = New System.Drawing.Point(818, 104)
+        Me.tblEntities.Location = New System.Drawing.Point(3, 85)
         Me.tblEntities.Name = "tblEntities"
         Me.tblEntities.RowCount = 5
+        Me.tblRoom.SetRowSpan(Me.tblEntities, 2)
         Me.tblEntities.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblEntities.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblEntities.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -320,6 +357,7 @@ Partial Class FrmLevelEditor
         '
         'btnInstanceDuplicate
         '
+        Me.btnInstanceDuplicate.Enabled = False
         Me.btnInstanceDuplicate.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnInstanceDuplicate.Location = New System.Drawing.Point(172, 589)
         Me.btnInstanceDuplicate.Name = "btnInstanceDuplicate"
@@ -330,6 +368,7 @@ Partial Class FrmLevelEditor
         '
         'btnInstanceDelete
         '
+        Me.btnInstanceDelete.Enabled = False
         Me.btnInstanceDelete.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnInstanceDelete.Location = New System.Drawing.Point(172, 664)
         Me.btnInstanceDelete.Name = "btnInstanceDelete"
@@ -345,32 +384,34 @@ Partial Class FrmLevelEditor
         Me.lstTags.ItemHeight = 20
         Me.lstTags.Location = New System.Drawing.Point(3, 3)
         Me.lstTags.Name = "lstTags"
-        Me.TableLayoutPanel1.SetRowSpan(Me.lstTags, 3)
-        Me.lstTags.Size = New System.Drawing.Size(184, 500)
+        Me.tblTagsDetailed.SetRowSpan(Me.lstTags, 3)
+        Me.lstTags.Size = New System.Drawing.Size(218, 500)
         Me.lstTags.TabIndex = 21
         '
-        'TableLayoutPanel1
+        'tblTagsDetailed
         '
-        Me.TableLayoutPanel1.ColumnCount = 2
-        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-        Me.TableLayoutPanel1.Controls.Add(Me.btnTagAdd, 1, 0)
-        Me.TableLayoutPanel1.Controls.Add(Me.lstTags, 0, 0)
-        Me.TableLayoutPanel1.Controls.Add(Me.btnTagEdit, 1, 1)
-        Me.TableLayoutPanel1.Controls.Add(Me.btnTagRemove, 1, 2)
-        Me.TableLayoutPanel1.Location = New System.Drawing.Point(1168, 326)
-        Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
-        Me.TableLayoutPanel1.RowCount = 3
-        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.TableLayoutPanel1.Size = New System.Drawing.Size(381, 511)
-        Me.TableLayoutPanel1.TabIndex = 22
+        Me.tblTagsDetailed.ColumnCount = 2
+        Me.tblTagsDetailed.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.tblTagsDetailed.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.tblTagsDetailed.Controls.Add(Me.btnTagAdd, 1, 0)
+        Me.tblTagsDetailed.Controls.Add(Me.lstTags, 0, 0)
+        Me.tblTagsDetailed.Controls.Add(Me.btnTagEdit, 1, 1)
+        Me.tblTagsDetailed.Controls.Add(Me.btnTagRemove, 1, 2)
+        Me.tblTagsDetailed.Location = New System.Drawing.Point(348, 306)
+        Me.tblTagsDetailed.Name = "tblTagsDetailed"
+        Me.tblTagsDetailed.RowCount = 3
+        Me.tblTagsDetailed.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblTagsDetailed.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblTagsDetailed.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblTagsDetailed.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+        Me.tblTagsDetailed.Size = New System.Drawing.Size(448, 511)
+        Me.tblTagsDetailed.TabIndex = 22
         '
         'btnTagAdd
         '
+        Me.btnTagAdd.Enabled = False
         Me.btnTagAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnTagAdd.Location = New System.Drawing.Point(193, 3)
+        Me.btnTagAdd.Location = New System.Drawing.Point(227, 3)
         Me.btnTagAdd.Name = "btnTagAdd"
         Me.btnTagAdd.Size = New System.Drawing.Size(151, 69)
         Me.btnTagAdd.TabIndex = 21
@@ -379,8 +420,9 @@ Partial Class FrmLevelEditor
         '
         'btnTagEdit
         '
+        Me.btnTagEdit.Enabled = False
         Me.btnTagEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnTagEdit.Location = New System.Drawing.Point(193, 78)
+        Me.btnTagEdit.Location = New System.Drawing.Point(227, 78)
         Me.btnTagEdit.Name = "btnTagEdit"
         Me.btnTagEdit.Size = New System.Drawing.Size(151, 69)
         Me.btnTagEdit.TabIndex = 22
@@ -389,25 +431,222 @@ Partial Class FrmLevelEditor
         '
         'btnTagRemove
         '
+        Me.btnTagRemove.Enabled = False
         Me.btnTagRemove.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnTagRemove.Location = New System.Drawing.Point(193, 153)
+        Me.btnTagRemove.Location = New System.Drawing.Point(227, 153)
         Me.btnTagRemove.Name = "btnTagRemove"
         Me.btnTagRemove.Size = New System.Drawing.Size(151, 69)
         Me.btnTagRemove.TabIndex = 23
         Me.btnTagRemove.Text = "Remove Tag"
         Me.btnTagRemove.UseVisualStyleBackColor = True
         '
+        'tblRoom
+        '
+        Me.tblRoom.ColumnCount = 2
+        Me.tblRoom.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblRoom.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblRoom.Controls.Add(Me.flwSaveLoad, 0, 0)
+        Me.tblRoom.Controls.Add(Me.tblTagsDetailed, 1, 2)
+        Me.tblRoom.Controls.Add(Me.tblEntities, 0, 1)
+        Me.tblRoom.Controls.Add(Me.tblTagsSummary, 1, 1)
+        Me.tblRoom.Location = New System.Drawing.Point(818, 12)
+        Me.tblRoom.Name = "tblRoom"
+        Me.tblRoom.RowCount = 3
+        Me.tblRoom.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblRoom.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblRoom.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblRoom.Size = New System.Drawing.Size(796, 850)
+        Me.tblRoom.TabIndex = 24
+        '
+        'FlowLayoutPanel1
+        '
+        Me.FlowLayoutPanel1.Controls.Add(Me.lblLevelTitle)
+        Me.FlowLayoutPanel1.Controls.Add(Me.btnLevelOpen)
+        Me.FlowLayoutPanel1.Controls.Add(Me.btnLevelSaveAs)
+        Me.FlowLayoutPanel1.Controls.Add(Me.btnLevelSave)
+        Me.FlowLayoutPanel1.Location = New System.Drawing.Point(12, 618)
+        Me.FlowLayoutPanel1.Name = "FlowLayoutPanel1"
+        Me.FlowLayoutPanel1.Size = New System.Drawing.Size(459, 76)
+        Me.FlowLayoutPanel1.TabIndex = 17
+        '
+        'lblLevelTitle
+        '
+        Me.lblLevelTitle.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.lblLevelTitle.AutoSize = True
+        Me.lblLevelTitle.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblLevelTitle.Location = New System.Drawing.Point(3, 19)
+        Me.lblLevelTitle.Margin = New System.Windows.Forms.Padding(3, 0, 10, 0)
+        Me.lblLevelTitle.Name = "lblLevelTitle"
+        Me.lblLevelTitle.Size = New System.Drawing.Size(91, 37)
+        Me.lblLevelTitle.TabIndex = 4
+        Me.lblLevelTitle.Text = "Level"
+        '
+        'btnLevelOpen
+        '
+        Me.btnLevelOpen.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnLevelOpen.Location = New System.Drawing.Point(107, 3)
+        Me.btnLevelOpen.Name = "btnLevelOpen"
+        Me.btnLevelOpen.Size = New System.Drawing.Size(100, 69)
+        Me.btnLevelOpen.TabIndex = 1
+        Me.btnLevelOpen.Text = "Open"
+        Me.btnLevelOpen.UseVisualStyleBackColor = True
+        '
+        'btnLevelSaveAs
+        '
+        Me.btnLevelSaveAs.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnLevelSaveAs.Location = New System.Drawing.Point(213, 3)
+        Me.btnLevelSaveAs.Name = "btnLevelSaveAs"
+        Me.btnLevelSaveAs.Size = New System.Drawing.Size(100, 69)
+        Me.btnLevelSaveAs.TabIndex = 2
+        Me.btnLevelSaveAs.Text = "Save As..."
+        Me.btnLevelSaveAs.UseVisualStyleBackColor = True
+        '
+        'btnLevelSave
+        '
+        Me.btnLevelSave.Enabled = False
+        Me.btnLevelSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnLevelSave.Location = New System.Drawing.Point(319, 3)
+        Me.btnLevelSave.Name = "btnLevelSave"
+        Me.btnLevelSave.Size = New System.Drawing.Size(100, 69)
+        Me.btnLevelSave.TabIndex = 3
+        Me.btnLevelSave.Text = "Save"
+        Me.btnLevelSave.UseVisualStyleBackColor = True
+        '
+        'TableLayoutPanel1
+        '
+        Me.TableLayoutPanel1.ColumnCount = 2
+        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.TableLayoutPanel1.Controls.Add(Me.btnParamAdd, 1, 0)
+        Me.TableLayoutPanel1.Controls.Add(Me.lstParams, 0, 0)
+        Me.TableLayoutPanel1.Controls.Add(Me.btnParamEdit, 1, 1)
+        Me.TableLayoutPanel1.Controls.Add(Me.btnParamRemove, 1, 2)
+        Me.TableLayoutPanel1.Location = New System.Drawing.Point(12, 700)
+        Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
+        Me.TableLayoutPanel1.RowCount = 3
+        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TableLayoutPanel1.Size = New System.Drawing.Size(409, 353)
+        Me.TableLayoutPanel1.TabIndex = 24
+        '
+        'btnParamAdd
+        '
+        Me.btnParamAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnParamAdd.Location = New System.Drawing.Point(207, 3)
+        Me.btnParamAdd.Name = "btnParamAdd"
+        Me.btnParamAdd.Size = New System.Drawing.Size(151, 69)
+        Me.btnParamAdd.TabIndex = 21
+        Me.btnParamAdd.Text = "Add Param"
+        Me.btnParamAdd.UseVisualStyleBackColor = True
+        '
+        'lstParams
+        '
+        Me.lstParams.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.lstParams.FormattingEnabled = True
+        Me.lstParams.ItemHeight = 20
+        Me.lstParams.Location = New System.Drawing.Point(3, 3)
+        Me.lstParams.Name = "lstParams"
+        Me.TableLayoutPanel1.SetRowSpan(Me.lstParams, 3)
+        Me.lstParams.Size = New System.Drawing.Size(198, 340)
+        Me.lstParams.TabIndex = 21
+        '
+        'btnParamEdit
+        '
+        Me.btnParamEdit.Enabled = False
+        Me.btnParamEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnParamEdit.Location = New System.Drawing.Point(207, 78)
+        Me.btnParamEdit.Name = "btnParamEdit"
+        Me.btnParamEdit.Size = New System.Drawing.Size(151, 69)
+        Me.btnParamEdit.TabIndex = 22
+        Me.btnParamEdit.Text = "Edit Param"
+        Me.btnParamEdit.UseVisualStyleBackColor = True
+        '
+        'btnParamRemove
+        '
+        Me.btnParamRemove.Enabled = False
+        Me.btnParamRemove.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnParamRemove.Location = New System.Drawing.Point(207, 153)
+        Me.btnParamRemove.Name = "btnParamRemove"
+        Me.btnParamRemove.Size = New System.Drawing.Size(151, 69)
+        Me.btnParamRemove.TabIndex = 23
+        Me.btnParamRemove.Text = "Remove Param"
+        Me.btnParamRemove.UseVisualStyleBackColor = True
+        '
+        'TableLayoutPanel2
+        '
+        Me.TableLayoutPanel2.ColumnCount = 2
+        Me.TableLayoutPanel2.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.TableLayoutPanel2.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.TableLayoutPanel2.Controls.Add(Me.btnLevelRoomAdd, 1, 0)
+        Me.TableLayoutPanel2.Controls.Add(Me.lstRooms, 0, 0)
+        Me.TableLayoutPanel2.Controls.Add(Me.btnLevelRoomRemove, 1, 1)
+        Me.TableLayoutPanel2.Controls.Add(Me.btnRoomEditCoords, 1, 2)
+        Me.TableLayoutPanel2.Location = New System.Drawing.Point(427, 700)
+        Me.TableLayoutPanel2.Name = "TableLayoutPanel2"
+        Me.TableLayoutPanel2.RowCount = 3
+        Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TableLayoutPanel2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+        Me.TableLayoutPanel2.Size = New System.Drawing.Size(385, 353)
+        Me.TableLayoutPanel2.TabIndex = 25
+        '
+        'btnLevelRoomAdd
+        '
+        Me.btnLevelRoomAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnLevelRoomAdd.Location = New System.Drawing.Point(195, 3)
+        Me.btnLevelRoomAdd.Name = "btnLevelRoomAdd"
+        Me.btnLevelRoomAdd.Size = New System.Drawing.Size(151, 69)
+        Me.btnLevelRoomAdd.TabIndex = 21
+        Me.btnLevelRoomAdd.Text = "Add Room"
+        Me.btnLevelRoomAdd.UseVisualStyleBackColor = True
+        '
+        'lstRooms
+        '
+        Me.lstRooms.BorderStyle = System.Windows.Forms.BorderStyle.None
+        Me.lstRooms.FormattingEnabled = True
+        Me.lstRooms.ItemHeight = 20
+        Me.lstRooms.Location = New System.Drawing.Point(3, 3)
+        Me.lstRooms.Name = "lstRooms"
+        Me.TableLayoutPanel2.SetRowSpan(Me.lstRooms, 3)
+        Me.lstRooms.Size = New System.Drawing.Size(186, 340)
+        Me.lstRooms.TabIndex = 21
+        '
+        'btnLevelRoomRemove
+        '
+        Me.btnLevelRoomRemove.Enabled = False
+        Me.btnLevelRoomRemove.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnLevelRoomRemove.Location = New System.Drawing.Point(195, 78)
+        Me.btnLevelRoomRemove.Name = "btnLevelRoomRemove"
+        Me.btnLevelRoomRemove.Size = New System.Drawing.Size(151, 69)
+        Me.btnLevelRoomRemove.TabIndex = 23
+        Me.btnLevelRoomRemove.Text = "Remove Room"
+        Me.btnLevelRoomRemove.UseVisualStyleBackColor = True
+        '
+        'btnRoomEditCoords
+        '
+        Me.btnRoomEditCoords.Enabled = False
+        Me.btnRoomEditCoords.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnRoomEditCoords.Location = New System.Drawing.Point(195, 153)
+        Me.btnRoomEditCoords.Name = "btnRoomEditCoords"
+        Me.btnRoomEditCoords.Size = New System.Drawing.Size(151, 69)
+        Me.btnRoomEditCoords.TabIndex = 22
+        Me.btnRoomEditCoords.Text = "Edit Coords"
+        Me.btnRoomEditCoords.UseVisualStyleBackColor = True
+        '
         'FrmLevelEditor
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlDark
-        Me.ClientSize = New System.Drawing.Size(1647, 874)
+        Me.ClientSize = New System.Drawing.Size(1647, 1064)
+        Me.Controls.Add(Me.TableLayoutPanel2)
         Me.Controls.Add(Me.TableLayoutPanel1)
-        Me.Controls.Add(Me.tblEntities)
-        Me.Controls.Add(Me.tblTags)
-        Me.Controls.Add(Me.flwSaveLoad)
-        Me.Controls.Add(Me.pnlGame)
+        Me.Controls.Add(Me.tblRoom)
+        Me.Controls.Add(Me.pnlRender)
+        Me.Controls.Add(Me.FlowLayoutPanel1)
+        Me.DoubleBuffered = True
         Me.Name = "FrmLevelEditor"
         Me.Text = "Level Editor"
         CType(Me.numTagLocX, System.ComponentModel.ISupportInitialize).EndInit()
@@ -415,19 +654,25 @@ Partial Class FrmLevelEditor
         CType(Me.numTagLayer, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.numTagScale, System.ComponentModel.ISupportInitialize).EndInit()
         Me.flwSaveLoad.ResumeLayout(False)
-        Me.tblTags.ResumeLayout(False)
-        Me.tblTags.PerformLayout()
+        Me.flwSaveLoad.PerformLayout()
+        Me.tblTagsSummary.ResumeLayout(False)
+        Me.tblTagsSummary.PerformLayout()
         Me.tblEntities.ResumeLayout(False)
         Me.tblEntities.PerformLayout()
+        Me.tblTagsDetailed.ResumeLayout(False)
+        Me.tblRoom.ResumeLayout(False)
+        Me.FlowLayoutPanel1.ResumeLayout(False)
+        Me.FlowLayoutPanel1.PerformLayout()
         Me.TableLayoutPanel1.ResumeLayout(False)
+        Me.TableLayoutPanel2.ResumeLayout(False)
         Me.ResumeLayout(False)
 
     End Sub
 
-    Friend WithEvents pnlGame As Panel
-    Friend WithEvents btnSave As Button
-    Friend WithEvents btnSaveAs As Button
-    Friend WithEvents btnOpen As Button
+    Friend WithEvents pnlRender As Panel
+    Friend WithEvents btnRoomSave As Button
+    Friend WithEvents btnRoomSaveAs As Button
+    Friend WithEvents btnRoomOpen As Button
     Friend WithEvents lblTemplatesList As Label
     Friend WithEvents lstTemplates As ListBox
     Friend WithEvents btnLoadEntity As Button
@@ -442,7 +687,7 @@ Partial Class FrmLevelEditor
     Friend WithEvents numTagScale As NumericUpDown
     Friend WithEvents lblTagScale As Label
     Friend WithEvents flwSaveLoad As FlowLayoutPanel
-    Friend WithEvents tblTags As TableLayoutPanel
+    Friend WithEvents tblTagsSummary As TableLayoutPanel
     Friend WithEvents lblTagName As Label
     Friend WithEvents txtTagName As TextBox
     Friend WithEvents btnInstanceCreate As Button
@@ -450,8 +695,25 @@ Partial Class FrmLevelEditor
     Friend WithEvents btnInstanceDuplicate As Button
     Friend WithEvents btnInstanceDelete As Button
     Friend WithEvents lstTags As ListBox
-    Friend WithEvents TableLayoutPanel1 As TableLayoutPanel
+    Friend WithEvents tblTagsDetailed As TableLayoutPanel
     Friend WithEvents btnTagAdd As Button
     Friend WithEvents btnTagEdit As Button
     Friend WithEvents btnTagRemove As Button
+    Friend WithEvents lblRoomTitle As Label
+    Friend WithEvents tblRoom As TableLayoutPanel
+    Friend WithEvents FlowLayoutPanel1 As FlowLayoutPanel
+    Friend WithEvents lblLevelTitle As Label
+    Friend WithEvents btnLevelOpen As Button
+    Friend WithEvents btnLevelSaveAs As Button
+    Friend WithEvents btnLevelSave As Button
+    Friend WithEvents TableLayoutPanel1 As TableLayoutPanel
+    Friend WithEvents btnParamAdd As Button
+    Friend WithEvents lstParams As ListBox
+    Friend WithEvents btnParamEdit As Button
+    Friend WithEvents btnParamRemove As Button
+    Friend WithEvents TableLayoutPanel2 As TableLayoutPanel
+    Friend WithEvents btnLevelRoomAdd As Button
+    Friend WithEvents lstRooms As ListBox
+    Friend WithEvents btnRoomEditCoords As Button
+    Friend WithEvents btnLevelRoomRemove As Button
 End Class
