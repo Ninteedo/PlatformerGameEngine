@@ -6,10 +6,10 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Module EntityStringHandler
 
-    Public Function CreateEntityString(ent As PRE2.Entity) As String
+    Public Function CreateEntityString(ent As PRE2.Entity, spriteFolderLocation As String) As String
         'creates a string which can be saved to a file
 
-        Dim result As String = ent.name & vbCrLf
+        Dim result As String = If(Len(ent.name) > 0, ent.name, "unnamed") & Environment.NewLine
 
         'adds a list of frames and which sprites make them up
         If IsNothing(ent.frames) = False Then
@@ -20,8 +20,8 @@ Module EntityStringHandler
                     Dim currentSprite As PRE2.Sprite = currentFrame.sprites(spriteIndex)
 
                     If currentSprite.fileName <> Nothing Then
-                        'eg Sprite1\25,0/
-                        result += currentSprite.fileName & ":" & Trim(Str(currentFrame.offsets(spriteIndex).X)) & "," & Trim(Str(currentFrame.offsets(spriteIndex).Y)) & "/"
+                        'eg Sprite1.sprt\25,0/
+                        result += currentSprite.fileName.Remove(0, Len(spriteFolderLocation)) & ":" & Trim(Str(currentFrame.offsets(spriteIndex).X)) & "," & Trim(Str(currentFrame.offsets(spriteIndex).Y)) & "/"
                     Else
                         PRE2.DisplayError("Unknown file name for sprite #" & Trim(Str(spriteIndex + 1)) & " of frame #" & Trim(Str(frameIndex + 1)) & " for entity " & ent.name)
                     End If
@@ -31,24 +31,17 @@ Module EntityStringHandler
             Next frameIndex
         End If
 
-        result = result.Remove(Len(result) - 1, 1)      'removes the last ;
+        result = result.Remove(Len(result) - 1, 1) & Environment.NewLine        'removes the last ; and adds a line break
 
         'adds a line for tags
         If IsNothing(ent.tags) = False Then
             For tagIndex As Integer = 0 To UBound(ent.tags)
-                Dim currentTag As PRE2.Tag = ent.tags(tagIndex)
-
-                result += currentTag.name
-
-                For argIndex As Integer = 0 To UBound(currentTag.args)
-                    result += "\" & currentTag.args(argIndex).ToString
-                Next argIndex
-
+                result += ent.tags(tagIndex).ToString()
                 result += "/"
             Next tagIndex
-        End If
 
-        result = result.Remove(Len(result) - 1, 1)      'removes last /
+            result = result.Remove(Len(result) - 1, 1)      'removes last /
+        End If
 
         Return result
     End Function
@@ -65,38 +58,46 @@ Module EntityStringHandler
         result.name = currentLine
 
         'loads the frames of the entity
-        currentLine = lines(1)
-        Dim framesValues() As String = currentLine.Split(";")
-        ReDim result.frames(UBound(framesValues))
-        For frameIndex As Integer = 0 To UBound(framesValues)
-            'loads each individual frame
-            Dim newFrame As New PRE2.Frame
+        If UBound(lines) >= 1 Then
+            currentLine = lines(1).Replace(vbLf, "")
+            Dim framesValues() As String = currentLine.Split(";")
+            ReDim result.frames(UBound(framesValues))
+            For frameIndex As Integer = 0 To UBound(framesValues)
+                'loads each individual frame
+                Dim newFrame As New PRE2.Frame
 
-            'part for each individual sprite
-            Dim spritesInFrame() As String = framesValues(frameIndex).Split("/")
-            ReDim newFrame.sprites(UBound(spritesInFrame))
-            ReDim newFrame.offsets(UBound(spritesInFrame))
-            For spriteIndex As Integer = 0 To UBound(spritesInFrame)
-                Dim values() As String = spritesInFrame(spriteIndex).Split(":")
-                Dim spriteFile As String = values(0)
-                Dim offset As New Point(Val(values(1).Split(",")(0)), Val(values(1).Split(",")(1)))
+                'part for each individual sprite
+                Dim spritesInFrame() As String = framesValues(frameIndex).Split("/")
+                ReDim newFrame.sprites(UBound(spritesInFrame))
+                ReDim newFrame.offsets(UBound(spritesInFrame))
+                For spriteIndex As Integer = 0 To UBound(spritesInFrame)
+                    Dim values() As String = spritesInFrame(spriteIndex).Split(":")
+                    Dim spriteFile As String = values(0)
+                    Dim offset As New Point(Val(values(1).Split(",")(0)), Val(values(1).Split(",")(1)))
+                    Dim fileLocation As String = renderEngine.spriteFolderLocation & spritesInFrame(spriteIndex).Split(":")(0)
+                    fileLocation = fileLocation.Replace(vbLf, "")
+                    fileLocation = fileLocation.Replace("\\", "\")
 
-                renderEngine.LoadSprite(renderEngine.spriteFolderLocation & spriteFile)
-                newFrame.sprites(spriteIndex) = renderEngine.FindLoadedSprite(spriteFile)
-                newFrame.offsets(spriteIndex) = offset
-            Next spriteIndex
+                    renderEngine.LoadSprite(fileLocation)
+                    newFrame.sprites(spriteIndex) = renderEngine.FindLoadedSprite(fileLocation)
+                    newFrame.offsets(spriteIndex) = offset
+                Next spriteIndex
 
-            result.frames(frameIndex) = newFrame
-        Next frameIndex
+                result.frames(frameIndex) = newFrame
+            Next frameIndex
+        Else
+            PRE2.DisplayError("Error whilst loading entity " & result.name & ". No line for frames found")
+        End If
 
         'loads the tags
-        currentLine = lines(2)
-        Dim tagStrings() As String = currentLine.Split("/")
-        ReDim result.tags(UBound(tagStrings))
-        For tagIndex As Integer = 0 To UBound(tagStrings)
-            Dim values() As String = tagStrings(tagIndex).Split("\")
-            result.tags(tagIndex) = New PRE2.Tag(values(tagIndex))
-        Next tagIndex
+        If UBound(lines) >= 2 Then
+            currentLine = lines(2).Replace(vbLf, "")
+            Dim tagStrings() As String = currentLine.Split("/")
+            ReDim result.tags(UBound(tagStrings))
+            For tagIndex As Integer = 0 To UBound(tagStrings)
+                result.tags(tagIndex) = New PRE2.Tag(tagStrings(tagIndex))
+            Next tagIndex
+        End If
 
         Return result
     End Function
