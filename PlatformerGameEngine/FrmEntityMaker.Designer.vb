@@ -43,7 +43,16 @@ Partial Class FrmEntityMaker
         Me.btnRedraw = New System.Windows.Forms.Button()
         Me.lblName = New System.Windows.Forms.Label()
         Me.txtName = New System.Windows.Forms.TextBox()
+        Me.flwSaveLoad = New System.Windows.Forms.FlowLayoutPanel()
+        Me.tblControlLayout = New System.Windows.Forms.TableLayoutPanel()
+        Me.flwNameEdit = New System.Windows.Forms.FlowLayoutPanel()
+        Me.flwFrameIndex = New System.Windows.Forms.FlowLayoutPanel()
+        Me.btnTagRemove = New System.Windows.Forms.Button()
         CType(Me.numFrameIndex, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.flwSaveLoad.SuspendLayout()
+        Me.tblControlLayout.SuspendLayout()
+        Me.flwNameEdit.SuspendLayout()
+        Me.flwFrameIndex.SuspendLayout()
         Me.SuspendLayout()
         '
         'pnlFramePreview
@@ -59,9 +68,9 @@ Partial Class FrmEntityMaker
         'btnOpen
         '
         Me.btnOpen.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnOpen.Location = New System.Drawing.Point(340, 12)
+        Me.btnOpen.Location = New System.Drawing.Point(3, 3)
         Me.btnOpen.Name = "btnOpen"
-        Me.btnOpen.Size = New System.Drawing.Size(100, 69)
+        Me.btnOpen.Size = New System.Drawing.Size(140, 69)
         Me.btnOpen.TabIndex = 1
         Me.btnOpen.Text = "Open..."
         Me.btnOpen.UseVisualStyleBackColor = True
@@ -69,9 +78,9 @@ Partial Class FrmEntityMaker
         'btnSaveAs
         '
         Me.btnSaveAs.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnSaveAs.Location = New System.Drawing.Point(446, 12)
+        Me.btnSaveAs.Location = New System.Drawing.Point(149, 3)
         Me.btnSaveAs.Name = "btnSaveAs"
-        Me.btnSaveAs.Size = New System.Drawing.Size(100, 69)
+        Me.btnSaveAs.Size = New System.Drawing.Size(140, 69)
         Me.btnSaveAs.TabIndex = 2
         Me.btnSaveAs.Text = "Save As..."
         Me.btnSaveAs.UseVisualStyleBackColor = True
@@ -80,9 +89,9 @@ Partial Class FrmEntityMaker
         '
         Me.btnSave.Enabled = False
         Me.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnSave.Location = New System.Drawing.Point(552, 12)
+        Me.btnSave.Location = New System.Drawing.Point(295, 3)
         Me.btnSave.Name = "btnSave"
-        Me.btnSave.Size = New System.Drawing.Size(100, 69)
+        Me.btnSave.Size = New System.Drawing.Size(140, 69)
         Me.btnSave.TabIndex = 3
         Me.btnSave.Text = "Save"
         Me.btnSave.UseVisualStyleBackColor = True
@@ -92,15 +101,15 @@ Partial Class FrmEntityMaker
         Me.lstTags.BorderStyle = System.Windows.Forms.BorderStyle.None
         Me.lstTags.FormattingEnabled = True
         Me.lstTags.ItemHeight = 20
-        Me.lstTags.Location = New System.Drawing.Point(339, 112)
+        Me.lstTags.Location = New System.Drawing.Point(3, 103)
         Me.lstTags.Name = "lstTags"
-        Me.lstTags.Size = New System.Drawing.Size(120, 220)
+        Me.lstTags.Size = New System.Drawing.Size(150, 320)
         Me.lstTags.TabIndex = 4
         '
         'lblTagListTitle
         '
         Me.lblTagListTitle.AutoSize = True
-        Me.lblTagListTitle.Location = New System.Drawing.Point(340, 89)
+        Me.lblTagListTitle.Location = New System.Drawing.Point(3, 80)
         Me.lblTagListTitle.Name = "lblTagListTitle"
         Me.lblTagListTitle.Size = New System.Drawing.Size(44, 20)
         Me.lblTagListTitle.TabIndex = 0
@@ -109,7 +118,7 @@ Partial Class FrmEntityMaker
         'lblFrameListTitle
         '
         Me.lblFrameListTitle.AutoSize = True
-        Me.lblFrameListTitle.Location = New System.Drawing.Point(466, 89)
+        Me.lblFrameListTitle.Location = New System.Drawing.Point(159, 80)
         Me.lblFrameListTitle.Name = "lblFrameListTitle"
         Me.lblFrameListTitle.Size = New System.Drawing.Size(63, 20)
         Me.lblFrameListTitle.TabIndex = 0
@@ -120,15 +129,15 @@ Partial Class FrmEntityMaker
         Me.lstFrames.BorderStyle = System.Windows.Forms.BorderStyle.None
         Me.lstFrames.FormattingEnabled = True
         Me.lstFrames.ItemHeight = 20
-        Me.lstFrames.Location = New System.Drawing.Point(465, 112)
+        Me.lstFrames.Location = New System.Drawing.Point(159, 103)
         Me.lstFrames.Name = "lstFrames"
-        Me.lstFrames.Size = New System.Drawing.Size(120, 220)
+        Me.lstFrames.Size = New System.Drawing.Size(150, 320)
         Me.lstFrames.TabIndex = 6
         '
         'lblSpriteListTitle
         '
         Me.lblSpriteListTitle.AutoSize = True
-        Me.lblSpriteListTitle.Location = New System.Drawing.Point(592, 89)
+        Me.lblSpriteListTitle.Location = New System.Drawing.Point(315, 80)
         Me.lblSpriteListTitle.Name = "lblSpriteListTitle"
         Me.lblSpriteListTitle.Size = New System.Drawing.Size(59, 20)
         Me.lblSpriteListTitle.TabIndex = 8
@@ -139,65 +148,70 @@ Partial Class FrmEntityMaker
         Me.lstSprites.BorderStyle = System.Windows.Forms.BorderStyle.None
         Me.lstSprites.FormattingEnabled = True
         Me.lstSprites.ItemHeight = 20
-        Me.lstSprites.Location = New System.Drawing.Point(591, 112)
+        Me.lstSprites.Location = New System.Drawing.Point(315, 103)
         Me.lstSprites.Name = "lstSprites"
-        Me.lstSprites.Size = New System.Drawing.Size(120, 220)
+        Me.lstSprites.Size = New System.Drawing.Size(150, 320)
         Me.lstSprites.TabIndex = 7
         '
         'btnSpriteLoad
         '
+        Me.btnSpriteLoad.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnSpriteLoad.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnSpriteLoad.Location = New System.Drawing.Point(591, 338)
+        Me.btnSpriteLoad.Location = New System.Drawing.Point(315, 429)
         Me.btnSpriteLoad.Name = "btnSpriteLoad"
-        Me.btnSpriteLoad.Size = New System.Drawing.Size(100, 69)
+        Me.btnSpriteLoad.Size = New System.Drawing.Size(150, 69)
         Me.btnSpriteLoad.TabIndex = 9
         Me.btnSpriteLoad.Text = "Load..."
         Me.btnSpriteLoad.UseVisualStyleBackColor = True
         '
         'btnFrameNew
         '
+        Me.btnFrameNew.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnFrameNew.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnFrameNew.Location = New System.Drawing.Point(465, 338)
+        Me.btnFrameNew.Location = New System.Drawing.Point(159, 429)
         Me.btnFrameNew.Name = "btnFrameNew"
-        Me.btnFrameNew.Size = New System.Drawing.Size(100, 69)
+        Me.btnFrameNew.Size = New System.Drawing.Size(150, 69)
         Me.btnFrameNew.TabIndex = 10
         Me.btnFrameNew.Text = "New Frame"
         Me.btnFrameNew.UseVisualStyleBackColor = True
         '
         'btnFrameRemove
         '
+        Me.btnFrameRemove.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnFrameRemove.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnFrameRemove.Location = New System.Drawing.Point(465, 415)
+        Me.btnFrameRemove.Location = New System.Drawing.Point(159, 504)
         Me.btnFrameRemove.Name = "btnFrameRemove"
-        Me.btnFrameRemove.Size = New System.Drawing.Size(100, 69)
+        Me.btnFrameRemove.Size = New System.Drawing.Size(150, 69)
         Me.btnFrameRemove.TabIndex = 11
         Me.btnFrameRemove.Text = "Remove Frame"
         Me.btnFrameRemove.UseVisualStyleBackColor = True
         '
         'btnTagsEdit
         '
+        Me.btnTagsEdit.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnTagsEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnTagsEdit.Location = New System.Drawing.Point(339, 415)
+        Me.btnTagsEdit.Location = New System.Drawing.Point(3, 504)
         Me.btnTagsEdit.Name = "btnTagsEdit"
-        Me.btnTagsEdit.Size = New System.Drawing.Size(100, 69)
+        Me.btnTagsEdit.Size = New System.Drawing.Size(150, 69)
         Me.btnTagsEdit.TabIndex = 12
         Me.btnTagsEdit.Text = "Edit Tag"
         Me.btnTagsEdit.UseVisualStyleBackColor = True
         '
         'btnFrameAddSprite
         '
+        Me.btnFrameAddSprite.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnFrameAddSprite.Enabled = False
         Me.btnFrameAddSprite.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnFrameAddSprite.Location = New System.Drawing.Point(465, 491)
+        Me.btnFrameAddSprite.Location = New System.Drawing.Point(159, 579)
         Me.btnFrameAddSprite.Name = "btnFrameAddSprite"
-        Me.btnFrameAddSprite.Size = New System.Drawing.Size(100, 69)
+        Me.btnFrameAddSprite.Size = New System.Drawing.Size(150, 69)
         Me.btnFrameAddSprite.TabIndex = 13
         Me.btnFrameAddSprite.Text = "Add Sprite"
         Me.btnFrameAddSprite.UseVisualStyleBackColor = True
         '
         'numFrameIndex
         '
-        Me.numFrameIndex.Location = New System.Drawing.Point(490, 568)
+        Me.numFrameIndex.Location = New System.Drawing.Point(27, 3)
         Me.numFrameIndex.Name = "numFrameIndex"
         Me.numFrameIndex.Size = New System.Drawing.Size(74, 26)
         Me.numFrameIndex.TabIndex = 14
@@ -205,7 +219,7 @@ Partial Class FrmEntityMaker
         'lblFrameIndex
         '
         Me.lblFrameIndex.AutoSize = True
-        Me.lblFrameIndex.Location = New System.Drawing.Point(466, 569)
+        Me.lblFrameIndex.Location = New System.Drawing.Point(3, 0)
         Me.lblFrameIndex.Name = "lblFrameIndex"
         Me.lblFrameIndex.Size = New System.Drawing.Size(18, 20)
         Me.lblFrameIndex.TabIndex = 15
@@ -213,10 +227,11 @@ Partial Class FrmEntityMaker
         '
         'btnTagsNew
         '
+        Me.btnTagsNew.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnTagsNew.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnTagsNew.Location = New System.Drawing.Point(339, 338)
+        Me.btnTagsNew.Location = New System.Drawing.Point(3, 429)
         Me.btnTagsNew.Name = "btnTagsNew"
-        Me.btnTagsNew.Size = New System.Drawing.Size(100, 69)
+        Me.btnTagsNew.Size = New System.Drawing.Size(150, 69)
         Me.btnTagsNew.TabIndex = 16
         Me.btnTagsNew.Text = "New Tag"
         Me.btnTagsNew.UseVisualStyleBackColor = True
@@ -224,9 +239,9 @@ Partial Class FrmEntityMaker
         'btnRedraw
         '
         Me.btnRedraw.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnRedraw.Location = New System.Drawing.Point(718, 12)
+        Me.btnRedraw.Location = New System.Drawing.Point(471, 3)
         Me.btnRedraw.Name = "btnRedraw"
-        Me.btnRedraw.Size = New System.Drawing.Size(100, 69)
+        Me.btnRedraw.Size = New System.Drawing.Size(140, 69)
         Me.btnRedraw.TabIndex = 17
         Me.btnRedraw.Text = "Redraw"
         Me.btnRedraw.UseVisualStyleBackColor = True
@@ -234,7 +249,7 @@ Partial Class FrmEntityMaker
         'lblName
         '
         Me.lblName.AutoSize = True
-        Me.lblName.Location = New System.Drawing.Point(718, 112)
+        Me.lblName.Location = New System.Drawing.Point(3, 0)
         Me.lblName.Name = "lblName"
         Me.lblName.Size = New System.Drawing.Size(51, 20)
         Me.lblName.TabIndex = 0
@@ -242,45 +257,110 @@ Partial Class FrmEntityMaker
         '
         'txtName
         '
-        Me.txtName.Location = New System.Drawing.Point(776, 112)
+        Me.txtName.Location = New System.Drawing.Point(60, 3)
         Me.txtName.MaxLength = 32
         Me.txtName.Name = "txtName"
         Me.txtName.Size = New System.Drawing.Size(162, 26)
         Me.txtName.TabIndex = 18
+        '
+        'flwSaveLoad
+        '
+        Me.tblControlLayout.SetColumnSpan(Me.flwSaveLoad, 3)
+        Me.flwSaveLoad.Controls.Add(Me.btnOpen)
+        Me.flwSaveLoad.Controls.Add(Me.btnSaveAs)
+        Me.flwSaveLoad.Controls.Add(Me.btnSave)
+        Me.flwSaveLoad.Location = New System.Drawing.Point(3, 3)
+        Me.flwSaveLoad.Name = "flwSaveLoad"
+        Me.flwSaveLoad.Size = New System.Drawing.Size(462, 74)
+        Me.flwSaveLoad.TabIndex = 19
+        '
+        'tblControlLayout
+        '
+        Me.tblControlLayout.ColumnCount = 4
+        Me.tblControlLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblControlLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblControlLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblControlLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblControlLayout.Controls.Add(Me.flwNameEdit, 3, 2)
+        Me.tblControlLayout.Controls.Add(Me.flwFrameIndex, 1, 6)
+        Me.tblControlLayout.Controls.Add(Me.flwSaveLoad, 0, 0)
+        Me.tblControlLayout.Controls.Add(Me.lblTagListTitle, 0, 1)
+        Me.tblControlLayout.Controls.Add(Me.lstTags, 0, 2)
+        Me.tblControlLayout.Controls.Add(Me.btnSpriteLoad, 2, 3)
+        Me.tblControlLayout.Controls.Add(Me.btnTagsNew, 0, 3)
+        Me.tblControlLayout.Controls.Add(Me.btnFrameAddSprite, 1, 5)
+        Me.tblControlLayout.Controls.Add(Me.btnTagsEdit, 0, 4)
+        Me.tblControlLayout.Controls.Add(Me.btnFrameRemove, 1, 4)
+        Me.tblControlLayout.Controls.Add(Me.lblFrameListTitle, 1, 1)
+        Me.tblControlLayout.Controls.Add(Me.btnFrameNew, 1, 3)
+        Me.tblControlLayout.Controls.Add(Me.lblSpriteListTitle, 2, 1)
+        Me.tblControlLayout.Controls.Add(Me.lstFrames, 1, 2)
+        Me.tblControlLayout.Controls.Add(Me.lstSprites, 2, 2)
+        Me.tblControlLayout.Controls.Add(Me.btnRedraw, 3, 0)
+        Me.tblControlLayout.Controls.Add(Me.btnTagRemove, 0, 5)
+        Me.tblControlLayout.Location = New System.Drawing.Point(340, 17)
+        Me.tblControlLayout.Name = "tblControlLayout"
+        Me.tblControlLayout.RowCount = 7
+        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControlLayout.Size = New System.Drawing.Size(829, 741)
+        Me.tblControlLayout.TabIndex = 20
+        '
+        'flwNameEdit
+        '
+        Me.flwNameEdit.Controls.Add(Me.lblName)
+        Me.flwNameEdit.Controls.Add(Me.txtName)
+        Me.flwNameEdit.Location = New System.Drawing.Point(471, 103)
+        Me.flwNameEdit.Name = "flwNameEdit"
+        Me.flwNameEdit.Size = New System.Drawing.Size(235, 90)
+        Me.flwNameEdit.TabIndex = 21
+        '
+        'flwFrameIndex
+        '
+        Me.flwFrameIndex.Controls.Add(Me.lblFrameIndex)
+        Me.flwFrameIndex.Controls.Add(Me.numFrameIndex)
+        Me.flwFrameIndex.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.flwFrameIndex.Location = New System.Drawing.Point(159, 654)
+        Me.flwFrameIndex.Name = "flwFrameIndex"
+        Me.flwFrameIndex.Size = New System.Drawing.Size(150, 84)
+        Me.flwFrameIndex.TabIndex = 21
+        '
+        'btnTagRemove
+        '
+        Me.btnTagRemove.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.btnTagRemove.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnTagRemove.Location = New System.Drawing.Point(3, 579)
+        Me.btnTagRemove.Name = "btnTagRemove"
+        Me.btnTagRemove.Size = New System.Drawing.Size(150, 69)
+        Me.btnTagRemove.TabIndex = 22
+        Me.btnTagRemove.Text = "Remove Tag"
+        Me.btnTagRemove.UseVisualStyleBackColor = True
         '
         'FrmEntityMaker
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlDark
-        Me.ClientSize = New System.Drawing.Size(992, 718)
-        Me.Controls.Add(Me.txtName)
-        Me.Controls.Add(Me.lblName)
-        Me.Controls.Add(Me.btnRedraw)
-        Me.Controls.Add(Me.btnTagsNew)
-        Me.Controls.Add(Me.lblFrameIndex)
-        Me.Controls.Add(Me.numFrameIndex)
-        Me.Controls.Add(Me.btnFrameAddSprite)
-        Me.Controls.Add(Me.btnTagsEdit)
-        Me.Controls.Add(Me.btnFrameRemove)
-        Me.Controls.Add(Me.btnFrameNew)
-        Me.Controls.Add(Me.btnSpriteLoad)
-        Me.Controls.Add(Me.lblSpriteListTitle)
-        Me.Controls.Add(Me.lstSprites)
-        Me.Controls.Add(Me.lblFrameListTitle)
-        Me.Controls.Add(Me.lstFrames)
-        Me.Controls.Add(Me.lblTagListTitle)
-        Me.Controls.Add(Me.lstTags)
-        Me.Controls.Add(Me.btnSave)
-        Me.Controls.Add(Me.btnSaveAs)
-        Me.Controls.Add(Me.btnOpen)
+        Me.ClientSize = New System.Drawing.Size(1181, 770)
+        Me.Controls.Add(Me.tblControlLayout)
         Me.Controls.Add(Me.pnlFramePreview)
         Me.DoubleBuffered = True
         Me.Name = "FrmEntityMaker"
         Me.Text = "Entity Maker"
         CType(Me.numFrameIndex, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.flwSaveLoad.ResumeLayout(False)
+        Me.tblControlLayout.ResumeLayout(False)
+        Me.tblControlLayout.PerformLayout()
+        Me.flwNameEdit.ResumeLayout(False)
+        Me.flwNameEdit.PerformLayout()
+        Me.flwFrameIndex.ResumeLayout(False)
+        Me.flwFrameIndex.PerformLayout()
         Me.ResumeLayout(False)
-        Me.PerformLayout()
 
     End Sub
 
@@ -305,4 +385,9 @@ Partial Class FrmEntityMaker
     Friend WithEvents btnRedraw As System.Windows.Forms.Button
     Friend WithEvents lblName As Label
     Friend WithEvents txtName As TextBox
+    Friend WithEvents flwSaveLoad As FlowLayoutPanel
+    Friend WithEvents tblControlLayout As TableLayoutPanel
+    Friend WithEvents flwNameEdit As FlowLayoutPanel
+    Friend WithEvents flwFrameIndex As FlowLayoutPanel
+    Friend WithEvents btnTagRemove As Button
 End Class
