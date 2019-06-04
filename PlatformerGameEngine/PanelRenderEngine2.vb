@@ -6,7 +6,8 @@ Imports SpriteHandler = PlatformerGameEngine.SpriteStringHandler
 
 Public Class PanelRenderEngine2
 
-    Public panelCanvasGameArea As PaintEventArgs
+    'Public panelCanvasGameArea As PaintEventArgs
+    Public renderPanel As Panel
     Public entities() As Entity
     Public loadedSprites() As Sprite
     Public renderScale As Single = 20
@@ -30,24 +31,26 @@ Public Class PanelRenderEngine2
             'creates a tag from a string
 
             'checks that string is actually a tag
-            If Mid(tagString, 1, 4) = "tag(" And Mid(tagString, tagString.Length, 1) = ")" Then
+            If Len(tagString) > 4 Then
+                If Mid(tagString, 1, 4) = "tag(" And Mid(tagString, Len(tagString), 1) = ")" Then
 
-                tagString = tagString.Remove(1, 4)      'removes "tag("
-                tagString = tagString.Remove(tagString.Length, 1)   'removes ")"
+                    tagString = tagString.Remove(0, 4)      'removes "tag("
+                    tagString = tagString.Remove(Len(tagString) - 1, 1)   'removes ")"
 
-                Dim values() As String = tagString.Split("\")
+                    Dim values() As String = tagString.Split("\")
 
-                name = values(0)
-                ReDim args(UBound(values) - 1)
-                For argIndex As Integer = 1 To UBound(values)
-                    If IsNumeric(values(argIndex)) = True Then      'number
-                        args(argIndex - 1) = Val(values(argIndex))
-                    ElseIf New Tag(values(argIndex)).name <> Nothing Then       'another tag
-                        args(argIndex - 1) = New Tag(values(argIndex))
-                    Else                'plain string
-                        args(argIndex - 1) = values(argIndex)
-                    End If
-                Next argIndex
+                    name = values(0)
+                    ReDim args(UBound(values) - 1)
+                    For argIndex As Integer = 1 To UBound(values)
+                        If IsNumeric(values(argIndex)) = True Then      'number
+                            args(argIndex - 1) = Val(values(argIndex))
+                        ElseIf New Tag(values(argIndex)).name <> Nothing Then       'another tag
+                            args(argIndex - 1) = New Tag(values(argIndex))
+                        Else                'plain string
+                            args(argIndex - 1) = values(argIndex)
+                        End If
+                    Next argIndex
+                End If
             End If
         End Sub
 
@@ -68,7 +71,7 @@ Public Class PanelRenderEngine2
         Public Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
             'used for = and <> operators
 
-            If tag1.name = tag2.name AndAlso tag1.args Is tag2.args Then
+            If LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.args Is tag2.args Then
                 Return True
             Else
                 Return False
@@ -96,6 +99,7 @@ Public Class PanelRenderEngine2
         Dim location As PointF          'location of the entity (either top left or center, not sure yet)
         Dim rotation As Single          'rotation clockwise in degrees
         Dim scale As Single         'how much each pixel is scaled up by
+        Dim layer As Integer        'z index of entity, higher is further forward
 
 
         Public Sub New(startFrames() As Frame, startTags() As Tag, startLocation As PointF, Optional startRotation As Single = 0.0, Optional startScale As Single = 1.0)
@@ -115,7 +119,7 @@ Public Class PanelRenderEngine2
 
             If IsNothing(tags) = False Then
                 For index As Integer = 0 To UBound(tags)
-                    If tags(index).name = tagName Then
+                    If LCase(tags(index).name) = LCase(tagName) Then
                         Return tags(index)
                     End If
                 Next index
@@ -168,7 +172,7 @@ Public Class PanelRenderEngine2
         'Dim dimensions As Size
         Dim sprites() As Sprite
         Dim offsets() As Point
-        Dim fileLocation As String
+        'Dim fileLocation As String
 
 
         Public Sub New(compositeSprites() As Sprite, offsets() As Point)
@@ -317,7 +321,8 @@ Public Class PanelRenderEngine2
                     pixels = SpriteHandler.ReadPixelColours(fileText)
                 End If
 
-                FindSpriteFileName(fileLocation)
+                'FindSpriteFileName(fileLocation)
+                fileName = fileLocation
             Else
                 DisplayError("Couldn't find file " & fileLocation)
             End If
@@ -366,7 +371,7 @@ Public Class PanelRenderEngine2
     Public Sub LoadSprite(fileLocation As String)
         'loads a sprite from a given location
 
-        If IO.File.Exists(fileLocation) Then
+        If IO.File.Exists(fileLocation) = True Then
             Dim newSprite As New Sprite(fileLocation)
             'Dim fileName As String = newSprite.fileName
 
@@ -381,12 +386,12 @@ Public Class PanelRenderEngine2
         End If
     End Sub
 
-    Public Function FindLoadedSprite(fileName As String) As Sprite
+    Public Function FindLoadedSprite(fileLocation As String) As Sprite
         'returns a loaded sprite with the given file name if it is already loaded
 
         Try
             For index As Integer = 0 To UBound(loadedSprites)
-                If loadedSprites(index).fileName = fileName Then
+                If loadedSprites(index).fileName = fileLocation Then
                     Return loadedSprites(index)
                 End If
             Next index
@@ -436,7 +441,7 @@ Public Class PanelRenderEngine2
         Dim result As String = ""
 
         For Each line As String In lines
-            Dim currentProperty As String = line.Split(":")(0)
+            Dim currentProperty As String = line.Split(":")(0).Replace(vbLf, "")
 
             If currentProperty = propertyName Then
                 Return Trim(line.Split(":")(1))         'issue: cant have colons anywhere else in the line
@@ -461,32 +466,32 @@ Public Class PanelRenderEngine2
 
     'actual rendering part of the program
 
-    Dim previousEntityNamesOrdered() As String
-
     Public Sub DoGameRender(entityList() As Entity)
         'renders everything
 
-        'Dim nextRender As BufferedGraphics
-        'nextRender.Graphics. = panelCanvasGameArea.ClipRectangle
+        Dim canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
 
-        panelCanvasGameArea.Graphics.Clear(Color.Black)
+        canvas.Graphics.Clear(Color.White)
 
         'find used layer numbers
-        Dim layers(0) As Integer
-        For Each entity In entityList
-            Dim layer As Integer = If(IsNumeric(entity.FindTag("layer")), Int(entity.FindTag("layer")), 0)      'default is 0
+        'Dim layers(0) As Integer
+        'For Each entity In entityList
+        '    Dim layer As Integer = If(IsNumeric(entity.FindTag("layer")), Int(entity.FindTag("layer")), 0)      'default is 0
 
-            If layers.Contains(layer) = False Then
-                ReDim Preserve layers(UBound(layers) + 1)
-                layers(UBound(layers)) = layer
-            End If
-        Next
+        '    If layers.Contains(layer) = False Then
+        '        ReDim Preserve layers(UBound(layers) + 1)
+        '        layers(UBound(layers)) = layer
+        '    End If
+        'Next
 
-        'sort entities by render layers
-        Dim sortedEntityIndices() As Integer
+        'render layers
+        Dim context As BufferedGraphicsContext = BufferedGraphicsManager.Current
+        context.MaximumBuffer = renderPanel.Size
 
+        Dim renderLayers() As BufferedGraphics      'each render layer
+        Dim renderLayerNumbers() As Integer         'the z coordinate of each render layer, parallel to above array
 
-
+        Dim overallRender As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
 
         'entity rendering
         If IsNothing(entityList) = False Then
@@ -496,21 +501,59 @@ Public Class PanelRenderEngine2
                     Dim renderFrame As Frame = currentEntity.frames(currentEntity.currentFrame)
                     Dim renderPixels(,) As Color = renderFrame.ToColourArray
 
+                    Dim renderLayer As BufferedGraphics
+
+                    'selects the correct layer to draw to for this entity
+                    If IsNothing(renderLayers) = False Then
+                        If renderLayerNumbers.Contains(currentEntity.layer) = True Then
+                            renderLayer = renderLayers(Array.IndexOf(renderLayerNumbers, currentEntity.layer))
+                        Else
+                            ReDim Preserve renderLayers(UBound(renderLayers) + 1)
+                            ReDim Preserve renderLayerNumbers(UBound(renderLayers))
+
+                            renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+                            renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
+                            renderLayer = renderLayers(UBound(renderLayers))
+                        End If
+                    Else
+                        ReDim renderLayerNumbers(0)
+                        ReDim renderLayers(0)
+
+                        renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+                        renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
+                        renderLayer = renderLayers(UBound(renderLayers))
+                        renderLayer.Graphics.Clear(Color.Transparent)
+                    End If
+
+                    'draws the pixels of the entity to the correct layer
                     For x As Integer = 0 To renderFrame.Dimensions.Width - 1
                         For y As Integer = 0 To renderFrame.Dimensions.Height - 1
                             Dim rotation As Single = currentEntity.rotation
                             Dim scale As Single = renderScale / 2
                             Dim pixelCentre As New PointF(currentEntity.location.X + x * (scale * 3 / 2), currentEntity.location.Y + y * (scale * 3 / 2))
 
-                            DrawPixel(pixelCentre, renderPixels(x, y), rotation, scale)
+                            DrawPixel(renderLayer.Graphics, pixelCentre, renderPixels(x, y), rotation, scale)
                         Next y
                     Next x
                 End If
             Next entityIndex
+
+            If IsNothing(renderLayers) = False Then
+                'sorts the render layers from lowest to highest
+                Dim sortedRenderLayerNumbers() As Integer
+                sortedRenderLayerNumbers = renderLayerNumbers
+                QuickSortRecursive(sortedRenderLayerNumbers, 0, UBound(sortedRenderLayerNumbers))
+
+                'renders each layer
+                For index As Integer = 0 To UBound(renderLayers)
+                    renderLayers(Array.IndexOf(renderLayerNumbers, sortedRenderLayerNumbers(index))).Render()
+                    MsgBox("Artifical delay")
+                Next
+            End If
         End If
     End Sub
 
-    Private Sub DrawPixel(center As PointF, colour As Color, Optional rotation As Single = 0.0, Optional scale As Single = 1.0)
+    Private Sub DrawPixel(graphicsInstance As Graphics, center As PointF, colour As Color, Optional rotation As Single = 0.0, Optional scale As Single = 1.0)
         'draws a pixel
 
         Dim vertices(3) As PointF
@@ -521,7 +564,7 @@ Public Class PanelRenderEngine2
             vertices(vIndex) = VertexOfPolygon(center, vIndex, vertices.Length, rotation, scale)
         Next vIndex
 
-        panelCanvasGameArea.Graphics.FillPolygon(brush, vertices)
+        graphicsInstance.FillPolygon(brush, vertices)
     End Sub
 
     Private Function VertexOfPolygon(center As PointF, index As Integer, sides As Integer, rotation As Single, scale As Single) As PointF
@@ -597,4 +640,37 @@ Public Class PanelRenderEngine2
 
         writer.Close()
     End Sub
+
+
+
+
+
+    'this is not my own code, I got it from https://www.programmingalgorithms.com/algorithm/quick-sort-recursive?lang=VB.Net
+    Public Shared Sub QuickSortRecursive(ByRef data As Integer(), left As Integer, right As Integer)
+        If left < right Then
+            Dim q As Integer = Partition(data, left, right)
+            QuickSortRecursive(data, left, q - 1)
+            QuickSortRecursive(data, q + 1, right)
+        End If
+    End Sub
+
+    Private Shared Function Partition(ByRef data As Integer(), left As Integer, right As Integer) As Integer
+        Dim pivot As Integer = data(right)
+        Dim temp As Integer
+        Dim i As Integer = left
+
+        For j As Integer = left To right - 1
+            If data(j) <= pivot Then
+                temp = data(j)
+                data(j) = data(i)
+                data(i) = temp
+                i += 1
+            End If
+        Next
+
+        data(right) = data(i)
+        data(i) = pivot
+
+        Return i
+    End Function
 End Class
