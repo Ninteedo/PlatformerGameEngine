@@ -12,14 +12,24 @@ Public Class FrmLevelEditor
 
     Private Sub FrmLevelEditor_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         AddHandler delayTimer.Tick, AddressOf Initialisation
+        delayTimer.Start()
     End Sub
 
     Private Sub Initialisation()
+        delayTimer.Stop()
+
+        renderer = New PRE2 With {.renderPanel = pnlRender}
+
         LayoutInitialisation()
+        ControlInitialisation()
+        LoadInitialisation()
     End Sub
 
     Private Sub LayoutInitialisation()
         tblRoom.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
+        tblLevel.Location = New Point(pnlRender.Left, pnlRender.Bottom + 10)
+
+        Me.Size = New Size(tblRoom.Right + 20, tblLevel.Bottom + 40)
 
         'flwSaveLoad.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
         'tblEntities.Location = New Point(flwSaveLoad.Left, flwSaveLoad.Bottom + 5)
@@ -30,6 +40,7 @@ Public Class FrmLevelEditor
     'save load
 
     Dim roomSaveLocation As String = ""
+    Dim levelSaveLocation As String = ""
 
     Private Sub LoadInitialisation()
         'gets the folder locations from the loader file
@@ -44,16 +55,25 @@ Public Class FrmLevelEditor
             Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
             renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
             renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "entityFolder")
-            'renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
+            renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
             'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
+        Else
+            End     'might need to change this
         End If
     End Sub
+
+
+    'levels
 
     Private Sub LoadLevel(fileLocation As String)
         'loads a level and sets the interface up
 
         thisLevel = FrmGame.LoadLevelFile(fileLocation, renderer)
 
+        RefreshRoomsList()
+        RefreshInstancesList()
+        RefreshTemplatesList()
+        RefreshParameterList()
     End Sub
 
     Private Sub SaveLevel(levelToSave As FrmGame.Level, saveLocation As String)
@@ -102,19 +122,36 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub btnLevelSaveAs_Click(sender As Object, e As EventArgs) Handles btnLevelSaveAs.Click
+        Dim fileName As String = InputBox("Enter file name for level")
 
+        If fileName.Length >= 1 Then        'checks that the user actually entered something
+            levelSaveLocation = renderer.levelFolderLocation & fileName & ".lvl"
+            SaveLevel(thisLevel, levelSaveLocation)
+            btnLevelSave.Enabled = True
+        End If
     End Sub
 
     Private Sub btnLevelSave_Click(sender As Object, e As EventArgs) Handles btnLevelSave.Click
-
+        SaveLevel(thisLevel, levelSaveLocation)
     End Sub
+
+
+    'rooms
 
     Private Sub LoadRoom(fileLocation As String)
         'loads a room from a file (is this necessary?)
 
         Dim newRoom As FrmGame.Room = FrmGame.LoadRoomFile(fileLocation, thisLevel)
 
+        If IsNothing(thisLevel.rooms) = True Then
+            ReDim thisLevel.rooms(0)
+        Else
+            ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) + 1)
+        End If
+        thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
 
+        RefreshRoomsList()
+        lstRooms.SelectedIndex = UBound(thisLevel.rooms)        'automatically selects the loaded room
     End Sub
 
     Private Sub SaveRoom(levelOfRoom As FrmGame.Level, roomToSave As FrmGame.Room, saveLocation As String)
@@ -137,18 +174,18 @@ Public Class FrmLevelEditor
             End If
             thisLevel.templates(UBound(thisLevel.templates)) = newTemplate
 
-            RefreshTemplatesArray()
+            RefreshTemplatesList()
         End If
     End Sub
 
     Private Sub btnRoomOpen_Click(sender As Object, e As EventArgs) Handles btnRoomOpen.Click
-		Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True}
-		
-		If openDialog.ShowDialog() = DialogResult.Ok Then
-			For Each fileLocation As String In openDialog.FileNames
-				LoadRoom(fileLocation)
-			Next
-		End If
+        Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True}
+
+        If openDialog.ShowDialog() = DialogResult.OK Then
+            For Each fileLocation As String In openDialog.FileNames
+                LoadRoom(fileLocation)
+            Next
+        End If
     End Sub
 
     Private Sub btnRoomSaveAs_Click(sender As Object, e As EventArgs) Handles btnRoomSaveAs.Click
@@ -207,19 +244,16 @@ Public Class FrmLevelEditor
     Dim thisLevel As FrmGame.Level
     Dim thisRoom As FrmGame.Room
 
-    Private Sub RenderRoom(roomToRender As FrmGame.Room, renderEngine As PRE2)
-        'renders the provided room using the provided renderer
+    Private Sub RenderCurrentRoom()
+        'renders the current room
 
-        renderEngine.DoGameRender(roomToRender.instances)
+        renderer.DoGameRender(thisRoom.instances)
     End Sub
 
 
+
+
     'entities
-
-
-
-
-
 
     Private Sub AddEntityInstance(ByVal template As PRE2.Entity)
         'creates a new instance from the given entity
@@ -258,7 +292,7 @@ Public Class FrmLevelEditor
             thisRoom.instances(UBound(thisRoom.instances)) = newInstance
         End If
 
-        RefreshInstancesArray()
+        RefreshInstancesList()
     End Sub
 
     Private Sub RemoveEntityInstance(instanceIndex As Integer)
@@ -276,10 +310,18 @@ Public Class FrmLevelEditor
             PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(thisRoom.instances))
         End If
 
-        RefreshInstancesArray()
+        RefreshInstancesList()
     End Sub
 
+    Private Sub btnLoadEntity_Click(sender As Object, e As EventArgs) Handles btnLoadEntity.Click
+        Dim openDialog As New OpenFileDialog With {.Filter = "Entity files (*.ent)|*.ent", .Multiselect = True}
 
+        If openDialog.ShowDialog() = DialogResult.OK Then
+            For Each fileName As String In openDialog.FileNames
+                LoadEntityTemplate(fileName)
+            Next
+        End If
+    End Sub
 
 
     Private Sub btnInstanceCreate_Click(sender As Object, e As EventArgs) Handles btnInstanceCreate.Click
@@ -317,7 +359,7 @@ Public Class FrmLevelEditor
     End Sub
 
 
-    Private Sub RefreshTemplatesArray()
+    Private Sub RefreshTemplatesList()
         'clears lstTemplates then adds all templates names back again
 
         lstTemplates.Items.Clear()
@@ -327,7 +369,7 @@ Public Class FrmLevelEditor
         Next
     End Sub
 
-    Private Sub RefreshInstancesArray()
+    Private Sub RefreshInstancesList()
         'clears lstInstances then adds all instances names back again
 
         lstInstances.Items.Clear()
@@ -345,10 +387,12 @@ Public Class FrmLevelEditor
 
             ToggleTagControls(True)
             ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+            btnInstanceCreate.Enabled = True
         Else
             If lstInstances.SelectedIndex = -1 Then
                 ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
             End If
+            btnInstanceCreate.Enabled = False
         End If
     End Sub
 
@@ -371,9 +415,11 @@ Public Class FrmLevelEditor
 
     'tags
 
-    Dim tagControls() As Object = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
+    Dim tagControls() As Object
 
     Private Sub ControlInitialisation()
+        tagControls = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
+
         ToggleTagControls(False)
     End Sub
 
@@ -390,25 +436,36 @@ Public Class FrmLevelEditor
 
         txtTagName.Text = ent.name
         If isTemplate = False Then      'templates dont have x and y values
-            numTagLocX.Value = ent.FindTag("x").args(0)
-            numTagLocY.Value = ent.FindTag("y").args(0)
+            If ent.HasTag("x") Then
+                numTagLocX.Value = ent.FindTag("x").args(0)
+            End If
+            If ent.HasTag("y") Then
+                numTagLocY.Value = ent.FindTag("y").args(0)
+            End If
             numTagLocX.Enabled = True
-            numTagLocY.Enabled = True
-        Else
-            numTagLocX.Value = 0
+                numTagLocY.Enabled = True
+            Else
+                numTagLocX.Value = 0
             numTagLocY.Value = 0
             numTagLocX.Enabled = False
             numTagLocY.Enabled = False
         End If
-        numTagLayer.Value = ent.FindTag("layer").args(0)
-        numTagScale.Value = ent.FindTag("scale").args(0)
-
+        If ent.HasTag("layer") Then
+            numTagLayer.Value = ent.FindTag("layer").args(0)
+        End If
+        If ent.HasTag("scale") Then
+            numTagScale.Value = ent.FindTag("scale").args(0)
+        End If
 
         'updates lstTags
         lstTags.Items.Clear()
-        For Each thisTag As PRE2.Tag In ent.tags
-            lstTags.Items.Add(thisTag.ToString)
-        Next thisTag
+        If IsNothing(ent.tags) = False Then
+            For Each thisTag As PRE2.Tag In ent.tags
+                If IsNothing(thisTag.name) = False Then
+                    lstTags.Items.Add(thisTag.ToString)
+                End If
+            Next thisTag
+        End If
 
     End Sub
 
@@ -508,6 +565,69 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
+    Private Sub txtTagName_Leave(sender As Object, e As EventArgs) Handles txtTagName.Leave
+        'changes the name of an instance
+
+        Dim newName As String = txtTagName.Text
+        Dim oldName As String = thisRoom.instances(lstInstances.SelectedIndex).name
+
+        If newName = "" Then        'resets the name if nothing was entered
+            txtTagName.Text = oldName
+        Else
+            'checks that the name is unique
+            Dim nameUnique As Boolean = True
+            For Each instance As PRE2.Entity In thisRoom.instances
+                If newName = instance.name Then
+                    nameUnique = False
+                    Exit For
+                End If
+            Next instance
+
+            If nameUnique = True Then
+                thisRoom.instances(lstInstances.SelectedIndex).name = newName
+                lstInstances.Items(lstInstances.SelectedIndex) = newName
+            Else
+                PRE2.DisplayError("This name is already being used")
+                txtTagName.Text = oldName
+            End If
+        End If
+    End Sub
+
+    Private Sub numTagLocX_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged
+        'x position of instance changed
+
+        If lstInstances.SelectedIndex > -1 Then
+            thisRoom.instances(lstInstances.SelectedIndex).location.X = numTagLocX.Value
+            RenderCurrentRoom()
+        End If
+    End Sub
+
+    Private Sub numTagLocY_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocY.ValueChanged
+        'y position of instance changed
+
+        If lstInstances.SelectedIndex > -1 Then
+            thisRoom.instances(lstInstances.SelectedIndex).location.Y = numTagLocY.Value
+            RenderCurrentRoom()
+        End If
+    End Sub
+
+    Private Sub numTagLayer_ValueChanged(sender As Object, e As EventArgs) Handles numTagLayer.ValueChanged
+        'z position (layer) of instance changed
+
+        If lstInstances.SelectedIndex > -1 Then
+            thisRoom.instances(lstInstances.SelectedIndex).layer = numTagLayer.Value
+            RenderCurrentRoom()
+        End If
+    End Sub
+
+    Private Sub numTagScale_ValueChanged(sender As Object, e As EventArgs) Handles numTagScale.ValueChanged
+        'scale of instance changed
+
+        If lstInstances.SelectedIndex > -1 Then
+            thisRoom.instances(lstInstances.SelectedIndex).scale = numTagScale.Value
+            RenderCurrentRoom()
+        End If
+    End Sub
 
 
 
@@ -518,9 +638,11 @@ Public Class FrmLevelEditor
 
         list.Items.Clear()
 
-        For Each value As String In values
-            list.Items.Add(value)
-        Next value
+        If IsNothing(values) = False Then
+            For Each value As String In values
+                list.Items.Add(value)
+            Next value
+        End If
     End Sub
 
     Private Sub RefreshRoomsList()
@@ -528,9 +650,11 @@ Public Class FrmLevelEditor
 
         lstRooms.Items.Clear()
 
-        For Each currentRoom As FrmGame.Room In thisLevel.rooms
-            lstRooms.Items.Add(currentRoom.name)
-        Next
+        If IsNothing(thisLevel.rooms) = False Then
+            For Each currentRoom As FrmGame.Room In thisLevel.rooms
+                lstRooms.Items.Add(currentRoom.name)
+            Next
+        End If
     End Sub
 
     Private Sub AddRoom(newRoom As FrmGame.Room)
@@ -599,8 +723,8 @@ Public Class FrmLevelEditor
 
             lstTemplates.SelectedIndex = -1
             lstInstances.SelectedIndex = -1
-            RefreshInstancesArray()
-            RenderRoom(thisRoom, renderer)
+            RefreshInstancesList()
+            RenderCurrentRoom()
 
             btnLevelRoomRemove.Enabled = True
         Else
@@ -648,4 +772,6 @@ Public Class FrmLevelEditor
             End If
         End If
     End Sub
+
+
 End Class
