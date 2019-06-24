@@ -59,9 +59,11 @@ Public Class PanelRenderEngine2
 
             Dim result As String = "tag(" & name
 
-            For Each argument As Object In args
-                result += "\" & argument.ToString
-            Next argument
+            If IsNothing(args) = False Then
+                For Each argument As Object In args
+                    result += "\" & argument.ToString
+                Next argument
+            End If
 
             result += ")"
 
@@ -93,13 +95,13 @@ Public Class PanelRenderEngine2
 
         Dim frames() As Frame
         Dim tags() As Tag
-        Dim name As String
+        'Dim name As String
 
         Dim currentFrame As UInteger
-        Dim location As PointF          'location of the entity (either top left or center, not sure yet)
-        Dim rotation As Single          'rotation clockwise in degrees
-        Dim scale As Single         'how much each pixel is scaled up by
-        Dim layer As Integer        'z index of entity, higher is further forward
+        'Dim location As PointF          'location of the entity (either top left or center, not sure yet)
+        'Dim rotation As Single          'rotation clockwise in degrees
+        'Dim scale As Single         'how much each pixel is scaled up by
+        'Dim layer As Integer        'z index of entity, higher is further forward
 
 
         Public Sub New(startFrames() As Frame, startTags() As Tag, startLocation As PointF, Optional startRotation As Single = 0.0, Optional startScale As Single = 1.0)
@@ -141,7 +143,11 @@ Public Class PanelRenderEngine2
         Public Sub AddTag(newTag As Tag)
             'adds the given tag to this entities list of tags
 
-            ReDim Preserve tags(UBound(tags) + 1)
+            If IsNothing(tags) = True Then
+                ReDim tags(0)
+            Else
+                ReDim Preserve tags(UBound(tags) + 1)
+            End If
 
             tags(UBound(tags)) = newTag
         End Sub
@@ -163,6 +169,109 @@ Public Class PanelRenderEngine2
                 End If
             Loop
         End Sub
+
+
+
+        Property name As String
+            Get
+                If HasTag("name") = True Then
+                    Return FindTag("name").args(0)
+                Else
+                    Return "unnamed"
+                End If
+            End Get
+            Set(value As String)
+                If HasTag("name") = True Then
+                    FindTag("name").args(0) = value
+                Else
+                    AddTag(New Tag("name", {value}))
+                End If
+            End Set
+        End Property
+
+        Property location As PointF
+            Get
+                If HasTag("location") = True Then
+                    Return FindTag("location").args(0)
+                Else
+                    Return New PointF(0, 0)
+                End If
+            End Get
+            Set(value As PointF)
+                If HasTag("location") = True Then
+                    FindTag("location").args(0) = value
+                Else
+                    AddTag(New Tag("location", {value}))
+                End If
+            End Set
+        End Property
+
+        Property layer As Integer
+            Get
+                If HasTag("layer") = True Then
+                    Return FindTag("layer").args(0)
+                Else
+                    Return 0
+                End If
+            End Get
+            Set(value As Integer)
+                If HasTag("layer") = True Then
+                    FindTag("layer").args(0) = value
+                Else
+                    AddTag(New Tag("layer", {value}))
+                End If
+            End Set
+        End Property
+
+        Property scale As Single
+            Get
+                If HasTag("scale") = True Then
+                    Return FindTag("scale").args(0)
+                Else
+                    Return 1
+                End If
+            End Get
+            Set(value As Single)
+                If HasTag("scale") = True Then
+                    FindTag("scale").args(0) = value
+                Else
+                    AddTag(New Tag("scale", {value}))
+                End If
+            End Set
+        End Property
+
+        Property rotation As Single
+            Get
+                If HasTag("rotation") = True Then
+                    Return FindTag("rotation").args(0)
+                Else
+                    Return 0
+                End If
+            End Get
+            Set(value As Single)
+                If HasTag("rotation") = True Then
+                    FindTag("rotation").args(0) = value
+                Else
+                    AddTag(New Tag("rotation", {value}))
+                End If
+            End Set
+        End Property
+
+        Property rotationAnchor As PointF
+            Get
+                If HasTag("rotationAnchor") = True Then
+                    Return New PointF(FindTag("rotationAnchor").args(0), FindTag("rotationAnchor").args(1))
+                Else
+                    Return New PointF(frames(currentFrame).Dimensions.Width / 2, frames(currentFrame).Dimensions.Height / 2)
+                End If
+            End Get
+            Set(value As PointF)
+                If HasTag("rotationAnchor") = True Then
+                    RemoveTag("rotationAnchor")
+                End If
+                AddTag(New Tag("rotationAnchor", {value.X, value.Y}))
+            End Set
+        End Property
     End Structure
 
     Public Structure Frame
@@ -525,20 +634,25 @@ Public Class PanelRenderEngine2
                         renderLayer.Graphics.Clear(Color.Transparent)
                     End If
 
+                    Dim rotationAnchor As PointF = currentEntity.rotationAnchor       'the point where the entity is rotated from
+                    Dim rotation As Single = currentEntity.rotation
+
                     'draws the pixels of the entity to the correct layer
                     For x As Integer = 0 To renderFrame.Dimensions.Width - 1
                         For y As Integer = 0 To renderFrame.Dimensions.Height - 1
-                            Dim rotation As Single = currentEntity.rotation
-                            Dim scale As Single = renderScale / 2
-                            Dim pixelCentre As New PointF(currentEntity.location.X + x * (scale * 3 / 2), currentEntity.location.Y + y * (scale * 3 / 2))
+                            Dim angle As Single = Math.Atan((y - rotationAnchor.Y) / (x - rotationAnchor.X)) + rotation * Math.PI / 180
+                            Dim scale As Single = currentEntity.scale * renderScale / 2
+                            Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
+                            'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
+                            'Dim pixelCentre As New PointF(currentEntity.location.X + x * (scale * 3 / 2), currentEntity.location.Y + y * (scale * 3 / 2))
 
-                            DrawPixel(renderLayer.Graphics, pixelCentre, renderPixels(x, y), rotation, scale)
+                            DrawPixel(canvas.Graphics, pixelCentre, renderPixels(x, y), rotation, scale)
                         Next y
                     Next x
                 End If
             Next entityIndex
 
-            If IsNothing(renderLayers) = False Then
+            If True = False AndAlso IsNothing(renderLayers) = False Then
                 'sorts the render layers from lowest to highest
                 Dim sortedRenderLayerNumbers() As Integer
                 sortedRenderLayerNumbers = renderLayerNumbers
