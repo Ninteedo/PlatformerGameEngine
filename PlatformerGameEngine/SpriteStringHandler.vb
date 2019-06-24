@@ -32,6 +32,82 @@ Public Module SpriteStringHandler
         Return result
     End Function
 
+    Public Function CreateString(sprite As PanelRenderEngine2.Sprite) As String
+        'returns a string created from a given sprite
+
+        'adds line for size
+        Dim sizeLine As String = Trim(Str(sprite.pixels.GetLength(0))) & "x" & Trim(Str(sprite.pixels.GetLength(1)))
+
+        'gets colours
+        Dim colours() As Color = {sprite.pixels(0, 0)}
+
+        For Each pixelColour As Color In sprite.pixels
+            Dim duplicate As Boolean = False
+
+            For Each colour As Color In colours
+                If pixelColour = colour Then
+                    duplicate = True
+                    Exit For
+                End If
+            Next colour
+
+            If duplicate = False Then
+                ReDim Preserve colours(UBound(colours) + 1)
+            End If
+        Next pixelColour
+
+
+        'adds line for colours
+        Dim colourLine As String = ""
+        For Each colour As Color In colours
+            colourLine += ColorTranslator.ToHtml(colour) & ","
+        Next
+        colourLine = colourLine.Remove(Len(colourLine) - 1)
+
+
+        'creates two lists, once of colour indices and the other of how many times in a row that index is repeated
+        Dim indices() As Integer
+        Dim repeats() As Integer
+
+        For y As Integer = 0 To sprite.pixels.GetUpperBound(1)
+            For x As Integer = 0 To sprite.pixels.GetUpperBound(0)
+                Dim thisIndex As Integer = Array.IndexOf(colours, sprite.pixels(x, y))
+
+                If IsNothing(indices) = False Then
+                    If thisIndex = indices(UBound(indices)) Then
+                        repeats(UBound(indices)) += 1
+                    Else
+                        ReDim Preserve indices(UBound(indices) + 1)
+                        ReDim Preserve repeats(UBound(repeats) + 1)
+                        indices(UBound(indices)) = thisIndex
+                        repeats(UBound(indices)) = 1
+                    End If
+                Else
+                    ReDim indices(0)
+                    ReDim repeats(0)
+                    indices(0) = thisIndex
+                    repeats(0) = 1
+                End If
+            Next x
+        Next y
+
+
+        'adds a line for colour indices
+        Dim colourIndicesLine As String = ""
+
+        For colourIndexIndex As Integer = 0 To UBound(indices)
+            If repeats(colourIndexIndex) > 1 Then       'adds the number of repeats to the end of the index if there is repeats
+                colourIndicesLine += Trim(Str(indices(colourIndexIndex))) & "*" & Trim(Str(repeats(colourIndexIndex))) & ","
+            Else
+                colourIndicesLine += Trim(Str(indices(colourIndexIndex))) & ","
+            End If
+        Next
+
+        colourIndicesLine = colourIndicesLine.Remove(Len(colourIndicesLine) - 1)
+
+        Return sizeLine & Environment.NewLine & colourLine & Environment.NewLine & colourIndicesLine
+    End Function
+
     Public Sub ReadIndices(ByVal spriteString As String, ByRef colourIndices(,) As Integer, ByRef gridSize As Size, ByRef colours() As Color)
         'changes the values of colourIndices, gridSize and colours, by reading the spriteString
 
@@ -95,6 +171,8 @@ Public Module SpriteStringHandler
 
     Private Sub ProcessColourIndex(ByVal colourIndex As Integer, ByRef repeatedColourStreak As Integer, ByRef repeatedColourIndex As Integer, ByRef result As String, ByVal last As Boolean)
         'used to find repeats of the same colour
+
+
 
         If last = True Then
             ProcessColourIndex(colourIndex, repeatedColourStreak, repeatedColourIndex, result, False)       'if this wasn't here then last pixel wouldn't get checked

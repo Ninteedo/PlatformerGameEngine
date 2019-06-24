@@ -114,6 +114,9 @@ Public Class PanelRenderEngine2
             scale = startScale
         End Sub
 
+        Public Overrides Function ToString() As String
+
+        End Function
 
 
         Public Function FindTag(tagName As String) As Tag
@@ -275,7 +278,7 @@ Public Class PanelRenderEngine2
     End Structure
 
     Public Structure Frame
-        'a frame is what is actually rendered, can be made up of multiple sprites
+        'a frame of an entity is what is actually rendered, can be made up of multiple sprites with individual offsets
 
         'Dim pixels(,) As Color
         'Dim dimensions As Size
@@ -292,6 +295,28 @@ Public Class PanelRenderEngine2
             End If
 
 
+        End Sub
+
+        Public Sub New(frameString As String, spriteFolderLocation As String)
+            'creates a new frame from a string
+
+            Dim splits() As String = frameString.Split(";")
+
+            ReDim sprites(UBound(splits))
+            ReDim offsets(UBound(splits))
+
+            For index As Integer = 0 To UBound(splits)
+                Dim spriteFileName As String = splits(index).Split("/")(0)
+                Dim offsetX As String = splits(index).Split("/")(1).Split(",")(0)
+                Dim offsetY As String = splits(index).Split("/")(1).Split(",")(1)
+
+                If IsNumeric(offsetX) And IsNumeric(offsetY) Then
+                    sprites(index) = New Sprite(spriteFolderLocation & spriteFileName)
+                    offsets(index) = New Point(Int(offsetX), Int(offsetY))
+                Else
+                    DisplayError("Coordinates provided for an offset (" & splits(index).Split("/")(1) & ") are not numeric")
+                End If
+            Next
         End Sub
 
         Public Function ToColourArray() As Color(,)
@@ -409,6 +434,20 @@ Public Class PanelRenderEngine2
             End If
             offsets(UBound(offsets)) = offset
         End Sub
+
+        Public Overrides Function ToString() As String
+            Dim result As String = ""
+
+            For index As Integer = 0 To UBound(sprites)
+                If IsNothing(sprites(index)) = False And IsNothing(offsets) Then
+                    result += sprites(index).fileName & "/" & offsets(index).ToString & ";"
+                End If
+            Next
+
+            result = result.Remove(Len(result) - 1)
+
+            Return result
+        End Function
     End Structure
 
     Public Structure Sprite
@@ -435,6 +474,16 @@ Public Class PanelRenderEngine2
             Else
                 DisplayError("Couldn't find file " & fileLocation)
             End If
+        End Sub
+
+        Public Sub New(spriteString As String, fileLocation As String)
+            'creates a new sprite from a string
+
+            If SpriteHandler.ValidSpriteText(spriteString, fileLocation) Then
+                pixels = SpriteHandler.ReadPixelColours(spriteString)
+            End If
+
+            fileName = fileLocation
         End Sub
 
         Public Sub New(colourIndices(,) As UInteger, colours() As Color)
@@ -475,6 +524,10 @@ Public Class PanelRenderEngine2
                 DisplayError("Sprite at " & fileLocation & " is not in folder " & spriteFolderName)
             End If
         End Sub
+
+        Public Overrides Function ToString() As String
+            Return SpriteStringHandler.CreateString(Me)
+        End Function
     End Structure
 
     Public Sub LoadSprite(fileLocation As String)
@@ -498,15 +551,15 @@ Public Class PanelRenderEngine2
     Public Function FindLoadedSprite(fileLocation As String) As Sprite
         'returns a loaded sprite with the given file name if it is already loaded
 
-        Try
+        If IsNothing(loadedSprites) = False Then
             For index As Integer = 0 To UBound(loadedSprites)
                 If loadedSprites(index).fileName = fileLocation Then
                     Return loadedSprites(index)
                 End If
             Next index
-        Catch ex As Exception
+        Else
             Return Nothing
-        End Try
+        End If
 
         Return Nothing
     End Function
@@ -562,16 +615,15 @@ Public Class PanelRenderEngine2
         Return Nothing
     End Function
 
-    Private Sub Initialisation()
-        EntityInitialisation()
-    End Sub
+    'Private Sub Initialisation()
+    '    EntityInitialisation()
+    'End Sub
 
-    Private Sub EntityInitialisation()
-        ReDim entities(0)
-        entities(0) = New Entity
-        entities(0).AddTag(New Tag("unusuable"))
-
-    End Sub
+    'Private Sub EntityInitialisation()
+    '    ReDim entities(0)
+    '    entities(0) = New Entity
+    '    entities(0).AddTag(New Tag("unusuable"))
+    'End Sub
 
     'actual rendering part of the program
 
