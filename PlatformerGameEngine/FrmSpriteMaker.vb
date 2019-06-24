@@ -4,8 +4,8 @@
 
 Public Class FrmSpriteMaker
 
-    Shared gridScale As Integer = 20
-    Shared gridSize As Size = New Size(20, 20)
+    Dim gridScale As Integer = 20
+    Dim gridSize As Size = New Size(20, 20)
 
     Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
 
@@ -18,7 +18,7 @@ Public Class FrmSpriteMaker
             y = yCoord
         End Sub
 
-        Public Function Valid() As Boolean
+        Public Function Valid(gridSize As Size) As Boolean
             'returns whether these coordinates are within range of the grid
 
             Dim result As Boolean = True
@@ -261,7 +261,7 @@ Public Class FrmSpriteMaker
     Private Sub DrawSquare(coords As Coordinates, colourIndex As Integer)
         'draws a square on the grid, colour depends on selected colour index
 
-        If coords.Valid = True Then
+        If coords.Valid(gridSize) = True Then
             colourIndices(coords.x, coords.y) = colourIndex
 
             If colourIndex > 0 Then
