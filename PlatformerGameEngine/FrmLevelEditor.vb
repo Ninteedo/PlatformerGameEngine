@@ -58,7 +58,7 @@ Public Class FrmLevelEditor
             renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
             'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
         Else
-            End     'might need to change this
+            Me.Close()     'might need to change this
         End If
     End Sub
 
@@ -106,7 +106,11 @@ Public Class FrmLevelEditor
 
         'adds a loadRoom line for each room
         For Each currentRoom As FrmGame.Room In levelToSave.rooms
-
+			Dim line As String = "loadRoom"
+			
+			
+			
+			levelString += line & Environment.NewLine
         Next currentRoom
 
         'saves level string to file
@@ -388,11 +392,13 @@ Public Class FrmLevelEditor
             ToggleTagControls(True)
             ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
             btnInstanceCreate.Enabled = True
+            btnInstanceDuplicate.Enabled = False
         Else
             If lstInstances.SelectedIndex = -1 Then
                 ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
             End If
             btnInstanceCreate.Enabled = False
+            btnInstanceDuplicate.Enabled = True
         End If
     End Sub
 
@@ -404,6 +410,8 @@ Public Class FrmLevelEditor
 
             ToggleTagControls(True)     'enables tag controls as an instance has been selected
             ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+
+            RenderCurrentRoom()
         Else
             If lstTemplates.SelectedIndex = -1 Then
                 ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
@@ -436,26 +444,18 @@ Public Class FrmLevelEditor
 
         txtTagName.Text = ent.name
         If isTemplate = False Then      'templates dont have x and y values
-            If ent.HasTag("x") Then
-                numTagLocX.Value = ent.FindTag("x").args(0)
-            End If
-            If ent.HasTag("y") Then
-                numTagLocY.Value = ent.FindTag("y").args(0)
-            End If
+            numTagLocX.Value = ent.location.X
+            numTagLocY.Value = ent.location.Y
             numTagLocX.Enabled = True
-                numTagLocY.Enabled = True
-            Else
-                numTagLocX.Value = 0
+            numTagLocY.Enabled = True
+        Else
+            numTagLocX.Value = 0
             numTagLocY.Value = 0
             numTagLocX.Enabled = False
             numTagLocY.Enabled = False
         End If
-        If ent.HasTag("layer") Then
-            numTagLayer.Value = ent.FindTag("layer").args(0)
-        End If
-        If ent.HasTag("scale") Then
-            numTagScale.Value = ent.FindTag("scale").args(0)
-        End If
+        numTagLayer.Value = ent.layer
+        numTagScale.Value = ent.scale
 
         'updates lstTags
         lstTags.Items.Clear()
@@ -467,6 +467,93 @@ Public Class FrmLevelEditor
             Next thisTag
         End If
 
+    End Sub
+
+    Private Sub numTagLocX_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged
+        'x position of instance changed
+
+        If lstInstances.SelectedIndex > -1 Then
+            thisRoom.instances(lstInstances.SelectedIndex).location = New PointF(numTagLocX.Value, thisRoom.instances(lstInstances.SelectedIndex).location.Y)
+            RenderCurrentRoom()
+            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+        End If
+    End Sub
+
+    Private Sub numTagLocY_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocY.ValueChanged
+        'y position of instance changed
+
+        If lstInstances.SelectedIndex > -1 Then
+            thisRoom.instances(lstInstances.SelectedIndex).location = New PointF(thisRoom.instances(lstInstances.SelectedIndex).location.X, numTagLocY.Value)
+            RenderCurrentRoom()
+            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+        End If
+    End Sub
+
+    Private Sub numTagLayer_ValueChanged(sender As Object, e As EventArgs) Handles numTagLayer.ValueChanged
+        'z position (layer) of instance changed
+
+        If lstInstances.SelectedIndex > -1 Then
+            thisRoom.instances(lstInstances.SelectedIndex).layer = numTagLayer.Value
+            RenderCurrentRoom()
+            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+        End If
+    End Sub
+
+    Private Sub numTagScale_ValueChanged(sender As Object, e As EventArgs) Handles numTagScale.ValueChanged
+        'scale of instance changed
+
+        If lstInstances.SelectedIndex > -1 Then
+            thisRoom.instances(lstInstances.SelectedIndex).scale = numTagScale.Value
+            RenderCurrentRoom()
+            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+        End If
+    End Sub
+
+    Private Sub btnTagAdd_Click(sender As Object, e As EventArgs) Handles btnTagAdd.Click
+        'adds a tag created by the user using FrmTagMaker
+
+        If lstInstances.SelectedIndex > -1 Then
+            Dim tagMaker As New FrmTagMaker
+            tagMaker.ShowDialog()
+
+            If tagMaker.userFinished = True Then
+                thisRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.createdTag)
+                ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            End If
+        End If
+    End Sub
+
+    Private Sub btnTagEdit_Click(sender As Object, e As EventArgs) Handles btnTagEdit.Click
+        'allows the user to edit a tag using FrmTagMaker
+
+        If lstInstances.SelectedIndex > -1 And lstTags.SelectedIndex > -1 Then
+            Dim tagMaker As New FrmTagMaker(thisRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
+            tagMaker.ShowDialog()
+
+            If tagMaker.userFinished = True Then
+                thisRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
+                ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            End If
+        End If
+    End Sub
+
+    Private Sub btnTagRemove_Click(sender As Object, e As EventArgs) Handles btnTagRemove.Click
+        'removes the selected tag
+
+        If lstInstances.SelectedIndex > -1 And lstTags.SelectedIndex > -1 Then
+            Dim ent As PRE2.Entity = thisRoom.instances(lstInstances.SelectedIndex)
+            For index As Integer = lstTags.SelectedIndex To UBound(ent.tags)
+                ent.tags(index) = ent.tags(index + 1)
+            Next
+
+            If UBound(ent.tags) > 0 Then
+                ReDim Preserve ent.tags(UBound(ent.tags) - 1)
+            Else
+                ent.tags = Nothing
+            End If
+
+            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+        End If
     End Sub
 
 
@@ -547,7 +634,7 @@ Public Class FrmLevelEditor
 
         If lstParams.SelectedIndex > -1 Then
             'gets the user to create a parameter (same as a tag)
-            Dim tagMaker As New FrmTagMaker
+            Dim tagMaker As New FrmTagMaker(thisLevel.parameters(lstParams.SelectedIndex))
             tagMaker.ShowDialog()
             If tagMaker.userFinished = True Then
                 ReplaceParameter(lstParams.SelectedIndex, tagMaker.createdTag)
@@ -590,44 +677,12 @@ Public Class FrmLevelEditor
                 PRE2.DisplayError("This name is already being used")
                 txtTagName.Text = oldName
             End If
+            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
         End If
     End Sub
 
-    Private Sub numTagLocX_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged
-        'x position of instance changed
+    
 
-        If lstInstances.SelectedIndex > -1 Then
-            thisRoom.instances(lstInstances.SelectedIndex).location.X = numTagLocX.Value
-            RenderCurrentRoom()
-        End If
-    End Sub
-
-    Private Sub numTagLocY_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocY.ValueChanged
-        'y position of instance changed
-
-        If lstInstances.SelectedIndex > -1 Then
-            thisRoom.instances(lstInstances.SelectedIndex).location.Y = numTagLocY.Value
-            RenderCurrentRoom()
-        End If
-    End Sub
-
-    Private Sub numTagLayer_ValueChanged(sender As Object, e As EventArgs) Handles numTagLayer.ValueChanged
-        'z position (layer) of instance changed
-
-        If lstInstances.SelectedIndex > -1 Then
-            thisRoom.instances(lstInstances.SelectedIndex).layer = numTagLayer.Value
-            RenderCurrentRoom()
-        End If
-    End Sub
-
-    Private Sub numTagScale_ValueChanged(sender As Object, e As EventArgs) Handles numTagScale.ValueChanged
-        'scale of instance changed
-
-        If lstInstances.SelectedIndex > -1 Then
-            thisRoom.instances(lstInstances.SelectedIndex).scale = numTagScale.Value
-            RenderCurrentRoom()
-        End If
-    End Sub
 
 
 
@@ -661,12 +716,14 @@ Public Class FrmLevelEditor
         'adds a new room to the level
 
         'checks that name isn't already being used
-        For Each currentRoom As FrmGame.Room In thisLevel.rooms
-            If currentRoom.name = newRoom.name Then
-                PRE2.DisplayError("This room name is already being used, please use a different name")
-                Exit Sub
-            End If
-        Next
+		If IsNothing(thisLevel.rooms) = False Then
+			For Each currentRoom As FrmGame.Room In thisLevel.rooms
+				If currentRoom.name = newRoom.name Then
+					PRE2.DisplayError("This room name is already being used, please use a different name")
+					Exit Sub
+				End If
+			Next
+		End If
 
         If IsNothing(thisLevel.rooms) = True Then
             ReDim thisLevel.rooms(0)
@@ -735,7 +792,7 @@ Public Class FrmLevelEditor
     Private Sub btnLevelRoomAdd_Click(sender As Object, e As EventArgs) Handles btnLevelRoomAdd.Click
         'a new room is added to the level
 
-        Dim roomName As String = MsgBox("Please enter a name for the new room")
+        Dim roomName As String = InputBox("Please enter a name for the new room")
 
         If roomName.Length > 0 Then
             AddRoom(New FrmGame.Room With {.name = roomName})
@@ -774,4 +831,5 @@ Public Class FrmLevelEditor
     End Sub
 
 
+    
 End Class
