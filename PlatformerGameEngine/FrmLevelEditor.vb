@@ -5,9 +5,10 @@
 Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Class FrmLevelEditor
-
+	
+	
 	'initialisation
-
+	
     Dim delayTimer As New Timer With {.Interval = 1, .Enabled = False}
 
     Private Sub FrmLevelEditor_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -37,6 +38,8 @@ Public Class FrmLevelEditor
         'tblTagsDetailed.Location = New Point(tblTagsSummary.Left, tblTagsSummary.Bottom + 5)
     End Sub
 
+	
+	
     'save load
 
     Dim roomSaveLocation As String = ""
@@ -63,6 +66,7 @@ Public Class FrmLevelEditor
     End Sub
 
 
+	
     'levels
 
     Private Sub LoadLevel(fileLocation As String)
@@ -87,7 +91,6 @@ Public Class FrmLevelEditor
         Next param
 
 
-
         'adds a loadEnt line for each template
         For Each template As PRE2.Entity In levelToSave.templates
             If template.HasTag("fileName") = True Then
@@ -104,11 +107,14 @@ Public Class FrmLevelEditor
             End If
         Next
 
+
         'adds a loadRoom line for each room
         For Each currentRoom As FrmGame.Room In levelToSave.rooms
-			Dim line As String = "loadRoom"
+            Dim line As String = "loadRoom: "
 			
-			
+            For Each thisRoom As FrmGame.Room In thisLevel.rooms
+                line += thisRoom.fileLocation.Remove(renderer.roomFolderLocation)       'the saved part is the location relative to the room folder
+            Next
 			
 			levelString += line & Environment.NewLine
         Next currentRoom
@@ -140,7 +146,8 @@ Public Class FrmLevelEditor
     End Sub
 
 
-    'rooms
+	
+    'rooms save/load
 
     Private Sub LoadRoom(fileLocation As String)
         'loads a room from a file (is this necessary?)
@@ -242,8 +249,9 @@ Public Class FrmLevelEditor
     End Function
 
 
+	
     'render
-
+	
     Dim renderer As New PRE2
     Dim thisLevel As FrmGame.Level
     Dim thisRoom As FrmGame.Room
@@ -253,7 +261,6 @@ Public Class FrmLevelEditor
 
         renderer.DoGameRender(thisRoom.instances)
     End Sub
-
 
 
 
@@ -364,23 +371,27 @@ Public Class FrmLevelEditor
 
 
     Private Sub RefreshTemplatesList()
-        'clears lstTemplates then adds all templates names back again
-
-        lstTemplates.Items.Clear()
-
-        For Each template As PRE2.Entity In thisLevel.templates
-            lstTemplates.Items.Add(template.name)
-        Next
+		If IsNothing(thisLevel.templates) = False Then
+			Dim names(UBound(thisLevel.templates)) As String
+		
+			For index As Integer = 0 To UBound(thisLevel.templates)
+				names(index) = thisLevel.templates(index).name
+			Next
+			
+			RefreshList(lstTemplates, names)
+		End If
     End Sub
 
     Private Sub RefreshInstancesList()
-        'clears lstInstances then adds all instances names back again
+        If IsNothing(thisRoom.instances) = False Then
+            Dim names(UBound(thisRoom.instances)) As String
 
-        lstInstances.Items.Clear()
+            For index As Integer = 0 To UBound(thisRoom.instances)
+                names(index) = thisRoom.instances(index).name
+            Next
 
-        For Each instance As PRE2.Entity In thisRoom.instances
-            lstInstances.Items.Add(instance.name)
-        Next
+            RefreshList(lstTemplates, names)
+        End If
     End Sub
 
     Private Sub lstTemplates_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstTemplates.SelectedIndexChanged
@@ -558,17 +569,18 @@ Public Class FrmLevelEditor
 
 
 
-
     'parameters
 
     Private Sub RefreshParameterList()
-        Dim items(UBound(thisLevel.parameters)) As String
+		If IsNothing(thisLevel.parameters) = False Then		
+			Dim items(UBound(thisLevel.parameters)) As String
 
-        For index As Integer = 0 To UBound(items)
-            items(index) = thisLevel.parameters(index).ToString
-        Next index
+			For index As Integer = 0 To UBound(items)
+				items(index) = thisLevel.parameters(index).ToString
+			Next index
 
-        RefreshList(lstParams, items)
+			RefreshList(lstParams, items)
+		End If
     End Sub
 
     Private Sub AddParameter(newParam As PRE2.Tag)
@@ -683,32 +695,17 @@ Public Class FrmLevelEditor
 
     
 
+    'rooms 
 
-
-
-    'rooms
-
-    Private Sub RefreshList(list As ListBox, values() As String)
-        'empties a list and fills it with given values
-
-        list.Items.Clear()
-
-        If IsNothing(values) = False Then
-            For Each value As String In values
-                list.Items.Add(value)
-            Next value
-        End If
-    End Sub
-
-    Private Sub RefreshRoomsList()
-        'empties lstRooms and fills it again
-
-        lstRooms.Items.Clear()
-
+    Private Sub RefreshRoomsList()	
         If IsNothing(thisLevel.rooms) = False Then
-            For Each currentRoom As FrmGame.Room In thisLevel.rooms
-                lstRooms.Items.Add(currentRoom.name)
+			Dim names(UBound(thisLevel.rooms)) As String
+		
+            For index As Integer = 0 To UBound(thisLevel.rooms)
+                names(index) = thisLevel.rooms(index).name
             Next
+			
+			RefreshList(lstRooms, names)
         End If
     End Sub
 
@@ -719,7 +716,7 @@ Public Class FrmLevelEditor
 		If IsNothing(thisLevel.rooms) = False Then
 			For Each currentRoom As FrmGame.Room In thisLevel.rooms
 				If currentRoom.name = newRoom.name Then
-					PRE2.DisplayError("This room name is already being used, please use a different name")
+					PRE2.DisplayError("Room name (" & newRoom.name & ") is in use, please use a different one")
 					Exit Sub
 				End If
 			Next
@@ -829,7 +826,25 @@ Public Class FrmLevelEditor
             End If
         End If
     End Sub
+	
+	
+	
+	'general procedures
+	
+	Private Sub RefreshList(list As ListBox, values() As String)
+        'empties a list and fills it with given values
 
+		If IsNothing(list) = False Then
+			list.Items.Clear()
 
-    
+			If IsNothing(values) = False Then
+				For Each value As String In values
+					list.Items.Add(value)
+				Next value
+			End If
+		Else
+			PRE2.DisplayError("A list tried to refresh but doesn't exist")
+		End If
+    End Sub
+   
 End Class
