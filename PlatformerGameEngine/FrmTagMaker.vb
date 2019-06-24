@@ -11,6 +11,32 @@ Public Class FrmTagMaker
     Public userFinished As Boolean = False
 
 
+    Public Sub New()
+
+        ' This call is required by the designer.
+        InitializeComponent()
+
+        ' Add any initialization after the InitializeComponent() call.
+
+    End Sub
+
+    Public Sub New(startTag As PRE2.Tag)
+
+        ' This call is required by the designer.
+        InitializeComponent()
+
+        ' Add any initialization after the InitializeComponent() call.
+
+        createdTag = startTag
+
+        'For argIndex As Integer = 0 To UBound(createdTag.args)
+        '    AddArgument(createdTag.args(argIndex))
+        'Next argIndex
+
+        RefreshArgumentsList()
+        txtName.Text = createdTag.name
+    End Sub
+
     Private Sub FrmTagMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         cmbDataType.Items.AddRange(dataTypes)
     End Sub
@@ -35,14 +61,14 @@ Public Class FrmTagMaker
                     If IsNumeric(userInput) = False Then
                         PRE2.DisplayError(userInput & " is not a number")
                     Else
-                        AddArgument(Val(userInput), cmbDataType.SelectedIndex)
+                        AddArgument(Val(userInput))
                     End If
                 End If
             Case 1      'string
                 Dim userInput As String = InputBox("Please enter text", "Enter text")
 
                 If userInput.Length > 0 Then
-                    AddArgument(userInput, cmbDataType.SelectedIndex)
+                    AddArgument(userInput)
                 End If
             Case 2      'tag
                 Dim tagMaker As New FrmTagMaker
@@ -50,7 +76,7 @@ Public Class FrmTagMaker
                 tagMaker.ShowDialog()
 
                 If tagMaker.userFinished = True Then
-                    AddArgument(tagMaker.createdTag, cmbDataType.SelectedIndex)
+                    AddArgument(tagMaker.createdTag)
                 End If
         End Select
     End Sub
@@ -60,7 +86,6 @@ Public Class FrmTagMaker
             Dim removeIndex As Integer = lstArguments.SelectedIndex
 
             RemoveArgument(removeIndex)
-            lstArguments.Items.RemoveAt(removeIndex)
         End If
     End Sub
 
@@ -81,37 +106,43 @@ Public Class FrmTagMaker
         Me.Close()
     End Sub
 
-    Public Sub AddArgument(argument As Object, dataTypeIndex As Integer)
+    Private Sub RefreshArgumentsList()
+        lstArguments.Items.Clear()
+
+        If IsNothing(createdTag.args) = False Then
+            For Each arg As Object In createdTag.args
+                Dim argString As String
+
+                If IsNumeric(arg) = True Then      'number
+                    argString = "num:" & Trim(Val(arg))
+                ElseIf New PRE2.Tag(arg).name <> Nothing Then       'another tag
+                    argString = arg.ToString
+                Else                'plain string
+                    argString = "text:" & arg
+                End If
+                lstArguments.Items.Add(argString)
+            Next arg
+        End If
+    End Sub
+
+    Public Sub AddArgument(argument As Object)
         'adds the given argument to the user's created tag's arguments
 
-        Select Case dataTypeIndex
-            Case 0      'number
-                If IsNumeric(argument) = False Then
-                    PRE2.DisplayError(argument & " is not a number")
-                    Exit Sub
-                Else
-                    lstArguments.Items.Add("num:" & Trim(Str(argument)))
-                End If
-            Case 1      'text
-                lstArguments.Items.Add("text:" & argument)
-            Case 2      'string
-                lstArguments.Items.Add("tag:" & argument.name)
-        End Select
-
-        Try
+        If IsNothing(createdTag.args) = False Then
             ReDim Preserve createdTag.args(UBound(createdTag.args) + 1)
-        Catch ex As Exception
+        Else
             ReDim createdTag.args(0)
-        End Try
+        End If
 
         createdTag.args(UBound(createdTag.args)) = argument
+        RefreshArgumentsList()
     End Sub
 
     Private Sub RemoveArgument(argIndex As UInteger)
         'removes the argument at the given index from the created tag
 
-        For index As Integer = argIndex + 1 To UBound(createdTag.args)
-            createdTag.args(index - 1) = createdTag.args(index)
+        For index As Integer = argIndex To UBound(createdTag.args) - 1
+            createdTag.args(index) = createdTag.args(index + 1)
         Next index
 
         'used for reducing the length of the array of the arguments
@@ -120,6 +151,8 @@ Public Class FrmTagMaker
         Else        'if removing only argument, then array becomes nothing
             createdTag.args = Nothing
         End If
+
+        RefreshArgumentsList()
     End Sub
 
 

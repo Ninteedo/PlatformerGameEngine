@@ -347,29 +347,8 @@ Public Class FrmEntityMaker
         Dim tagIndex As Integer = lstTags.SelectedIndex
 
         If tagIndex > -1 Then
-            Dim tagMaker As New FrmTagMaker With {
-                .createdTag = ent.tags(tagIndex)
-            }
-
-            For argIndex As Integer = 0 To UBound(tagMaker.createdTag.args)
-                Dim currentArg As Object = tagMaker.createdTag.args(argIndex)
-                Dim dataTypeIndex As Integer
-
-                Try
-                    Dim test As PRE2.Tag = currentArg
-                    dataTypeIndex = 2   'tag
-                Catch ex As Exception
-                    If IsNumeric(currentArg) = True Then
-                        dataTypeIndex = 0   'number
-                    Else
-                        dataTypeIndex = 1   'text
-                    End If
-                End Try
-
-                tagMaker.AddArgument(currentArg, dataTypeIndex)
-            Next argIndex
-
-            tagMaker.txtName.Text = tagMaker.createdTag.name
+            Dim tagMaker As New FrmTagMaker(ent.tags(tagIndex))
+            
             tagMaker.ShowDialog()
 
             If tagMaker.userFinished = True Then
