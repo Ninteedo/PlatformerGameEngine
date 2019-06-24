@@ -21,7 +21,8 @@ Public Class FrmGame
 
         delayTimer.Stop()
 
-        renderer = New PRE2 With {.panelCanvasGameArea = New PaintEventArgs(pnlGame.CreateGraphics, New Rectangle(New Point(0, 0), pnlGame.Size))}
+        'renderer = New PRE2 With {.panelCanvasGameArea = New PaintEventArgs(pnlGame.CreateGraphics, New Rectangle(New Point(0, 0), pnlGame.Size))}
+        renderer = New PRE2 With {.renderPanel = pnlGame}
         LoadGame()
     End Sub
 
@@ -30,6 +31,8 @@ Public Class FrmGame
         'a room is a collection of entities which are all used at once
 
         Dim instances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
+        Dim name As String
+		Dim fileLocation As String
     End Structure
 
     Public Structure Level
@@ -69,7 +72,7 @@ Public Class FrmGame
             renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
             renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "entityFolder")
             renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
-            renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
+            'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
 
             'loads the file names of each level, keeps going until a level isn't provided
             Dim index As Integer = 0
@@ -143,6 +146,8 @@ Public Class FrmGame
         Dim attributes() As String = line.Split(":")(1).Split("/")     'the specifics of what the line does, the order matters, delimited by /
 
         Select Case lineType
+            Case "roomFolder"   'sets the folder for this levels rooms
+                renderEngine.roomFolderLocation = renderEngine.levelFolderLocation & attributes(0)
             Case "loadEnt"      'loads an entity from a file (file location, name)
                 Dim newEntity As PRE2.Entity
 
@@ -169,8 +174,26 @@ Public Class FrmGame
 
                 thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
                 thisLevel.roomCoords(UBound(thisLevel.rooms)) = coords
-
+            Case "addParam"     'adds a parameter but wont delete any duplicates (tag)
+                Dim newParam As PRE2.Tag = New PRE2.Tag(attributes(0))
+                ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) + 1)
+                thisLevel.parameters(UBound(thisLevel.parameters)) = newParam
             Case "editParam"    'changes a parameter (tag)
+                Dim newParam As PRE2.Tag = New PRE2.Tag(attributes(0))
+
+                'removes any other parameters with the same name
+                For paramIndex As Integer = 0 To UBound(thisLevel.parameters)
+                    If thisLevel.parameters(paramIndex).name = newParam.name Then
+                        For index As Integer = paramIndex To UBound(thisLevel.parameters) - 1
+                            thisLevel.parameters(index) = thisLevel.parameters(index + 1)
+                        Next index
+
+                        ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) - 1)
+                    End If
+                Next paramIndex
+
+                ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) + 1)
+                thisLevel.parameters(UBound(thisLevel.parameters)) = newParam
 
             Case Else           'unknown line type
                 PRE2.DisplayError("Unknown line type: " & lineType)
@@ -181,7 +204,7 @@ Public Class FrmGame
         If IO.File.Exists(fileLocation) = True Then
             Dim roomString As String = PRE2.ReadFile(fileLocation)
 
-            Dim thisRoom As New Room
+            Dim thisRoom As New Room With {.fileLocation = fileLocation}
             Dim lines() As String = roomString.Split(Environment.NewLine)
 
             For lineIndex As Integer = 0 To UBound(lines)
@@ -325,9 +348,9 @@ Public Class FrmGame
             Case "xVel"         'args(0):float
                 Dim start As PointF = ent.location
 
-                ent.location.X += behaviour.args(0)
+                'ent.location.X += behaviour.args(0)
             Case "yVel"         'args(0):float
-                ent.location.Y += behaviour.args(0)
+                'ent.location.Y += behaviour.args(0)
             Case "xAcc"         'args(0):float
                 ent.FindTag("xVel").args(0) += behaviour.args(0)
             Case "yAcc"         'args(0):float
