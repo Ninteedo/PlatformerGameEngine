@@ -27,7 +27,6 @@ Partial Class FrmSpriteMaker
         Me.btnSaveAs = New System.Windows.Forms.Button()
         Me.btnSave = New System.Windows.Forms.Button()
         Me.tblColourSelect = New System.Windows.Forms.TableLayoutPanel()
-        Me.lstColours = New System.Windows.Forms.ListBox()
         Me.numColourR = New System.Windows.Forms.NumericUpDown()
         Me.lblRed = New System.Windows.Forms.Label()
         Me.lblGreen = New System.Windows.Forms.Label()
@@ -45,12 +44,22 @@ Partial Class FrmSpriteMaker
         Me.lblResizeS = New System.Windows.Forms.Label()
         Me.btnResize = New System.Windows.Forms.Button()
         Me.btnRedraw = New System.Windows.Forms.Button()
+        Me.tblSaveLoad = New System.Windows.Forms.TableLayoutPanel()
+        Me.tblResizing = New System.Windows.Forms.TableLayoutPanel()
+        Me.tblColourCreater = New System.Windows.Forms.TableLayoutPanel()
+        Me.tblColourAndResizing = New System.Windows.Forms.TableLayoutPanel()
+        Me.tblControls = New System.Windows.Forms.TableLayoutPanel()
         CType(Me.numColourR, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.numColourG, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.numColourB, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.numResizeW, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.numResizeH, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.numResizeS, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.tblSaveLoad.SuspendLayout()
+        Me.tblResizing.SuspendLayout()
+        Me.tblColourCreater.SuspendLayout()
+        Me.tblColourAndResizing.SuspendLayout()
+        Me.tblControls.SuspendLayout()
         Me.SuspendLayout()
         '
         'pnlDraw
@@ -66,7 +75,7 @@ Partial Class FrmSpriteMaker
         Me.btnOpen.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
         Me.btnOpen.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnOpen.ForeColor = System.Drawing.Color.Yellow
-        Me.btnOpen.Location = New System.Drawing.Point(420, 13)
+        Me.btnOpen.Location = New System.Drawing.Point(3, 3)
         Me.btnOpen.Name = "btnOpen"
         Me.btnOpen.Size = New System.Drawing.Size(93, 67)
         Me.btnOpen.TabIndex = 1
@@ -78,7 +87,7 @@ Partial Class FrmSpriteMaker
         Me.btnSaveAs.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
         Me.btnSaveAs.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnSaveAs.ForeColor = System.Drawing.Color.Yellow
-        Me.btnSaveAs.Location = New System.Drawing.Point(519, 13)
+        Me.btnSaveAs.Location = New System.Drawing.Point(103, 3)
         Me.btnSaveAs.Name = "btnSaveAs"
         Me.btnSaveAs.Size = New System.Drawing.Size(93, 67)
         Me.btnSaveAs.TabIndex = 2
@@ -91,7 +100,7 @@ Partial Class FrmSpriteMaker
         Me.btnSave.Enabled = False
         Me.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnSave.ForeColor = System.Drawing.Color.Yellow
-        Me.btnSave.Location = New System.Drawing.Point(618, 13)
+        Me.btnSave.Location = New System.Drawing.Point(203, 3)
         Me.btnSave.Name = "btnSave"
         Me.btnSave.Size = New System.Drawing.Size(93, 67)
         Me.btnSave.TabIndex = 3
@@ -105,31 +114,22 @@ Partial Class FrmSpriteMaker
         Me.tblColourSelect.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
         Me.tblColourSelect.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
         Me.tblColourSelect.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-        Me.tblColourSelect.Location = New System.Drawing.Point(420, 86)
+        Me.tblColourSelect.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.tblColourSelect.Location = New System.Drawing.Point(3, 85)
         Me.tblColourSelect.Name = "tblColourSelect"
-        Me.tblColourSelect.RowCount = 5
-        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20.0!))
-        Me.tblColourSelect.Size = New System.Drawing.Size(280, 350)
+        Me.tblColourSelect.RowCount = 6
+        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
+        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
+        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
+        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
+        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
+        Me.tblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
+        Me.tblColourSelect.Size = New System.Drawing.Size(302, 481)
         Me.tblColourSelect.TabIndex = 4
-        '
-        'lstColours
-        '
-        Me.lstColours.BackColor = System.Drawing.Color.DarkGray
-        Me.lstColours.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.lstColours.FormattingEnabled = True
-        Me.lstColours.ItemHeight = 20
-        Me.lstColours.Location = New System.Drawing.Point(637, 93)
-        Me.lstColours.Name = "lstColours"
-        Me.lstColours.Size = New System.Drawing.Size(120, 342)
-        Me.lstColours.TabIndex = 5
         '
         'numColourR
         '
-        Me.numColourR.Location = New System.Drawing.Point(794, 93)
+        Me.numColourR.Location = New System.Drawing.Point(31, 3)
         Me.numColourR.Maximum = New Decimal(New Integer() {255, 0, 0, 0})
         Me.numColourR.Name = "numColourR"
         Me.numColourR.Size = New System.Drawing.Size(67, 26)
@@ -138,7 +138,7 @@ Partial Class FrmSpriteMaker
         'lblRed
         '
         Me.lblRed.AutoSize = True
-        Me.lblRed.Location = New System.Drawing.Point(764, 93)
+        Me.lblRed.Location = New System.Drawing.Point(3, 0)
         Me.lblRed.Name = "lblRed"
         Me.lblRed.Size = New System.Drawing.Size(21, 20)
         Me.lblRed.TabIndex = 0
@@ -147,7 +147,7 @@ Partial Class FrmSpriteMaker
         'lblGreen
         '
         Me.lblGreen.AutoSize = True
-        Me.lblGreen.Location = New System.Drawing.Point(764, 125)
+        Me.lblGreen.Location = New System.Drawing.Point(3, 33)
         Me.lblGreen.Name = "lblGreen"
         Me.lblGreen.Size = New System.Drawing.Size(22, 20)
         Me.lblGreen.TabIndex = 0
@@ -155,7 +155,7 @@ Partial Class FrmSpriteMaker
         '
         'numColourG
         '
-        Me.numColourG.Location = New System.Drawing.Point(794, 125)
+        Me.numColourG.Location = New System.Drawing.Point(31, 36)
         Me.numColourG.Maximum = New Decimal(New Integer() {255, 0, 0, 0})
         Me.numColourG.Name = "numColourG"
         Me.numColourG.Size = New System.Drawing.Size(67, 26)
@@ -164,7 +164,7 @@ Partial Class FrmSpriteMaker
         'lblBlue
         '
         Me.lblBlue.AutoSize = True
-        Me.lblBlue.Location = New System.Drawing.Point(764, 157)
+        Me.lblBlue.Location = New System.Drawing.Point(3, 66)
         Me.lblBlue.Name = "lblBlue"
         Me.lblBlue.Size = New System.Drawing.Size(20, 20)
         Me.lblBlue.TabIndex = 0
@@ -172,7 +172,7 @@ Partial Class FrmSpriteMaker
         '
         'numColourB
         '
-        Me.numColourB.Location = New System.Drawing.Point(794, 157)
+        Me.numColourB.Location = New System.Drawing.Point(31, 69)
         Me.numColourB.Maximum = New Decimal(New Integer() {255, 0, 0, 0})
         Me.numColourB.Name = "numColourB"
         Me.numColourB.Size = New System.Drawing.Size(67, 26)
@@ -181,9 +181,10 @@ Partial Class FrmSpriteMaker
         'pnlCustomColourDisplay
         '
         Me.pnlCustomColourDisplay.BackColor = System.Drawing.Color.Black
-        Me.pnlCustomColourDisplay.Location = New System.Drawing.Point(867, 93)
+        Me.pnlCustomColourDisplay.Location = New System.Drawing.Point(104, 3)
         Me.pnlCustomColourDisplay.Name = "pnlCustomColourDisplay"
-        Me.pnlCustomColourDisplay.Size = New System.Drawing.Size(32, 90)
+        Me.tblColourCreater.SetRowSpan(Me.pnlCustomColourDisplay, 3)
+        Me.pnlCustomColourDisplay.Size = New System.Drawing.Size(30, 94)
         Me.pnlCustomColourDisplay.TabIndex = 12
         '
         'btnAddColour
@@ -191,7 +192,7 @@ Partial Class FrmSpriteMaker
         Me.btnAddColour.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
         Me.btnAddColour.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnAddColour.ForeColor = System.Drawing.Color.Yellow
-        Me.btnAddColour.Location = New System.Drawing.Point(768, 189)
+        Me.btnAddColour.Location = New System.Drawing.Point(3, 182)
         Me.btnAddColour.Name = "btnAddColour"
         Me.btnAddColour.Size = New System.Drawing.Size(93, 67)
         Me.btnAddColour.TabIndex = 7
@@ -203,7 +204,7 @@ Partial Class FrmSpriteMaker
         Me.btnSwapColour.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
         Me.btnSwapColour.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnSwapColour.ForeColor = System.Drawing.Color.Yellow
-        Me.btnSwapColour.Location = New System.Drawing.Point(768, 262)
+        Me.btnSwapColour.Location = New System.Drawing.Point(3, 255)
         Me.btnSwapColour.Name = "btnSwapColour"
         Me.btnSwapColour.Size = New System.Drawing.Size(93, 67)
         Me.btnSwapColour.TabIndex = 8
@@ -213,7 +214,7 @@ Partial Class FrmSpriteMaker
         'lblResizeW
         '
         Me.lblResizeW.AutoSize = True
-        Me.lblResizeW.Location = New System.Drawing.Point(763, 332)
+        Me.lblResizeW.Location = New System.Drawing.Point(3, 0)
         Me.lblResizeW.Name = "lblResizeW"
         Me.lblResizeW.Size = New System.Drawing.Size(24, 20)
         Me.lblResizeW.TabIndex = 0
@@ -221,7 +222,7 @@ Partial Class FrmSpriteMaker
         '
         'numResizeW
         '
-        Me.numResizeW.Location = New System.Drawing.Point(793, 330)
+        Me.numResizeW.Location = New System.Drawing.Point(33, 3)
         Me.numResizeW.Maximum = New Decimal(New Integer() {64, 0, 0, 0})
         Me.numResizeW.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         Me.numResizeW.Name = "numResizeW"
@@ -231,7 +232,7 @@ Partial Class FrmSpriteMaker
         '
         'numResizeH
         '
-        Me.numResizeH.Location = New System.Drawing.Point(793, 362)
+        Me.numResizeH.Location = New System.Drawing.Point(33, 36)
         Me.numResizeH.Maximum = New Decimal(New Integer() {64, 0, 0, 0})
         Me.numResizeH.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         Me.numResizeH.Name = "numResizeH"
@@ -242,7 +243,7 @@ Partial Class FrmSpriteMaker
         'lblResizeH
         '
         Me.lblResizeH.AutoSize = True
-        Me.lblResizeH.Location = New System.Drawing.Point(763, 364)
+        Me.lblResizeH.Location = New System.Drawing.Point(3, 33)
         Me.lblResizeH.Name = "lblResizeH"
         Me.lblResizeH.Size = New System.Drawing.Size(21, 20)
         Me.lblResizeH.TabIndex = 0
@@ -250,7 +251,7 @@ Partial Class FrmSpriteMaker
         '
         'numResizeS
         '
-        Me.numResizeS.Location = New System.Drawing.Point(793, 394)
+        Me.numResizeS.Location = New System.Drawing.Point(33, 69)
         Me.numResizeS.Maximum = New Decimal(New Integer() {64, 0, 0, 0})
         Me.numResizeS.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         Me.numResizeS.Name = "numResizeS"
@@ -261,7 +262,7 @@ Partial Class FrmSpriteMaker
         'lblResizeS
         '
         Me.lblResizeS.AutoSize = True
-        Me.lblResizeS.Location = New System.Drawing.Point(763, 396)
+        Me.lblResizeS.Location = New System.Drawing.Point(3, 66)
         Me.lblResizeS.Name = "lblResizeS"
         Me.lblResizeS.Size = New System.Drawing.Size(20, 20)
         Me.lblResizeS.TabIndex = 0
@@ -272,7 +273,7 @@ Partial Class FrmSpriteMaker
         Me.btnResize.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
         Me.btnResize.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnResize.ForeColor = System.Drawing.Color.Yellow
-        Me.btnResize.Location = New System.Drawing.Point(763, 426)
+        Me.btnResize.Location = New System.Drawing.Point(3, 434)
         Me.btnResize.Name = "btnResize"
         Me.btnResize.Size = New System.Drawing.Size(93, 67)
         Me.btnResize.TabIndex = 13
@@ -284,41 +285,118 @@ Partial Class FrmSpriteMaker
         Me.btnRedraw.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
         Me.btnRedraw.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnRedraw.ForeColor = System.Drawing.Color.Yellow
-        Me.btnRedraw.Location = New System.Drawing.Point(763, 12)
+        Me.btnRedraw.Location = New System.Drawing.Point(3, 3)
         Me.btnRedraw.Name = "btnRedraw"
         Me.btnRedraw.Size = New System.Drawing.Size(93, 67)
         Me.btnRedraw.TabIndex = 0
         Me.btnRedraw.Text = "Redraw"
         Me.btnRedraw.UseVisualStyleBackColor = False
         '
+        'tblSaveLoad
+        '
+        Me.tblSaveLoad.ColumnCount = 3
+        Me.tblSaveLoad.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+        Me.tblSaveLoad.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334!))
+        Me.tblSaveLoad.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334!))
+        Me.tblSaveLoad.Controls.Add(Me.btnOpen, 0, 0)
+        Me.tblSaveLoad.Controls.Add(Me.btnSaveAs, 1, 0)
+        Me.tblSaveLoad.Controls.Add(Me.btnSave, 2, 0)
+        Me.tblSaveLoad.Location = New System.Drawing.Point(3, 3)
+        Me.tblSaveLoad.Name = "tblSaveLoad"
+        Me.tblSaveLoad.RowCount = 1
+        Me.tblSaveLoad.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+        Me.tblSaveLoad.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+        Me.tblSaveLoad.Size = New System.Drawing.Size(302, 76)
+        Me.tblSaveLoad.TabIndex = 14
+        '
+        'tblResizing
+        '
+        Me.tblResizing.ColumnCount = 2
+        Me.tblResizing.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblResizing.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblResizing.Controls.Add(Me.lblResizeW, 0, 0)
+        Me.tblResizing.Controls.Add(Me.lblResizeH, 0, 1)
+        Me.tblResizing.Controls.Add(Me.lblResizeS, 0, 2)
+        Me.tblResizing.Controls.Add(Me.numResizeW, 1, 0)
+        Me.tblResizing.Controls.Add(Me.numResizeS, 1, 2)
+        Me.tblResizing.Controls.Add(Me.numResizeH, 1, 1)
+        Me.tblResizing.Location = New System.Drawing.Point(3, 328)
+        Me.tblResizing.Name = "tblResizing"
+        Me.tblResizing.RowCount = 3
+        Me.tblResizing.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+        Me.tblResizing.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+        Me.tblResizing.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+        Me.tblResizing.Size = New System.Drawing.Size(111, 100)
+        Me.tblResizing.TabIndex = 15
+        '
+        'tblColourCreater
+        '
+        Me.tblColourCreater.ColumnCount = 3
+        Me.tblColourCreater.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblColourCreater.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblColourCreater.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblColourCreater.Controls.Add(Me.lblRed, 0, 0)
+        Me.tblColourCreater.Controls.Add(Me.lblGreen, 0, 1)
+        Me.tblColourCreater.Controls.Add(Me.lblBlue, 0, 2)
+        Me.tblColourCreater.Controls.Add(Me.numColourR, 1, 0)
+        Me.tblColourCreater.Controls.Add(Me.numColourG, 1, 1)
+        Me.tblColourCreater.Controls.Add(Me.numColourB, 1, 2)
+        Me.tblColourCreater.Controls.Add(Me.pnlCustomColourDisplay, 2, 0)
+        Me.tblColourCreater.Location = New System.Drawing.Point(3, 76)
+        Me.tblColourCreater.Name = "tblColourCreater"
+        Me.tblColourCreater.RowCount = 3
+        Me.tblColourCreater.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+        Me.tblColourCreater.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+        Me.tblColourCreater.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333!))
+        Me.tblColourCreater.Size = New System.Drawing.Size(138, 100)
+        Me.tblColourCreater.TabIndex = 16
+        '
+        'tblColourAndResizing
+        '
+        Me.tblColourAndResizing.ColumnCount = 1
+        Me.tblColourAndResizing.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+        Me.tblColourAndResizing.Controls.Add(Me.btnRedraw, 0, 0)
+        Me.tblColourAndResizing.Controls.Add(Me.tblResizing, 0, 4)
+        Me.tblColourAndResizing.Controls.Add(Me.btnResize, 0, 5)
+        Me.tblColourAndResizing.Controls.Add(Me.tblColourCreater, 0, 1)
+        Me.tblColourAndResizing.Controls.Add(Me.btnAddColour, 0, 2)
+        Me.tblColourAndResizing.Controls.Add(Me.btnSwapColour, 0, 3)
+        Me.tblColourAndResizing.Location = New System.Drawing.Point(311, 3)
+        Me.tblColourAndResizing.Name = "tblColourAndResizing"
+        Me.tblColourAndResizing.RowCount = 6
+        Me.tblControls.SetRowSpan(Me.tblColourAndResizing, 2)
+        Me.tblColourAndResizing.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblColourAndResizing.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblColourAndResizing.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblColourAndResizing.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblColourAndResizing.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblColourAndResizing.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblColourAndResizing.Size = New System.Drawing.Size(151, 517)
+        Me.tblColourAndResizing.TabIndex = 17
+        '
+        'tblControls
+        '
+        Me.tblControls.ColumnCount = 2
+        Me.tblControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.tblControls.Controls.Add(Me.tblColourSelect, 0, 1)
+        Me.tblControls.Controls.Add(Me.tblColourAndResizing, 1, 0)
+        Me.tblControls.Controls.Add(Me.tblSaveLoad, 0, 0)
+        Me.tblControls.Location = New System.Drawing.Point(419, 13)
+        Me.tblControls.Name = "tblControls"
+        Me.tblControls.RowCount = 2
+        Me.tblControls.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControls.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblControls.Size = New System.Drawing.Size(475, 569)
+        Me.tblControls.TabIndex = 18
+        '
         'FrmSpriteMaker
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(911, 496)
-        Me.Controls.Add(Me.btnRedraw)
-        Me.Controls.Add(Me.btnResize)
-        Me.Controls.Add(Me.numResizeS)
-        Me.Controls.Add(Me.lblResizeS)
-        Me.Controls.Add(Me.numResizeH)
-        Me.Controls.Add(Me.lblResizeH)
-        Me.Controls.Add(Me.numResizeW)
-        Me.Controls.Add(Me.lblResizeW)
-        Me.Controls.Add(Me.btnSwapColour)
-        Me.Controls.Add(Me.btnAddColour)
-        Me.Controls.Add(Me.pnlCustomColourDisplay)
-        Me.Controls.Add(Me.lblBlue)
-        Me.Controls.Add(Me.numColourB)
-        Me.Controls.Add(Me.lblGreen)
-        Me.Controls.Add(Me.numColourG)
-        Me.Controls.Add(Me.lblRed)
-        Me.Controls.Add(Me.numColourR)
-        Me.Controls.Add(Me.lstColours)
-        Me.Controls.Add(Me.tblColourSelect)
-        Me.Controls.Add(Me.btnSave)
-        Me.Controls.Add(Me.btnSaveAs)
-        Me.Controls.Add(Me.btnOpen)
+        Me.ClientSize = New System.Drawing.Size(1095, 640)
+        Me.Controls.Add(Me.tblControls)
         Me.Controls.Add(Me.pnlDraw)
         Me.ForeColor = System.Drawing.Color.Yellow
         Me.Name = "FrmSpriteMaker"
@@ -329,8 +407,14 @@ Partial Class FrmSpriteMaker
         CType(Me.numResizeW, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.numResizeH, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.numResizeS, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.tblSaveLoad.ResumeLayout(False)
+        Me.tblResizing.ResumeLayout(False)
+        Me.tblResizing.PerformLayout()
+        Me.tblColourCreater.ResumeLayout(False)
+        Me.tblColourCreater.PerformLayout()
+        Me.tblColourAndResizing.ResumeLayout(False)
+        Me.tblControls.ResumeLayout(False)
         Me.ResumeLayout(False)
-        Me.PerformLayout()
 
     End Sub
 
@@ -339,7 +423,6 @@ Partial Class FrmSpriteMaker
     Friend WithEvents btnSaveAs As Button
     Friend WithEvents btnSave As Button
     Friend WithEvents tblColourSelect As TableLayoutPanel
-    Friend WithEvents lstColours As ListBox
     Friend WithEvents numColourR As NumericUpDown
     Friend WithEvents lblRed As Label
     Friend WithEvents lblGreen As Label
@@ -357,4 +440,9 @@ Partial Class FrmSpriteMaker
     Friend WithEvents lblResizeS As Label
     Friend WithEvents btnResize As Button
     Friend WithEvents btnRedraw As Button
+    Friend WithEvents tblSaveLoad As TableLayoutPanel
+    Friend WithEvents tblResizing As TableLayoutPanel
+    Friend WithEvents tblColourCreater As TableLayoutPanel
+    Friend WithEvents tblColourAndResizing As TableLayoutPanel
+    Friend WithEvents tblControls As TableLayoutPanel
 End Class
