@@ -96,7 +96,9 @@
       <DependentUpon>FrmMenu.vb</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmSpriteMaker.Designer.vb" />
+    <Compile Include="FrmSpriteMaker.Designer.vb">
+			<DependentUpon>FrmSpriteMaker.vb</DependentUpon>
+		</Compile>
     <Compile Include="FrmSpriteMaker.vb">
       <SubType>Form</SubType>
     </Compile>
