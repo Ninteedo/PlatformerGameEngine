@@ -53,6 +53,7 @@ Public Module SpriteStringHandler
 
             If duplicate = False Then
                 ReDim Preserve colours(UBound(colours) + 1)
+                colours(UBound(colours)) = pixelColour
             End If
         Next pixelColour
 
@@ -60,7 +61,9 @@ Public Module SpriteStringHandler
         'adds line for colours
         Dim colourLine As String = ""
         For Each colour As Color In colours
-            colourLine += ColorTranslator.ToHtml(colour) & ","
+            If colour <> Color.Transparent Then
+                colourLine += ColorTranslator.ToHtml(colour) & ","
+            End If
         Next
         colourLine = colourLine.Remove(Len(colourLine) - 1)
 

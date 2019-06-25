@@ -2,34 +2,14 @@
 '20/30/2019
 'Sprite Maker
 
+Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
+
 Public Class FrmSpriteMaker
 
     Dim gridScale As Integer = 20
     Dim gridSize As Size = New Size(20, 20)
 
     Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
-
-    Private Structure Coordinates
-        Dim x As Integer
-        Dim y As Integer
-
-        Public Sub New(xCoord As Integer, yCoord As Integer)
-            x = xCoord
-            y = yCoord
-        End Sub
-
-        Public Function Valid(gridSize As Size) As Boolean
-            'returns whether these coordinates are within range of the grid
-
-            Dim result As Boolean = True
-
-            If x < 0 Or x >= gridSize.Width Or y < 0 Or y >= gridSize.Height Then
-                result = False
-            End If
-
-            Return result
-        End Function
-    End Structure
 
     Private Sub FrmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         AddHandler delayTimer.Tick, AddressOf Initialisation
@@ -42,7 +22,8 @@ Public Class FrmSpriteMaker
         RedoLayout()
         panelDrawCanvas = New PaintEventArgs(pnlDraw.CreateGraphics, New Rectangle(New Point(0, 0), pnlDraw.Size))
         ReDim colourIndices(gridSize.Width - 1, gridSize.Height - 1)
-        AddColourOption(Color.Transparent, True)
+        'AddColourOption(Color.Transparent, True)
+        ResetColourOptions()
 
         'DrawGridOutline()
         DrawSavedColours()
@@ -52,30 +33,7 @@ Public Class FrmSpriteMaker
         'moves around and resizes any controls that need it
 
         pnlDraw.Size = New Size(gridSize.Width * gridScale, gridSize.Height * gridScale)
-        btnOpen.Location = New Point(pnlDraw.Left + pnlDraw.Width + 5, btnOpen.Top)
-        btnSaveAs.Location = New Point(btnOpen.Left + btnOpen.Width + 5, btnSaveAs.Top)
-        btnSave.Location = New Point(btnSaveAs.Left + btnSaveAs.Width + 5, btnSave.Top)
-        tblColourSelect.Location = New Point(pnlDraw.Left + pnlDraw.Width + 5, btnOpen.Top + btnOpen.Height + 5)
-        lstColours.Location = New Point(tblColourSelect.Left + tblColourSelect.Width + 5, btnOpen.Top + btnOpen.Height + 5)
-
-        lblRed.Location = New Point(lstColours.Right + 5, lstColours.Top)
-        numColourR.Location = New Point(lblRed.Right + 5, lblRed.Top)
-        lblGreen.Location = New Point(lstColours.Right + 5, numColourR.Bottom + 5)
-        numColourG.Location = New Point(numColourR.Left, lblGreen.Top)
-        lblBlue.Location = New Point(lstColours.Right + 5, numColourG.Bottom + 5)
-        numColourB.Location = New Point(numColourG.Left, lblBlue.Top)
-        pnlCustomColourDisplay.Location = New Point(numColourR.Right + 5, numColourR.Top)
-        btnAddColour.Location = New Point(lblBlue.Left, numColourB.Bottom + 5)
-        btnSwapColour.Location = New Point(btnAddColour.Left, btnAddColour.Bottom + 5)
-
-        lblResizeW.Location = New Point(lblRed.Left, btnSwapColour.Bottom + 5)
-        numResizeW.Location = New Point(lblResizeW.Right + 5, lblResizeW.Top)
-        lblResizeH.Location = New Point(lblResizeW.Left, numResizeW.Bottom + 5)
-        numResizeH.Location = New Point(numResizeW.Left, lblResizeH.Top)
-        lblResizeS.Location = New Point(lblResizeH.Left, numResizeH.Bottom + 5)
-        numResizeS.Location = New Point(numResizeH.Left, lblResizeS.Top)
-        btnResize.Location = New Point(lblResizeS.Left, numResizeS.Bottom + 5)
-        btnRedraw.Location = New Point(btnResize.Left, btnSave.Top)
+        tblControls.Location = New Point(pnlDraw.Right + 10, pnlDraw.Top)
 
         numResizeW.Value = gridSize.Width
         numResizeH.Value = gridSize.Height
@@ -83,8 +41,8 @@ Public Class FrmSpriteMaker
 
         panelDrawCanvas = New PaintEventArgs(pnlDraw.CreateGraphics, New Rectangle(New Point(0, 0), pnlDraw.Size))
 
-        Me.Size = New Size(pnlCustomColourDisplay.Right + 20, pnlDraw.Bottom + 45)
-        If btnResize.Bottom > pnlDraw.Bottom Then
+        Me.Size = New Size(tblControls.Right + 20, pnlDraw.Bottom + 45)
+        If tblControls.Bottom > pnlDraw.Bottom Then
             Me.Height = btnResize.Bottom + 45
         End If
 
@@ -117,7 +75,7 @@ Public Class FrmSpriteMaker
 
         If saveDialog.ShowDialog = DialogResult.OK Then
             saveLocation = saveDialog.FileName
-            SaveTextToFile(SpriteString, saveLocation)
+			PRE2.WriteFile(saveLocation, SpriteString)
 
             btnSave.Enabled = True
         End If
@@ -128,36 +86,21 @@ Public Class FrmSpriteMaker
         'saves the file to the already selected location
 
         If IO.File.Exists(saveLocation) Then
-            SaveTextToFile(SpriteString, saveLocation)
+			PRE2.WriteFile(saveLocation, SpriteString)
         Else
-            DisplayError("Couldn't find file at " & saveLocation)
+            PRE2.DisplayError("Couldn't find file at " & saveLocation)
         End If
-    End Sub
-
-    Private Sub SaveTextToFile(text As String, fileLocation As String)
-        Dim writer As New IO.StreamWriter(fileLocation)
-        Dim toWrite As String = text
-
-        For Each c As Char In toWrite
-            writer.Write(c)
-        Next c
-
-        writer.Close()
     End Sub
 
     Private Sub ReadSpriteFromFile(fileLocation As String)
         If IO.File.Exists(fileLocation) = True Then
-            Dim reader As New IO.StreamReader(fileLocation)
-            Dim fileText As String = reader.ReadToEnd
-
-            reader.Close()
+            Dim fileText As String = PRE2.ReadFile(fileLocation)
 
             ResetColourOptions()
 
             Dim colours(0) As Color
             If SpriteStringHandler.ValidSpriteText(fileText, fileLocation) Then
                 SpriteStringHandler.ReadIndices(fileText, colourIndices, gridSize, colours)
-
 
                 For index As Integer = 1 To UBound(colours)
                     If index <= UBound(colourButtons) Then
@@ -171,10 +114,10 @@ Public Class FrmSpriteMaker
                 Me.Refresh()
                 DrawSavedColours()
             Else        'invalid file
-
+				PRE2.DisplayError("Provided file was not a valid sprite file")
             End If
         Else
-            DisplayError("Couldn't find file " & fileLocation)
+            PRE2.DisplayError("Couldn't find file " & fileLocation)
         End If
     End Sub
 
@@ -186,10 +129,12 @@ Public Class FrmSpriteMaker
 
 
     Dim selectedColourIndex As Integer = 1
-    Dim colourButtons(0) As Button
+    Dim colourButtons() As Button
+    Dim colours() As Color = {Color.Transparent}
     Dim maxColours As Integer = 20
-    Dim panelDrawCanvas As PaintEventArgs
-    Dim colourIndices(,) As Integer
+	Dim colourIndices(,) As Integer
+	
+    Dim panelDrawCanvas As PaintEventArgs 
 
     Private Sub DrawGridOutline()
         'draws a white outline of where each square can go 
@@ -207,7 +152,7 @@ Public Class FrmSpriteMaker
 
         For x As Integer = 0 To gridSize.Width - 1
             For y As Integer = 0 To gridSize.Height - 1
-                DrawSquare(New Coordinates(x, y), colourIndices(x, y))
+                DrawSquare(New Point(x, y), colourIndices(x, y))
             Next y
         Next x
     End Sub
@@ -221,7 +166,7 @@ Public Class FrmSpriteMaker
         'draws the user's selected colour at the clicked area
 
         If cantDraw = False Then
-            Dim clickCoords As New Coordinates(Math.Floor(e.X / gridScale), Math.Floor(e.Y / gridScale))
+            Dim clickCoords As New Point(Math.Floor(e.X / gridScale), Math.Floor(e.Y / gridScale))
 
             DrawSquare(clickCoords, selectedColourIndex)
         End If
@@ -237,8 +182,8 @@ Public Class FrmSpriteMaker
     Private Sub pnlDraw_MouseMove(sender As Panel, e As MouseEventArgs) Handles pnlDraw.MouseMove
         If mouseDragging = True And cantDraw = False Then
             dragEndPoint = e.Location
-            DrawSquare(New Coordinates(Math.Floor(dragStartPoint.X / gridScale), Math.Floor(dragStartPoint.Y / gridScale)), selectedColourIndex)
-            DrawSquare(New Coordinates(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)), selectedColourIndex)
+            DrawSquare(New Point(Math.Floor(dragStartPoint.X / gridScale), Math.Floor(dragStartPoint.Y / gridScale)), selectedColourIndex)
+            DrawSquare(New Point(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)), selectedColourIndex)
             dragStartPoint = e.Location
         End If
     End Sub
@@ -246,22 +191,15 @@ Public Class FrmSpriteMaker
     Private Sub pnlDraw_MouseUp(sender As Panel, e As MouseEventArgs) Handles pnlDraw.MouseUp
         'records that the user is no longer dragging along the panel
         dragEndPoint = e.Location
-        DrawSquare(New Coordinates(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)), selectedColourIndex)
+        DrawSquare(New Point(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)), selectedColourIndex)
 
         mouseDragging = False
     End Sub
 
-    'Private Sub ProcessDrawDrag()
-    '    'finds the unique squares between the start and end point
-
-    '    DrawSquare(New Coordinates(Math.Floor(dragStartPoint.X / gridScale), Math.Floor(dragStartPoint.Y / gridScale)))
-    '    DrawSquare(New Coordinates(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)))
-    'End Sub
-
-    Private Sub DrawSquare(coords As Coordinates, colourIndex As Integer)
+    Private Sub DrawSquare(coords As Point, colourIndex As Integer)
         'draws a square on the grid, colour depends on selected colour index
 
-        If coords.Valid(gridSize) = True Then
+        If ValidCoords(coords, gridSize) Then
             colourIndices(coords.x, coords.y) = colourIndex
 
             If colourIndex > 0 Then
@@ -273,18 +211,18 @@ Public Class FrmSpriteMaker
             ElseIf colourIndex = 0 Then         'colour index 0 is transparent
                 DrawTransparentSquare(coords)
             Else
-                DisplayError("Selected colour index " & Trim(Str(colourIndex)) & " is invalid")
+                PRE2.DisplayError("Selected colour index " & Trim(Str(colourIndex)) & " is invalid")
             End If
         End If
     End Sub
 
-    Private Sub DrawTransparentSquare(coords As Coordinates)
+    Private Sub DrawTransparentSquare(coords As Point)
         'draws a 2x2 grid of light and dark grey squares to show that the current square is transparent
 
         Dim brush1 As New SolidBrush(Color.Gray)
         Dim brush2 As New SolidBrush(Color.DimGray)
-        Dim rects1() As Rectangle = {New Rectangle(New Point(coords.x * gridScale, coords.y * gridScale), New Size(gridScale / 2, gridScale / 2)), New Rectangle(New Point(coords.x * gridScale + gridScale / 2, coords.y * gridScale + gridScale / 2), New Size(gridScale / 2, gridScale / 2))}
-        Dim rects2() As Rectangle = {New Rectangle(New Point(coords.x * gridScale + gridScale / 2, coords.y * gridScale), New Size(gridScale / 2, gridScale / 2)), New Rectangle(New Point(coords.x * gridScale, coords.y * gridScale + gridScale / 2), New Size(gridScale / 2, gridScale / 2))}
+        Dim rects1() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)), New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
+        Dim rects2() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)), New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
 
         panelDrawCanvas.Graphics.FillRectangles(brush1, rects1)
         panelDrawCanvas.Graphics.FillRectangles(brush2, rects2)
@@ -297,45 +235,59 @@ Public Class FrmSpriteMaker
     End Sub
 
     Private Sub ResetColourOptions()
-        Dim transparentButton As Button = colourButtons(0)
+        colours = {Color.Transparent}
+        DisplayColourOptions()
+    End Sub
+
+    Private Sub DisplayColourOptions()
+        'clears tblColourSelect and adds all of the buttons back
 
         tblColourSelect.Controls.Clear()
-        ReDim colourButtons(0)
-        colourButtons(0) = transparentButton
-        tblColourSelect.Controls.Add(colourButtons(0))
-    End Sub
+        ReDim colourButtons(UBound(colours))
 
-    Private Sub AddColourOption(newColour As Color, Optional firstOne As Boolean = False)
-        'adds the custom RGB colour created by the user to the palette
-
-        If colourButtons.Length < maxColours Then
-            If firstOne = False Then            'wont add an extra array element if this is the first colour being added (transparent)
-                Dim colourNotPreviouslyAdded As Boolean = True
-
-                For index As Integer = 0 To UBound(colourButtons)
-                    If AreColoursEqual(colourButtons(index).BackColor, newColour) Then
-                        colourNotPreviouslyAdded = False
-                        Exit For
-                    End If
-                Next index
-
-                If colourNotPreviouslyAdded = True Then     'checks that the colour isn't already in the palette
-                    ReDim Preserve colourButtons(UBound(colourButtons) + 1)
-                Else
-                    DisplayError("You have already added that colour to the palette")
-                    Exit Sub
-                End If
+        For index As Integer = 0 To UBound(colours)
+            Dim textColour As Color = Color.Black       'default text colour is black
+            Const swapTextColourThreshold As Integer = 100
+            'text is white if the back colour is dark enough
+            If colours(index).R < swapTextColourThreshold And colours(index).G < swapTextColourThreshold And colours(index).B < swapTextColourThreshold Then
+                textColour = Color.White
             End If
 
-            Dim btn As New Button With {.Text = Trim(Str(UBound(colourButtons))), .BackColor = newColour, .ForeColor = newColour, .Dock = DockStyle.Fill, .FlatStyle = FlatStyle.Flat}
-            colourButtons(UBound(colourButtons)) = btn
-
-            AddHandler btn.Click, AddressOf UserSelectColour
-            tblColourSelect.Controls.Add(btn)
-        Else
-            DisplayError("Can't add any more colours")
-        End If
+            'adds a new button corresponding to the colour
+            Dim newBtn As New Button With {.Text = Trim(Str(index)), .BackColor = colours(index), .ForeColor = textColour, .Dock = DockStyle.Fill, .FlatStyle = FlatStyle.Flat}
+            colourButtons(index) = newBtn
+            AddHandler newBtn.Click, AddressOf UserSelectColour
+            tblColourSelect.Controls.Add(newBtn)
+        Next
     End Sub
+	
+	Private Sub AddColourOption(newColour As Color)
+		If colours.Length < maxColours Then
+			Dim colourUnique As Boolean = True
+
+			For index As Integer = 0 To UBound(colourButtons)
+				If AreColoursEqual(colourButtons(index).BackColor, newColour) Then
+					colourUnique = False
+					Exit For
+				End If
+			Next index
+			
+			If colourUnique Then
+                If IsNothing(colours) Then
+                    ReDim colours(0)
+                Else
+                    ReDim Preserve colours(UBound(colours) + 1)
+                End If
+				colours(UBound(colours)) = newColour
+				
+                DisplayColourOptions()
+			Else
+				PRE2.DisplayError("This colour is already in the colour palette")
+			End If
+		Else
+            PRE2.DisplayError("Cannot add any more colours as limit has been reached")
+		End If
+	End Sub
 
     Private Sub SwapColourOption(newColour As Color, colourIndex As Integer)
         'swaps the current custom colour with the currently selected colour
@@ -345,24 +297,42 @@ Public Class FrmSpriteMaker
             For index As Integer = 0 To UBound(colourButtons)
                 If AreColoursEqual(colourButtons(index).BackColor, newColour) Then
                     colourNotPreviouslyAdded = False
-                    DisplayError("You have already added that colour to the palette")
+                    PRE2.DisplayError("You have already added that colour to the palette")
                     Exit Sub
                 End If
             Next index
 
-            tblColourSelect.Controls(colourIndex).BackColor = newColour
-            tblColourSelect.Controls(colourIndex).ForeColor = newColour
-            colourButtons(colourIndex) = tblColourSelect.Controls(colourIndex)
-            DrawSavedColours()
+            If colourNotPreviouslyAdded Then
+                colours(colourIndex) = newColour
+
+                DisplayColourOptions()
+                DrawSavedColours()
+            End If
         Else
-            DisplayError("Please select a custom colour to swap out for, index " & selectedColourIndex & " is not viable")
+            PRE2.DisplayError("Please select a custom colour to swap out for, index " & selectedColourIndex & " is not viable")
         End If
     End Sub
+	
+	Private Sub RemoveColourOption(removeIndex As Integer)
+		If IsNothing(colours) = False AndAlso removeIndex >= 0 And removeIndex <= UBound(colours) Then
+            If UBound(colours) - 1 < 0 Then
+                colours = Nothing
+            Else
+                For index As Integer = removeIndex To UBound(colours)
+                    colours(index) = colours(index - 1)
+                Next
+
+                ReDim Preserve colours(UBound(colours) - 1)
+            End If
+		Else
+            PRE2.DisplayError("Attempted to remove a colour option at invalid index " & removeIndex)
+		End If
+	End Sub
 
     Private Sub UserSelectColour(sender As Button, e As EventArgs)
         'updates the selected colour index with the colour which the user clicked on
 
-        selectedColourIndex = Array.IndexOf(colourButtons, sender)
+        selectedColourIndex = Int(sender.Text)
     End Sub
 
     Private Sub btnAddColour_Click(sender As Object, e As EventArgs) Handles btnAddColour.Click
@@ -392,14 +362,6 @@ Public Class FrmSpriteMaker
 
         cantDraw = False
     End Sub
-
-    Private Sub DisplayError(message As String)
-        'shows an error to the user
-
-        cantDraw = True
-        MsgBox(message, MsgBoxStyle.Exclamation)
-        cantDraw = False
-    End Sub
 	
 	Private Function AreColoursEqual(colour1 As Color, colour2 As Color) As Boolean
 		'returns whether the RGB values of 2 colours are equal
@@ -411,7 +373,15 @@ Public Class FrmSpriteMaker
         End If
 	End Function
 
+	Public Function ValidCoords(coords As Point, gridSize As Size) As Boolean
+		'returns whether provided coords are within range of the grid
 
+		If coords.x < 0 Or coords.x >= gridSize.Width Or coords.y < 0 Or coords.y >= gridSize.Height Then
+			Return False
+		Else
+			Return True
+		End If
+	End Function
 
 
 
@@ -419,12 +389,8 @@ Public Class FrmSpriteMaker
         Get
             'returns the string version of the user's sprite
 
-            Dim usedColours(UBound(colourButtons)) As Color
-            For index As Integer = 0 To UBound(colourButtons)
-                usedColours(index) = colourButtons(index).BackColor
-            Next index
-
-            Return SpriteStringHandler.Create(colourIndices, gridSize, usedColours)
+            Dim createdSprite As PRE2.Sprite = New PRE2.Sprite(colourIndices, colours)
+			Return createdSprite.ToString()
         End Get
     End Property
 End Class
