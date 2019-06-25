@@ -90,7 +90,7 @@ Partial Class FrmLevelEditor
         '
         Me.pnlRender.BackColor = System.Drawing.Color.Black
         Me.pnlRender.Location = New System.Drawing.Point(8, 8)
-        Me.pnlRender.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.pnlRender.Margin = New System.Windows.Forms.Padding(2)
         Me.pnlRender.Name = "pnlRender"
         Me.pnlRender.Size = New System.Drawing.Size(533, 390)
         Me.pnlRender.TabIndex = 1
@@ -100,7 +100,7 @@ Partial Class FrmLevelEditor
         Me.btnRoomSave.Enabled = False
         Me.btnRoomSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnRoomSave.Location = New System.Drawing.Point(224, 2)
-        Me.btnRoomSave.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnRoomSave.Margin = New System.Windows.Forms.Padding(2)
         Me.btnRoomSave.Name = "btnRoomSave"
         Me.btnRoomSave.Size = New System.Drawing.Size(67, 45)
         Me.btnRoomSave.TabIndex = 3
@@ -111,7 +111,7 @@ Partial Class FrmLevelEditor
         '
         Me.btnRoomSaveAs.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnRoomSaveAs.Location = New System.Drawing.Point(153, 2)
-        Me.btnRoomSaveAs.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnRoomSaveAs.Margin = New System.Windows.Forms.Padding(2)
         Me.btnRoomSaveAs.Name = "btnRoomSaveAs"
         Me.btnRoomSaveAs.Size = New System.Drawing.Size(67, 45)
         Me.btnRoomSaveAs.TabIndex = 2
@@ -122,7 +122,7 @@ Partial Class FrmLevelEditor
         '
         Me.btnRoomOpen.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnRoomOpen.Location = New System.Drawing.Point(82, 2)
-        Me.btnRoomOpen.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnRoomOpen.Margin = New System.Windows.Forms.Padding(2)
         Me.btnRoomOpen.Name = "btnRoomOpen"
         Me.btnRoomOpen.Size = New System.Drawing.Size(67, 45)
         Me.btnRoomOpen.TabIndex = 1
@@ -146,7 +146,7 @@ Partial Class FrmLevelEditor
         Me.lstTemplates.Dock = System.Windows.Forms.DockStyle.Fill
         Me.lstTemplates.FormattingEnabled = True
         Me.lstTemplates.Location = New System.Drawing.Point(2, 19)
-        Me.lstTemplates.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.lstTemplates.Margin = New System.Windows.Forms.Padding(2)
         Me.lstTemplates.Name = "lstTemplates"
         Me.lstTemplates.Size = New System.Drawing.Size(109, 312)
         Me.lstTemplates.TabIndex = 4
@@ -155,7 +155,7 @@ Partial Class FrmLevelEditor
         '
         Me.btnLoadEntity.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnLoadEntity.Location = New System.Drawing.Point(2, 335)
-        Me.btnLoadEntity.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnLoadEntity.Margin = New System.Windows.Forms.Padding(2)
         Me.btnLoadEntity.Name = "btnLoadEntity"
         Me.btnLoadEntity.Size = New System.Drawing.Size(101, 45)
         Me.btnLoadEntity.TabIndex = 5
@@ -168,7 +168,7 @@ Partial Class FrmLevelEditor
         Me.lstInstances.Dock = System.Windows.Forms.DockStyle.Fill
         Me.lstInstances.FormattingEnabled = True
         Me.lstInstances.Location = New System.Drawing.Point(115, 19)
-        Me.lstInstances.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.lstInstances.Margin = New System.Windows.Forms.Padding(2)
         Me.lstInstances.Name = "lstInstances"
         Me.lstInstances.Size = New System.Drawing.Size(109, 312)
         Me.lstInstances.TabIndex = 7
@@ -209,7 +209,7 @@ Partial Class FrmLevelEditor
         'numTagLocX
         '
         Me.numTagLocX.Location = New System.Drawing.Point(54, 49)
-        Me.numTagLocX.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.numTagLocX.Margin = New System.Windows.Forms.Padding(2)
         Me.numTagLocX.Maximum = New Decimal(New Integer() {32767, 0, 0, 0})
         Me.numTagLocX.Minimum = New Decimal(New Integer() {32768, 0, 0, -2147483648})
         Me.numTagLocX.Name = "numTagLocX"
@@ -219,7 +219,7 @@ Partial Class FrmLevelEditor
         'numTagLocY
         '
         Me.numTagLocY.Location = New System.Drawing.Point(114, 49)
-        Me.numTagLocY.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.numTagLocY.Margin = New System.Windows.Forms.Padding(2)
         Me.numTagLocY.Maximum = New Decimal(New Integer() {32767, 0, 0, 0})
         Me.numTagLocY.Minimum = New Decimal(New Integer() {32768, 0, 0, -2147483648})
         Me.numTagLocY.Name = "numTagLocY"
@@ -229,7 +229,7 @@ Partial Class FrmLevelEditor
         'numTagLayer
         '
         Me.numTagLayer.Location = New System.Drawing.Point(54, 79)
-        Me.numTagLayer.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.numTagLayer.Margin = New System.Windows.Forms.Padding(2)
         Me.numTagLayer.Maximum = New Decimal(New Integer() {32767, 0, 0, 0})
         Me.numTagLayer.Minimum = New Decimal(New Integer() {32768, 0, 0, -2147483648})
         Me.numTagLayer.Name = "numTagLayer"
@@ -251,7 +251,7 @@ Partial Class FrmLevelEditor
         Me.numTagScale.DecimalPlaces = 2
         Me.numTagScale.Increment = New Decimal(New Integer() {1, 0, 0, 131072})
         Me.numTagScale.Location = New System.Drawing.Point(54, 109)
-        Me.numTagScale.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.numTagScale.Margin = New System.Windows.Forms.Padding(2)
         Me.numTagScale.Maximum = New Decimal(New Integer() {255, 0, 0, 0})
         Me.numTagScale.Minimum = New Decimal(New Integer() {256, 0, 0, -2147483648})
         Me.numTagScale.Name = "numTagScale"
@@ -277,7 +277,7 @@ Partial Class FrmLevelEditor
         Me.flwRoomSaveLoad.Controls.Add(Me.btnRoomSaveAs)
         Me.flwRoomSaveLoad.Controls.Add(Me.btnRoomSave)
         Me.flwRoomSaveLoad.Location = New System.Drawing.Point(2, 2)
-        Me.flwRoomSaveLoad.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.flwRoomSaveLoad.Margin = New System.Windows.Forms.Padding(2)
         Me.flwRoomSaveLoad.Name = "flwRoomSaveLoad"
         Me.flwRoomSaveLoad.Size = New System.Drawing.Size(306, 49)
         Me.flwRoomSaveLoad.TabIndex = 16
@@ -311,7 +311,7 @@ Partial Class FrmLevelEditor
         Me.tblTagsSummary.Controls.Add(Me.lblTagName, 0, 1)
         Me.tblTagsSummary.Controls.Add(Me.txtTagName, 1, 1)
         Me.tblTagsSummary.Location = New System.Drawing.Point(232, 55)
-        Me.tblTagsSummary.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.tblTagsSummary.Margin = New System.Windows.Forms.Padding(2)
         Me.tblTagsSummary.Name = "tblTagsSummary"
         Me.tblTagsSummary.RowCount = 5
         Me.tblTagsSummary.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -337,7 +337,7 @@ Partial Class FrmLevelEditor
         Me.tblTagsSummary.SetColumnSpan(Me.txtTagName, 2)
         Me.txtTagName.Dock = System.Windows.Forms.DockStyle.Top
         Me.txtTagName.Location = New System.Drawing.Point(54, 19)
-        Me.txtTagName.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.txtTagName.Margin = New System.Windows.Forms.Padding(2)
         Me.txtTagName.MaxLength = 32
         Me.txtTagName.Name = "txtTagName"
         Me.txtTagName.Size = New System.Drawing.Size(215, 20)
@@ -348,7 +348,7 @@ Partial Class FrmLevelEditor
         Me.btnInstanceCreate.Enabled = False
         Me.btnInstanceCreate.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnInstanceCreate.Location = New System.Drawing.Point(115, 335)
-        Me.btnInstanceCreate.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnInstanceCreate.Margin = New System.Windows.Forms.Padding(2)
         Me.btnInstanceCreate.Name = "btnInstanceCreate"
         Me.btnInstanceCreate.Size = New System.Drawing.Size(101, 45)
         Me.btnInstanceCreate.TabIndex = 18
@@ -370,7 +370,7 @@ Partial Class FrmLevelEditor
         Me.tblEntities.Controls.Add(Me.btnInstanceDelete, 1, 4)
         Me.tblEntities.Controls.Add(Me.Button1, 0, 3)
         Me.tblEntities.Location = New System.Drawing.Point(2, 55)
-        Me.tblEntities.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.tblEntities.Margin = New System.Windows.Forms.Padding(2)
         Me.tblEntities.Name = "tblEntities"
         Me.tblEntities.RowCount = 5
         Me.tblRoom.SetRowSpan(Me.tblEntities, 2)
@@ -387,7 +387,7 @@ Partial Class FrmLevelEditor
         Me.btnInstanceDuplicate.Enabled = False
         Me.btnInstanceDuplicate.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnInstanceDuplicate.Location = New System.Drawing.Point(115, 384)
-        Me.btnInstanceDuplicate.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnInstanceDuplicate.Margin = New System.Windows.Forms.Padding(2)
         Me.btnInstanceDuplicate.Name = "btnInstanceDuplicate"
         Me.btnInstanceDuplicate.Size = New System.Drawing.Size(101, 45)
         Me.btnInstanceDuplicate.TabIndex = 19
@@ -399,7 +399,7 @@ Partial Class FrmLevelEditor
         Me.btnInstanceDelete.Enabled = False
         Me.btnInstanceDelete.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnInstanceDelete.Location = New System.Drawing.Point(115, 433)
-        Me.btnInstanceDelete.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnInstanceDelete.Margin = New System.Windows.Forms.Padding(2)
         Me.btnInstanceDelete.Name = "btnInstanceDelete"
         Me.btnInstanceDelete.Size = New System.Drawing.Size(101, 45)
         Me.btnInstanceDelete.TabIndex = 20
@@ -410,7 +410,7 @@ Partial Class FrmLevelEditor
         '
         Me.Button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.Button1.Location = New System.Drawing.Point(2, 384)
-        Me.Button1.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.Button1.Margin = New System.Windows.Forms.Padding(2)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(101, 45)
         Me.Button1.TabIndex = 21
@@ -423,7 +423,7 @@ Partial Class FrmLevelEditor
         Me.lstTags.Dock = System.Windows.Forms.DockStyle.Fill
         Me.lstTags.FormattingEnabled = True
         Me.lstTags.Location = New System.Drawing.Point(2, 2)
-        Me.lstTags.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.lstTags.Margin = New System.Windows.Forms.Padding(2)
         Me.lstTags.Name = "lstTags"
         Me.tblTagsDetailed.SetRowSpan(Me.lstTags, 3)
         Me.lstTags.Size = New System.Drawing.Size(153, 328)
@@ -439,7 +439,7 @@ Partial Class FrmLevelEditor
         Me.tblTagsDetailed.Controls.Add(Me.btnTagEdit, 1, 1)
         Me.tblTagsDetailed.Controls.Add(Me.btnTagRemove, 1, 2)
         Me.tblTagsDetailed.Location = New System.Drawing.Point(232, 199)
-        Me.tblTagsDetailed.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.tblTagsDetailed.Margin = New System.Windows.Forms.Padding(2)
         Me.tblTagsDetailed.Name = "tblTagsDetailed"
         Me.tblTagsDetailed.RowCount = 3
         Me.tblTagsDetailed.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -453,7 +453,7 @@ Partial Class FrmLevelEditor
         Me.btnTagAdd.Enabled = False
         Me.btnTagAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnTagAdd.Location = New System.Drawing.Point(159, 2)
-        Me.btnTagAdd.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnTagAdd.Margin = New System.Windows.Forms.Padding(2)
         Me.btnTagAdd.Name = "btnTagAdd"
         Me.btnTagAdd.Size = New System.Drawing.Size(101, 45)
         Me.btnTagAdd.TabIndex = 21
@@ -465,7 +465,7 @@ Partial Class FrmLevelEditor
         Me.btnTagEdit.Enabled = False
         Me.btnTagEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnTagEdit.Location = New System.Drawing.Point(159, 51)
-        Me.btnTagEdit.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnTagEdit.Margin = New System.Windows.Forms.Padding(2)
         Me.btnTagEdit.Name = "btnTagEdit"
         Me.btnTagEdit.Size = New System.Drawing.Size(101, 45)
         Me.btnTagEdit.TabIndex = 22
@@ -477,7 +477,7 @@ Partial Class FrmLevelEditor
         Me.btnTagRemove.Enabled = False
         Me.btnTagRemove.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnTagRemove.Location = New System.Drawing.Point(159, 100)
-        Me.btnTagRemove.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnTagRemove.Margin = New System.Windows.Forms.Padding(2)
         Me.btnTagRemove.Name = "btnTagRemove"
         Me.btnTagRemove.Size = New System.Drawing.Size(101, 45)
         Me.btnTagRemove.TabIndex = 23
@@ -494,7 +494,7 @@ Partial Class FrmLevelEditor
         Me.tblRoom.Controls.Add(Me.tblEntities, 0, 1)
         Me.tblRoom.Controls.Add(Me.tblTagsSummary, 1, 1)
         Me.tblRoom.Location = New System.Drawing.Point(545, 8)
-        Me.tblRoom.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.tblRoom.Margin = New System.Windows.Forms.Padding(2)
         Me.tblRoom.Name = "tblRoom"
         Me.tblRoom.RowCount = 3
         Me.tblRoom.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -511,7 +511,7 @@ Partial Class FrmLevelEditor
         Me.flwLevelSaveLoad.Controls.Add(Me.btnLevelSaveAs)
         Me.flwLevelSaveLoad.Controls.Add(Me.btnLevelSave)
         Me.flwLevelSaveLoad.Location = New System.Drawing.Point(2, 2)
-        Me.flwLevelSaveLoad.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.flwLevelSaveLoad.Margin = New System.Windows.Forms.Padding(2)
         Me.flwLevelSaveLoad.Name = "flwLevelSaveLoad"
         Me.flwLevelSaveLoad.Size = New System.Drawing.Size(306, 49)
         Me.flwLevelSaveLoad.TabIndex = 17
@@ -532,7 +532,7 @@ Partial Class FrmLevelEditor
         '
         Me.btnLevelOpen.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnLevelOpen.Location = New System.Drawing.Point(75, 2)
-        Me.btnLevelOpen.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnLevelOpen.Margin = New System.Windows.Forms.Padding(2)
         Me.btnLevelOpen.Name = "btnLevelOpen"
         Me.btnLevelOpen.Size = New System.Drawing.Size(67, 45)
         Me.btnLevelOpen.TabIndex = 1
@@ -543,7 +543,7 @@ Partial Class FrmLevelEditor
         '
         Me.btnLevelSaveAs.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnLevelSaveAs.Location = New System.Drawing.Point(146, 2)
-        Me.btnLevelSaveAs.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnLevelSaveAs.Margin = New System.Windows.Forms.Padding(2)
         Me.btnLevelSaveAs.Name = "btnLevelSaveAs"
         Me.btnLevelSaveAs.Size = New System.Drawing.Size(67, 45)
         Me.btnLevelSaveAs.TabIndex = 2
@@ -555,7 +555,7 @@ Partial Class FrmLevelEditor
         Me.btnLevelSave.Enabled = False
         Me.btnLevelSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnLevelSave.Location = New System.Drawing.Point(217, 2)
-        Me.btnLevelSave.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnLevelSave.Margin = New System.Windows.Forms.Padding(2)
         Me.btnLevelSave.Name = "btnLevelSave"
         Me.btnLevelSave.Size = New System.Drawing.Size(67, 45)
         Me.btnLevelSave.TabIndex = 3
@@ -568,11 +568,11 @@ Partial Class FrmLevelEditor
         Me.tblParam.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60.0!))
         Me.tblParam.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40.0!))
         Me.tblParam.Controls.Add(Me.lstParams, 0, 0)
-        Me.tblParam.Controls.Add(Me.btnParamEdit, 1, 1)
-        Me.tblParam.Controls.Add(Me.btnParamRemove, 1, 2)
         Me.tblParam.Controls.Add(Me.btnParamAdd, 1, 0)
+        Me.tblParam.Controls.Add(Me.btnParamRemove, 1, 1)
+        Me.tblParam.Controls.Add(Me.btnParamEdit, 1, 2)
         Me.tblParam.Location = New System.Drawing.Point(2, 55)
-        Me.tblParam.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.tblParam.Margin = New System.Windows.Forms.Padding(2)
         Me.tblParam.Name = "tblParam"
         Me.tblParam.RowCount = 3
         Me.tblParam.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -587,7 +587,7 @@ Partial Class FrmLevelEditor
         Me.lstParams.Dock = System.Windows.Forms.DockStyle.Fill
         Me.lstParams.FormattingEnabled = True
         Me.lstParams.Location = New System.Drawing.Point(2, 2)
-        Me.lstParams.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.lstParams.Margin = New System.Windows.Forms.Padding(2)
         Me.lstParams.Name = "lstParams"
         Me.tblParam.SetRowSpan(Me.lstParams, 3)
         Me.lstParams.Size = New System.Drawing.Size(153, 226)
@@ -597,8 +597,8 @@ Partial Class FrmLevelEditor
         '
         Me.btnParamEdit.Enabled = False
         Me.btnParamEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnParamEdit.Location = New System.Drawing.Point(159, 51)
-        Me.btnParamEdit.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnParamEdit.Location = New System.Drawing.Point(159, 100)
+        Me.btnParamEdit.Margin = New System.Windows.Forms.Padding(2)
         Me.btnParamEdit.Name = "btnParamEdit"
         Me.btnParamEdit.Size = New System.Drawing.Size(101, 45)
         Me.btnParamEdit.TabIndex = 22
@@ -609,8 +609,8 @@ Partial Class FrmLevelEditor
         '
         Me.btnParamRemove.Enabled = False
         Me.btnParamRemove.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnParamRemove.Location = New System.Drawing.Point(159, 100)
-        Me.btnParamRemove.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnParamRemove.Location = New System.Drawing.Point(159, 51)
+        Me.btnParamRemove.Margin = New System.Windows.Forms.Padding(2)
         Me.btnParamRemove.Name = "btnParamRemove"
         Me.btnParamRemove.Size = New System.Drawing.Size(101, 45)
         Me.btnParamRemove.TabIndex = 23
@@ -621,7 +621,7 @@ Partial Class FrmLevelEditor
         '
         Me.btnParamAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnParamAdd.Location = New System.Drawing.Point(159, 2)
-        Me.btnParamAdd.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnParamAdd.Margin = New System.Windows.Forms.Padding(2)
         Me.btnParamAdd.Name = "btnParamAdd"
         Me.btnParamAdd.Size = New System.Drawing.Size(101, 45)
         Me.btnParamAdd.TabIndex = 21
@@ -638,7 +638,7 @@ Partial Class FrmLevelEditor
         Me.tblRoomList.Controls.Add(Me.btnLevelRoomRemove, 1, 1)
         Me.tblRoomList.Controls.Add(Me.btnRoomEditCoords, 1, 2)
         Me.tblRoomList.Location = New System.Drawing.Point(268, 55)
-        Me.tblRoomList.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.tblRoomList.Margin = New System.Windows.Forms.Padding(2)
         Me.tblRoomList.Name = "tblRoomList"
         Me.tblRoomList.RowCount = 3
         Me.tblRoomList.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -651,7 +651,7 @@ Partial Class FrmLevelEditor
         '
         Me.btnLevelRoomAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnLevelRoomAdd.Location = New System.Drawing.Point(156, 2)
-        Me.btnLevelRoomAdd.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnLevelRoomAdd.Margin = New System.Windows.Forms.Padding(2)
         Me.btnLevelRoomAdd.Name = "btnLevelRoomAdd"
         Me.btnLevelRoomAdd.Size = New System.Drawing.Size(99, 45)
         Me.btnLevelRoomAdd.TabIndex = 21
@@ -664,7 +664,7 @@ Partial Class FrmLevelEditor
         Me.lstRooms.Dock = System.Windows.Forms.DockStyle.Fill
         Me.lstRooms.FormattingEnabled = True
         Me.lstRooms.Location = New System.Drawing.Point(2, 2)
-        Me.lstRooms.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.lstRooms.Margin = New System.Windows.Forms.Padding(2)
         Me.lstRooms.Name = "lstRooms"
         Me.tblRoomList.SetRowSpan(Me.lstRooms, 3)
         Me.lstRooms.Size = New System.Drawing.Size(150, 226)
@@ -675,7 +675,7 @@ Partial Class FrmLevelEditor
         Me.btnLevelRoomRemove.Enabled = False
         Me.btnLevelRoomRemove.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnLevelRoomRemove.Location = New System.Drawing.Point(156, 51)
-        Me.btnLevelRoomRemove.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnLevelRoomRemove.Margin = New System.Windows.Forms.Padding(2)
         Me.btnLevelRoomRemove.Name = "btnLevelRoomRemove"
         Me.btnLevelRoomRemove.Size = New System.Drawing.Size(99, 45)
         Me.btnLevelRoomRemove.TabIndex = 23
@@ -687,7 +687,7 @@ Partial Class FrmLevelEditor
         Me.btnRoomEditCoords.Enabled = False
         Me.btnRoomEditCoords.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnRoomEditCoords.Location = New System.Drawing.Point(156, 100)
-        Me.btnRoomEditCoords.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.btnRoomEditCoords.Margin = New System.Windows.Forms.Padding(2)
         Me.btnRoomEditCoords.Name = "btnRoomEditCoords"
         Me.btnRoomEditCoords.Size = New System.Drawing.Size(99, 45)
         Me.btnRoomEditCoords.TabIndex = 22
@@ -703,7 +703,7 @@ Partial Class FrmLevelEditor
         Me.tblLevel.Controls.Add(Me.tblRoomList, 1, 1)
         Me.tblLevel.Controls.Add(Me.tblParam, 0, 1)
         Me.tblLevel.Location = New System.Drawing.Point(8, 402)
-        Me.tblLevel.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.tblLevel.Margin = New System.Windows.Forms.Padding(2)
         Me.tblLevel.Name = "tblLevel"
         Me.tblLevel.RowCount = 2
         Me.tblLevel.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -721,7 +721,7 @@ Partial Class FrmLevelEditor
         Me.Controls.Add(Me.tblRoom)
         Me.Controls.Add(Me.pnlRender)
         Me.DoubleBuffered = True
-        Me.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.Margin = New System.Windows.Forms.Padding(2)
         Me.Name = "FrmLevelEditor"
         Me.Text = "Level Editor"
         CType(Me.numTagLocX, System.ComponentModel.ISupportInitialize).EndInit()
