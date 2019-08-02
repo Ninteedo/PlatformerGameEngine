@@ -16,20 +16,11 @@ Public Class FrmEntityMaker
     Private Sub Initialisation()
         delayTimer.Stop()
 
-        renderer = New PRE2
-        RefreshPanelCanvas()
+        renderer = New PRE2 With {.renderPanel = pnlFramePreview}
 
         LayoutInitialisation()
 
         GetFolderLocations()
-    End Sub
-
-    Private Sub RefreshPanelCanvas()
-        'Dim panelCanvas As New PaintEventArgs(pnlFramePreview.CreateGraphics, New Rectangle(New Point(0, 0), pnlFramePreview.Size))
-        'renderer.panelCanvasGameArea = panelCanvas
-        renderer.renderPanel = pnlFramePreview
-
-        renderer.DoGameRender({ent})
     End Sub
 
     Private Sub LayoutInitialisation()
@@ -37,35 +28,6 @@ Public Class FrmEntityMaker
 
         tblControlLayout.Location = New Point(pnlFramePreview.Right + 10, pnlFramePreview.Top)
         Me.Size = New Size(tblControlLayout.Right + 20, tblControlLayout.Bottom + 50)
-
-        'pnlFramePreview.Location = New Point(5, 5)
-
-        'btnOpen.Location = New Point(pnlFramePreview.Right + 10, 5)
-        'btnSaveAs.Location = New Point(btnOpen.Right + 5, 5)
-        'btnSave.Location = New Point(btnSaveAs.Right + 5, 5)
-
-        'btnRedraw.Location = New Point(btnSave.Right + 20, 5)
-
-        'lblTagListTitle.Location = New Point(btnOpen.Left, btnOpen.Bottom + 10)
-        'lstTags.Location = New Point(lblTagListTitle.Left, lblTagListTitle.Bottom + 5)
-        'btnTagsNew.Location = New Point(lstTags.Left, lstTags.Bottom + 5)
-        'btnTagsEdit.Location = New Point(btnTagsNew.Left, btnTagsNew.Bottom + 5)
-
-        'lblFrameListTitle.Location = New Point(lstTags.Right + 5, lblTagListTitle.Top)
-        'lstFrames.Location = New Point(lblFrameListTitle.Left, lblFrameListTitle.Bottom + 5)
-        'btnFrameNew.Location = New Point(lstFrames.Left, lstFrames.Bottom + 5)
-        'btnFrameRemove.Location = New Point(btnFrameNew.Left, btnFrameNew.Bottom + 5)
-        'btnFrameAddSprite.Location = New Point(btnFrameRemove.Left, btnFrameRemove.Bottom + 5)
-        'lblFrameIndex.Location = New Point(btnFrameAddSprite.Left, btnFrameAddSprite.Bottom + 5)
-        'numFrameIndex.Location = New Point(lblFrameIndex.Right + 5, lblFrameIndex.Top)
-
-        'lblSpriteListTitle.Location = New Point(lstFrames.Right + 5, lblFrameListTitle.Top)
-        'lstSprites.Location = New Point(lblSpriteListTitle.Left, lblSpriteListTitle.Bottom + 5)
-        'btnSpriteLoad.Location = New Point(lstSprites.Left, lstSprites.Bottom + 5)
-
-        'lblName.Location = New Point(lstSprites.Right + 10, lstSprites.Top)
-        'txtName.Location = New Point(lblName.Right + 5, lblName.Top)
-
     End Sub
 
     'save load
@@ -88,10 +50,8 @@ Public Class FrmEntityMaker
                 Dim loaderText As String = PRE2.ReadFile(openDialog.FileName)
 
                 Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
-                'renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "levelFolder")
                 renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "entityFolder")
                 renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "spriteFolder")
-                'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "roomFolder")
             Else
                 PRE2.DisplayError("Couldn't find file " & openDialog.FileName)
             End If
@@ -164,7 +124,7 @@ Public Class FrmEntityMaker
 
         If IsNothing(renderer.loadedSprites) = False Then
             For index As Integer = 0 To UBound(renderer.loadedSprites)
-                lstSprites.Items.Add(renderer.loadedSprites(index).fileName.Remove(1, Len(renderer.spriteFolderLocation)))
+                lstSprites.Items.Add(renderer.loadedSprites(index).fileName.Remove(0, Len(renderer.spriteFolderLocation)))
             Next
         End If
     End Sub
@@ -177,8 +137,9 @@ Public Class FrmEntityMaker
         If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
             For index As Integer = 0 To UBound(openDialog.FileNames)
                 renderer.LoadSprite(openDialog.FileNames(index))
-                lstSprites.Items.Add(renderer.loadedSprites(UBound(renderer.loadedSprites)).fileName)       'THIS WILL CAUSE LOGIC ERRORS
             Next index
+
+            RefreshSpritesList()
         End If
     End Sub
 
@@ -203,18 +164,15 @@ Public Class FrmEntityMaker
         If IsNothing(frameToDraw.sprites) = False Then
             Dim previewEntity As New PRE2.Entity({frameToDraw}, {}, New PointF(0, 0)) 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
 
-            ReDim renderer.entities(0)
-            renderer.entities(0) = previewEntity
-
             Dim newPanelDimensions As New Size(frameToDraw.Dimensions.Width * renderer.renderScale, frameToDraw.Dimensions.Height * renderer.renderScale)
             pnlFramePreview.MaximumSize = newPanelDimensions
             pnlFramePreview.MinimumSize = newPanelDimensions
             pnlFramePreview.Size = newPanelDimensions
             LayoutInitialisation()
 
-            RefreshPanelCanvas()
-
             renderer.DoGameRender({previewEntity})
+        Else
+            renderer.DoGameRender({})       'renders nothing
         End If
     End Sub
 
@@ -390,6 +348,22 @@ Public Class FrmEntityMaker
             btnTagRemove.Enabled = False
         End If
     End Sub
+
+    Private Sub txtName_TextChanged(sender As Object, e As EventArgs) Handles txtName.LostFocus
+        'changes the name of the entity if the name is valid
+
+        Dim newName As String = txtName.Text
+
+        If Not IsNothing(newName) Then
+            ent.name = newName
+            RefreshTagsList()
+        Else    'no name provided so restores previous name
+            txtName.Text = ent.name
+        End If
+    End Sub
+
+
+    'other
 
     Private Sub btnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
         If IsNothing(ent.frames) = False Then
