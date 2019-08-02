@@ -56,7 +56,7 @@ Module EntityStringHandler
         Try
             'loads the frames of the entity
             If UBound(lines) >= 0 Then
-                currentLine = lines(1).Replace(vbLf, "")
+                currentLine = lines(0).Replace(vbLf, "")
                 Dim framesValues() As String = currentLine.Split(";")
                 ReDim result.frames(UBound(framesValues))
                 For frameIndex As Integer = 0 To UBound(framesValues)
@@ -87,8 +87,8 @@ Module EntityStringHandler
             End If
 
             'loads the tags
-            If UBound(lines) >= 2 Then
-                currentLine = lines(2).Replace(vbLf, "")
+            If UBound(lines) >= 1 Then
+                currentLine = lines(1).Replace(vbLf, "")
                 Dim tagStrings() As String = currentLine.Split("/")
                 ReDim result.tags(UBound(tagStrings))
                 For tagIndex As Integer = 0 To UBound(tagStrings)
