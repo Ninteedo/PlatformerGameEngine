@@ -374,14 +374,14 @@ Public Class FrmGame
         End Select
     End Sub
 
-    Public Function EntityWithName(entityName As String) As PRE2.Entity
+    Public Function EntityWithName(entityName As String, roomToCheck As Room) As PRE2.Entity
         Select Case entityName
             Case "other"
 
             Case Else
-                For index As Integer = 0 To UBound(renderer.entities)
-                    If renderer.entities(index).name = entityName Then
-                        Return renderer.entities(index)
+                For index As Integer = 0 To UBound(roomToCheck.instances)
+                    If roomToCheck.instances(index).name = entityName Then
+                        Return roomToCheck.instances(index)
                     End If
                 Next index
         End Select

@@ -8,7 +8,7 @@ Public Class PanelRenderEngine2
 
     'Public panelCanvasGameArea As PaintEventArgs
     Public renderPanel As Panel
-    Public entities() As Entity
+    'Public entities() As Entity
     Public loadedSprites() As Sprite
     Public renderScale As Single = 20
     'Dim gameResolution As Size = panelCanvasGameArea.ClipRectangle.Size
@@ -114,8 +114,17 @@ Public Class PanelRenderEngine2
             scale = startScale
         End Sub
 
-        Public Overrides Function ToString() As String
+        Public Sub New(entityString As String, renderEngine As PanelRenderEngine2)
+            'creates a new entity from an entity string
 
+            Dim newEnt As Entity = EntityStringHandler.ReadEntityString(entityString, renderEngine)
+            frames = newEnt.frames
+            tags = newEnt.tags
+
+        End Sub
+
+        Public Overloads Function ToString(spriteFolderLocation As String) As String
+            Return EntityStringHandler.CreateEntityString(Me, spriteFolderLocation)
         End Function
 
 
@@ -177,14 +186,14 @@ Public Class PanelRenderEngine2
 
         Property name As String
             Get
-                If HasTag("name") = True Then
+                If HasTag("name") Then
                     Return FindTag("name").args(0)
                 Else
                     Return "unnamed"
                 End If
             End Get
             Set(value As String)
-                If HasTag("name") = True Then
+                If HasTag("name") Then
                     FindTag("name").args(0) = value
                 Else
                     AddTag(New Tag("name", {value}))
@@ -194,14 +203,14 @@ Public Class PanelRenderEngine2
 
         Property location As PointF
             Get
-                If HasTag("location") = True Then
+                If HasTag("location") Then
                     Return FindTag("location").args(0)
                 Else
                     Return New PointF(0, 0)
                 End If
             End Get
             Set(value As PointF)
-                If HasTag("location") = True Then
+                If HasTag("location") Then
                     FindTag("location").args(0) = value
                 Else
                     AddTag(New Tag("location", {value}))
@@ -211,14 +220,14 @@ Public Class PanelRenderEngine2
 
         Property layer As Integer
             Get
-                If HasTag("layer") = True Then
+                If HasTag("layer") Then
                     Return FindTag("layer").args(0)
                 Else
                     Return 0
                 End If
             End Get
             Set(value As Integer)
-                If HasTag("layer") = True Then
+                If HasTag("layer") Then
                     FindTag("layer").args(0) = value
                 Else
                     AddTag(New Tag("layer", {value}))
@@ -228,14 +237,14 @@ Public Class PanelRenderEngine2
 
         Property scale As Single
             Get
-                If HasTag("scale") = True Then
+                If HasTag("scale") Then
                     Return FindTag("scale").args(0)
                 Else
                     Return 1
                 End If
             End Get
             Set(value As Single)
-                If HasTag("scale") = True Then
+                If HasTag("scale") Then
                     FindTag("scale").args(0) = value
                 Else
                     AddTag(New Tag("scale", {value}))
@@ -245,14 +254,14 @@ Public Class PanelRenderEngine2
 
         Property rotation As Single
             Get
-                If HasTag("rotation") = True Then
+                If HasTag("rotation") Then
                     Return FindTag("rotation").args(0)
                 Else
                     Return 0
                 End If
             End Get
             Set(value As Single)
-                If HasTag("rotation") = True Then
+                If HasTag("rotation") Then
                     FindTag("rotation").args(0) = value
                 Else
                     AddTag(New Tag("rotation", {value}))
@@ -262,19 +271,38 @@ Public Class PanelRenderEngine2
 
         Property rotationAnchor As PointF
             Get
-                If HasTag("rotationAnchor") = True Then
+                If HasTag("rotationAnchor") _
+                AndAlso Not IsNothing(FindTag("rotationAnchor").args(0)) AndAlso IsNumeric(FindTag("rotationAnchor").args(0)) AndAlso
+                Not IsNothing(FindTag("rotationAnchor").args(1)) AndAlso IsNumeric(FindTag("rotationAnchor").args(1)) Then
                     Return New PointF(FindTag("rotationAnchor").args(0), FindTag("rotationAnchor").args(1))
                 Else
                     Return New PointF(frames(currentFrame).Dimensions.Width / 2, frames(currentFrame).Dimensions.Height / 2)
                 End If
             End Get
             Set(value As PointF)
-                If HasTag("rotationAnchor") = True Then
+                If HasTag("rotationAnchor") Then
                     RemoveTag("rotationAnchor")
                 End If
                 AddTag(New Tag("rotationAnchor", {value.X, value.Y}))
             End Set
         End Property
+
+        Property opacity As Single
+            Get
+                If HasTag("opacity") Then
+                    Return FindTag("opacity").args(0)
+                Else
+                    Return 1.0
+                End If
+            End Get
+            Set(value As Single)
+                If HasTag("opacity") Then
+                    RemoveTag("opacity")
+                End If
+                AddTag(New Tag("opacity", {value}))
+            End Set
+        End Property
+
     End Structure
 
     Public Structure Frame
@@ -285,17 +313,6 @@ Public Class PanelRenderEngine2
         Dim sprites() As Sprite
         Dim offsets() As Point
         'Dim fileLocation As String
-
-
-        Public Sub New(compositeSprites() As Sprite, offsets() As Point)
-            'creates a new frame by combining sprites
-
-            If compositeSprites.Length <> offsets.Length Then
-                DisplayError(compositeSprites.Length & " sprites provided for new frame, but " & offsets.Length & " offsets provided for them")
-            End If
-
-
-        End Sub
 
         Public Sub New(frameString As String, spriteFolderLocation As String)
             'creates a new frame from a string
@@ -486,13 +503,14 @@ Public Class PanelRenderEngine2
             fileName = fileLocation
         End Sub
 
-        Public Sub New(colourIndices(,) As UInteger, colours() As Color)
+        Public Sub New(colourIndices(,) As Integer, colours() As Color)
             'uses colours and colour indices to make a sprite
 
             If colours(0) <> Color.Transparent Then
                 DisplayError("Colour index 0 for new sprite is not transparent")
             End If
 
+            ReDim pixels(colourIndices.GetUpperBound(0), colourIndices.GetUpperBound(1))
             For x As Integer = 0 To colourIndices.GetUpperBound(0)
                 For y As Integer = 0 To colourIndices.GetUpperBound(1)
                     pixels(x, y) = colours(colourIndices(x, y))
@@ -631,19 +649,9 @@ Public Class PanelRenderEngine2
         'renders everything
 
         Dim canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
-
         canvas.Graphics.Clear(Color.White)
 
-        'find used layer numbers
-        'Dim layers(0) As Integer
-        'For Each entity In entityList
-        '    Dim layer As Integer = If(IsNumeric(entity.FindTag("layer")), Int(entity.FindTag("layer")), 0)      'default is 0
-
-        '    If layers.Contains(layer) = False Then
-        '        ReDim Preserve layers(UBound(layers) + 1)
-        '        layers(UBound(layers)) = layer
-        '    End If
-        'Next
+        Const rotationEnabled As Boolean = False        'used for when rotation isn't working properly
 
         'render layers
         Dim context As BufferedGraphicsContext = BufferedGraphicsManager.Current
@@ -687,24 +695,27 @@ Public Class PanelRenderEngine2
                     End If
 
                     Dim rotationAnchor As PointF = currentEntity.rotationAnchor       'the point where the entity is rotated from
-                    Dim rotation As Single = currentEntity.rotation
+                    Dim rotation As Single = If(rotationEnabled, currentEntity.rotation, 0)
 
                     'draws the pixels of the entity to the correct layer
-                    For x As Integer = 0 To renderFrame.Dimensions.Width - 1
-                        For y As Integer = 0 To renderFrame.Dimensions.Height - 1
-                            Dim angle As Single = Math.Atan((y - rotationAnchor.Y) / (x - rotationAnchor.X)) + rotation * Math.PI / 180
+                    For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
+                        For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
+                            Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
                             Dim scale As Single = currentEntity.scale * renderScale / 2
-                            Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
-                            'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
-                            'Dim pixelCentre As New PointF(currentEntity.location.X + x * (scale * 3 / 2), currentEntity.location.Y + y * (scale * 3 / 2))
 
-                            DrawPixel(canvas.Graphics, pixelCentre, renderPixels(x, y), rotation, scale)
-                        Next y
-                    Next x
+                            'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
+                            'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
+                            Dim pixelCentre As New PointF(
+                            currentEntity.location.X + pixelX * (scale * 3 / 2),
+                            currentEntity.location.Y + pixelY * (scale * 3 / 2))
+
+                            DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
+                        Next pixelX
+                    Next pixelY
                 End If
             Next entityIndex
 
-            If True = False AndAlso IsNothing(renderLayers) = False Then
+            If False AndAlso IsNothing(renderLayers) = False Then
                 'sorts the render layers from lowest to highest
                 Dim sortedRenderLayerNumbers() As Integer
                 sortedRenderLayerNumbers = renderLayerNumbers
@@ -762,7 +773,7 @@ Public Class PanelRenderEngine2
         Return result
     End Function
 
-    Public Shared Function RemoveElementFromArray(oldArray(), indexToRemove) As Object
+    Public Shared Function RemoveElementFromArray(oldArray() As Object, indexToRemove As Integer) As Object
         'returns the given array but with an element removed
 
         If indexToRemove >= 0 And indexToRemove <= UBound(oldArray) Then

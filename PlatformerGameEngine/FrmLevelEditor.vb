@@ -86,38 +86,38 @@ Public Class FrmLevelEditor
         Dim levelString As String = ""
 
         'adds an addParam line for each parameter
-        For Each param As PRE2.Tag In levelToSave.parameters
-            levelString += "addParam: " & param.ToString
-        Next param
-
+        If Not IsNothing(levelToSave.parameters) Then
+            For Each param As PRE2.Tag In levelToSave.parameters
+                levelString += "addParam: " & param.ToString & Environment.NewLine
+            Next param
+        End If
 
         'adds a loadEnt line for each template
-        For Each template As PRE2.Entity In levelToSave.templates
-            If template.HasTag("fileName") = True Then
-                Dim line As String = "loadEnt: " & template.FindTag("fileName").args(0) & "/" & template.name
+        If Not IsNothing(levelToSave.templates) Then
+            For Each template As PRE2.Entity In levelToSave.templates
+                If template.HasTag("fileName") = True Then
+                    Dim line As String = "loadEnt: " & template.FindTag("fileName").args(0) & "/" & template.name
 
-                'adds each tag
-                For Each thisTag As PRE2.Tag In template.tags
-                    line += "/" & thisTag.ToString
-                Next
+                    'adds each tag
+                    For Each thisTag As PRE2.Tag In template.tags
+                        line += "/" & thisTag.ToString
+                    Next
 
-                levelString += line & Environment.NewLine
-            Else
-                PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
-            End If
-        Next
-
+                    levelString += line & Environment.NewLine
+                Else
+                    PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
+                End If
+            Next
+        End If
 
         'adds a loadRoom line for each room
-        For Each currentRoom As FrmGame.Room In levelToSave.rooms
-            Dim line As String = "loadRoom: "
-			
-            For Each thisRoom As FrmGame.Room In thisLevel.rooms
+        If Not IsNothing(levelToSave.rooms) Then
+            For Each currentRoom As FrmGame.Room In levelToSave.rooms
+                Dim line As String = "loadRoom: "
                 line += thisRoom.fileLocation.Remove(renderer.roomFolderLocation)       'the saved part is the location relative to the room folder
-            Next
-			
-			levelString += line & Environment.NewLine
-        Next currentRoom
+                levelString += line & Environment.NewLine
+            Next currentRoom
+        End If
 
         'saves level string to file
         PRE2.WriteFile(saveLocation, levelString)
@@ -272,7 +272,7 @@ Public Class FrmLevelEditor
         Dim newInstance As PRE2.Entity = template
         newInstance.AddTag(New PRE2.Tag("templateName", {template.name}))       'instance stores the name of its template so the instance can be created from the correct template when loading
 
-        'checks that there are any instances yet
+        'checks if there are any instances with the same name yet, and numbers the instance accordingly
         If IsNothing(thisRoom.instances) = True Then
             newInstance.name = template.name & "-1"
 
@@ -390,7 +390,9 @@ Public Class FrmLevelEditor
                 names(index) = thisRoom.instances(index).name
             Next
 
-            RefreshList(lstTemplates, names)
+            RefreshList(lstInstances, names)
+        Else
+            RefreshList(lstInstances, Nothing)
         End If
     End Sub
 
@@ -552,17 +554,18 @@ Public Class FrmLevelEditor
         'removes the selected tag
 
         If lstInstances.SelectedIndex > -1 And lstTags.SelectedIndex > -1 Then
-            Dim ent As PRE2.Entity = thisRoom.instances(lstInstances.SelectedIndex)
-            For index As Integer = lstTags.SelectedIndex To UBound(ent.tags)
-                ent.tags(index) = ent.tags(index + 1)
+            Dim newTags() As PRE2.Tag = thisRoom.instances(lstInstances.SelectedIndex).tags
+            For index As Integer = lstTags.SelectedIndex To UBound(newTags) - 1
+                newTags(index) = newTags(index + 1)
             Next
 
-            If UBound(ent.tags) > 0 Then
-                ReDim Preserve ent.tags(UBound(ent.tags) - 1)
+            If UBound(newTags) > 0 Then
+                ReDim Preserve newTags(UBound(newTags) - 1)
             Else
-                ent.tags = Nothing
+                newTags = Nothing
             End If
 
+            thisRoom.instances(lstInstances.SelectedIndex).tags = newTags
             ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
         End If
     End Sub
@@ -572,15 +575,17 @@ Public Class FrmLevelEditor
     'parameters
 
     Private Sub RefreshParameterList()
-		If IsNothing(thisLevel.parameters) = False Then		
-			Dim items(UBound(thisLevel.parameters)) As String
+        Dim items() As String
 
-			For index As Integer = 0 To UBound(items)
-				items(index) = thisLevel.parameters(index).ToString
-			Next index
+        If IsNothing(thisLevel.parameters) = False Then
+            ReDim items(UBound(thisLevel.parameters))
 
-			RefreshList(lstParams, items)
-		End If
+            For index As Integer = 0 To UBound(items)
+                items(index) = thisLevel.parameters(index).ToString
+            Next index
+        End If
+
+        RefreshList(lstParams, items)
     End Sub
 
     Private Sub AddParameter(newParam As PRE2.Tag)
@@ -614,8 +619,10 @@ Public Class FrmLevelEditor
         If UBound(thisLevel.parameters) > 0 Then
             ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) - 1)
         Else
-            thisLevel.parameters = {}
+            thisLevel.parameters = Nothing
         End If
+
+        RefreshParameterList()
     End Sub
 
     Private Sub lstParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstParams.SelectedIndexChanged
@@ -742,8 +749,10 @@ Public Class FrmLevelEditor
         If UBound(thisLevel.rooms) > 0 Then
             ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) - 1)
         Else
-            thisLevel.rooms = {}
+            thisLevel.rooms = Nothing
         End If
+
+        RefreshRoomsList()
     End Sub
 
     Private Sub SetRoomCoords(roomIndex As Integer, roomCoords As Point)
@@ -834,17 +843,17 @@ Public Class FrmLevelEditor
 	Private Sub RefreshList(list As ListBox, values() As String)
         'empties a list and fills it with given values
 
-		If IsNothing(list) = False Then
-			list.Items.Clear()
+        list.Items.Clear()
 
-			If IsNothing(values) = False Then
-				For Each value As String In values
-					list.Items.Add(value)
-				Next value
-			End If
-		Else
-			PRE2.DisplayError("A list tried to refresh but doesn't exist")
-		End If
+        If IsNothing(list) = False Then
+            If IsNothing(values) = False Then
+                For Each value As String In values
+                    list.Items.Add(value)
+                Next value
+            End If
+        Else
+            'PRE2.DisplayError("A list tried to refresh but doesn't exist")
+        End If
     End Sub
    
 End Class
