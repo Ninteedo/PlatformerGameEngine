@@ -28,21 +28,20 @@ Partial Class FrmGame
         'pnlGame
         '
         Me.pnlGame.BackColor = System.Drawing.Color.Black
-        Me.pnlGame.Location = New System.Drawing.Point(9, 8)
-        Me.pnlGame.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.pnlGame.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.pnlGame.Location = New System.Drawing.Point(0, 0)
         Me.pnlGame.Name = "pnlGame"
-        Me.pnlGame.Size = New System.Drawing.Size(533, 390)
+        Me.pnlGame.Size = New System.Drawing.Size(837, 638)
         Me.pnlGame.TabIndex = 0
         '
         'FrmGame
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.DimGray
-        Me.ClientSize = New System.Drawing.Size(558, 415)
+        Me.ClientSize = New System.Drawing.Size(837, 638)
         Me.Controls.Add(Me.pnlGame)
         Me.DoubleBuffered = True
-        Me.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
         Me.Name = "FrmGame"
         Me.Text = "Platformer Engine"
         Me.ResumeLayout(False)

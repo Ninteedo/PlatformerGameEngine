@@ -46,7 +46,7 @@ Module EntityStringHandler
         Return result
     End Function
 
-    Public Function ReadEntityString(entityString As String, ByRef renderEngine As PRE2) As PRE2.Entity
+    Public Function ReadEntityString(entityString As String, ByRef renderEngine As PRE2, Optional ByRef successfulLoad As Boolean = False) As PRE2.Entity
         'reads a string, as created in CreateEntityString, returning an entity
 
         Dim result As New PRE2.Entity
@@ -96,6 +96,7 @@ Module EntityStringHandler
                 Next tagIndex
             End If
 
+            successfulLoad = True       'so that what calls this function knows the load was successful
             Return result
         Catch ex As Exception
             PRE2.DisplayError("An error occured whilst loading an entity")

@@ -32,7 +32,7 @@ Public Class FrmEntityMaker
 
     'save load
 
-    Dim saveLocation As String
+    Dim saveLocation As String = ""
     Dim gameLocation As String = ""
 
     Private ReadOnly Property EntityString
@@ -54,7 +54,10 @@ Public Class FrmEntityMaker
                 renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "spriteFolder")
             Else
                 PRE2.DisplayError("Couldn't find file " & openDialog.FileName)
+                Me.Close()
             End If
+        Else
+            Me.Close()
         End If
     End Sub
 
@@ -66,8 +69,6 @@ Public Class FrmEntityMaker
         If openDialog.ShowDialog = DialogResult.OK Then
             saveLocation = openDialog.FileName
             ReadEntityFromFile(saveLocation)
-
-            btnSave.Enabled = True
         End If
     End Sub
 
@@ -99,13 +100,20 @@ Public Class FrmEntityMaker
 
         If IO.File.Exists(fileLocation) = True Then
             Dim fileText As String = PRE2.ReadFile(fileLocation)
+            Dim successfulLoad As Boolean = False
 
-            ent = EntityStringHandler.ReadEntityString(fileText, renderer)
+            ent = EntityStringHandler.ReadEntityString(fileText, renderer, successfulLoad)
 
-            txtName.Text = ent.name
-            RefreshFramesList()
-            RefreshTagsList()
-            RefreshSpritesList()
+            If successfulLoad = True Then
+                txtName.Text = ent.name
+                RefreshFramesList()
+                RefreshTagsList()
+                RefreshSpritesList()
+                btnSave.Enabled = True
+            Else
+                saveLocation = ""
+                btnSave.Enabled = False
+            End If
         Else
             PRE2.DisplayError("Couldn't find file " & fileLocation)
         End If
@@ -160,14 +168,20 @@ Public Class FrmEntityMaker
 
     Private Sub DrawFramePreview(frameToDraw As PRE2.Frame)
         'draws the given frame in the preview box
+        'NEED TO FIX THIS
 
         If IsNothing(frameToDraw.sprites) = False Then
-            Dim previewEntity As New PRE2.Entity({frameToDraw}, {}, New PointF(0, 0)) 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
+            Dim previewTags() As PRE2.Tag = {New PRE2.Tag("location", {frameToDraw.Centre.ToString})}
+            Dim previewEntity As New PRE2.Entity({frameToDraw}, previewTags, New PointF(0, 0)) 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
 
-            Dim newPanelDimensions As New Size(frameToDraw.Dimensions.Width * renderer.renderScale, frameToDraw.Dimensions.Height * renderer.renderScale)
-            pnlFramePreview.MaximumSize = newPanelDimensions
-            pnlFramePreview.MinimumSize = newPanelDimensions
-            pnlFramePreview.Size = newPanelDimensions
+            renderer.renderResolution = frameToDraw.Dimensions
+            'renderer.renderResolution = New Size(frameToDraw.Dimensions.Width * renderer.renderScaleFactor, frameToDraw.Dimensions.Height * renderer.renderScaleFactor)
+            renderer.renderPixelPerfect = False
+            renderer.ResizeRenderWindow()
+
+            'pnlFramePreview.MaximumSize = newPanelDimensions
+            'pnlFramePreview.MinimumSize = newPanelDimensions
+            'pnlFramePreview.Size = newPanelDimensions
             LayoutInitialisation()
 
             renderer.DoGameRender({previewEntity})

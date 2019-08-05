@@ -6,12 +6,12 @@ Imports SpriteHandler = PlatformerGameEngine.SpriteStringHandler
 
 Public Class PanelRenderEngine2
 
-    'Public panelCanvasGameArea As PaintEventArgs
     Public renderPanel As Panel
-    'Public entities() As Entity
     Public loadedSprites() As Sprite
-    Public renderScale As Single = 20
-    'Dim gameResolution As Size = panelCanvasGameArea.ClipRectangle.Size
+
+    Public renderScaleFactor As Single = 10                 'the overall custom render scaling of the game (might be unnecessary)
+    Public renderResolution As Size = New Size(640, 480)      'the intended size for the game
+    Public renderPixelPerfect As Boolean = False              'true: render window is size of the resolution, false: game is scaled to fit the render window
 
     Public spriteFolderLocation As String
     Public entityFolderLocation As String
@@ -303,6 +303,9 @@ Public Class PanelRenderEngine2
             End Set
         End Property
 
+
+
+
     End Structure
 
     Public Structure Frame
@@ -380,6 +383,14 @@ Public Class PanelRenderEngine2
 
             Return result
         End Function
+
+        Public ReadOnly Property Centre As PointF
+            'returns the location of the centre of the frame
+
+            Get
+                Return New PointF(Dimensions.Width / 2, Dimensions.Height / 2)
+            End Get
+        End Property
 
         Public Sub Trim()
             'removes any outermost rows or columns which only have transparent pixels in them
@@ -633,15 +644,6 @@ Public Class PanelRenderEngine2
         Return Nothing
     End Function
 
-    'Private Sub Initialisation()
-    '    EntityInitialisation()
-    'End Sub
-
-    'Private Sub EntityInitialisation()
-    '    ReDim entities(0)
-    '    entities(0) = New Entity
-    '    entities(0).AddTag(New Tag("unusuable"))
-    'End Sub
 
     'actual rendering part of the program
 
@@ -701,13 +703,13 @@ Public Class PanelRenderEngine2
                     For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
                         For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
                             Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
-                            Dim scale As Single = currentEntity.scale * renderScale / 2
+                            Dim scale As SizeF = New SizeF(currentEntity.scale * RenderScale.Width / 2, currentEntity.scale * RenderScale.Height / 2)
 
                             'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
                             'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
                             Dim pixelCentre As New PointF(
-                            currentEntity.location.X + pixelX * (scale * 3 / 2),
-                            currentEntity.location.Y + pixelY * (scale * 3 / 2))
+                            currentEntity.location.X + pixelX * (scale.Width * 3 / 2),
+                            currentEntity.location.Y + pixelY * (scale.Height * 3 / 2))
 
                             DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
                         Next pixelX
@@ -730,7 +732,7 @@ Public Class PanelRenderEngine2
         End If
     End Sub
 
-    Private Sub DrawPixel(graphicsInstance As Graphics, center As PointF, colour As Color, Optional rotation As Single = 0.0, Optional scale As Single = 1.0)
+    Private Sub DrawPixel(graphicsInstance As Graphics, center As PointF, colour As Color, rotation As Single, scale As SizeF)
         'draws a pixel
 
         Dim vertices(3) As PointF
@@ -744,14 +746,33 @@ Public Class PanelRenderEngine2
         graphicsInstance.FillPolygon(brush, vertices)
     End Sub
 
-    Private Function VertexOfPolygon(center As PointF, index As Integer, sides As Integer, rotation As Single, scale As Single) As PointF
+    Private Function VertexOfPolygon(center As PointF, index As Integer, sides As Integer, rotation As Single, scale As SizeF) As PointF
         'returns the point of a vertex of a polygon with given attributes
 
         Dim angleDegrees As Single = (360 / sides) * (index + 0.5) + rotation
         Dim angleRads As Single = (Math.PI / 180) * angleDegrees
 
-        Return New PointF(center.X + (scale * Math.Cos(angleRads)), center.Y + (scale * Math.Sin(angleRads)))
+        Return New PointF(center.X + (scale.Width * Math.Cos(angleRads)), center.Y + (scale.Height * Math.Sin(angleRads)))
     End Function
+
+    Public Sub ResizeRenderWindow()
+        'resizes the render window in accordance with the parameters provided
+
+        If renderPixelPerfect Then    'sets panel size to game resolution
+            renderPanel.Size = renderResolution
+        Else        'fills the window
+            renderPanel.Dock = DockStyle.Fill
+        End If
+    End Sub
+
+    Private ReadOnly Property RenderScale As SizeF   'the render scaling used by the renderer
+        Get
+            Return New SizeF((renderPanel.Size.Width / renderResolution.Width) * renderScaleFactor,
+                             (renderPanel.Size.Height / renderResolution.Height) * renderScaleFactor)
+        End Get
+    End Property
+
+
 
     Public Shared Function ModArrayLength(arrayToMod() As Object, lengthChange As Integer) As Object()
         'changes the length of the given array by the given amount
