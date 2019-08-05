@@ -350,6 +350,7 @@ Partial Class FrmEntityMaker
         Me.Controls.Add(Me.tblControlLayout)
         Me.Controls.Add(Me.pnlFramePreview)
         Me.DoubleBuffered = True
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
         Me.Name = "FrmEntityMaker"
         Me.Text = "Entity Maker"
         CType(Me.numFrameIndex, System.ComponentModel.ISupportInitialize).EndInit()

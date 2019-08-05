@@ -11,7 +11,7 @@ Public Class PanelRenderEngine2
 
     Public renderScaleFactor As Single = 10                 'the overall custom render scaling of the game (might be unnecessary)
     Public renderResolution As Size = New Size(640, 480)      'the intended size for the game
-    Public renderPixelPerfect As Boolean = False              'true: render window is size of the resolution, false: game is scaled to fit the render window
+    Public renderPixelPerfect As Boolean = False              'true: render window size is set to resolution, false: game is scaled to fit the render window
 
     Public spriteFolderLocation As String
     Public entityFolderLocation As String
@@ -708,8 +708,8 @@ Public Class PanelRenderEngine2
                             'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
                             'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
                             Dim pixelCentre As New PointF(
-                            currentEntity.location.X + pixelX * (scale.Width * 3 / 2),
-                            currentEntity.location.Y + pixelY * (scale.Height * 3 / 2))
+                            (currentEntity.location.X + pixelX * 1.5) * (scale.Width * 1),
+                            (currentEntity.location.Y + pixelY * 1.5) * (scale.Height * 1))
 
                             DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
                         Next pixelX
@@ -767,8 +767,9 @@ Public Class PanelRenderEngine2
 
     Private ReadOnly Property RenderScale As SizeF   'the render scaling used by the renderer
         Get
-            Return New SizeF((renderPanel.Size.Width / renderResolution.Width) * renderScaleFactor,
-                             (renderPanel.Size.Height / renderResolution.Height) * renderScaleFactor)
+            Const useScaleFactor As Boolean = False
+            Return New SizeF((renderPanel.Size.Width / renderResolution.Width) * renderScaleFactor ^ If(useScaleFactor, 1, 0),
+                             (renderPanel.Size.Height / renderResolution.Height) * renderScaleFactor ^ If(useScaleFactor, 1, 0))
         End Get
     End Property
 

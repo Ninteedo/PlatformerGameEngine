@@ -38,8 +38,8 @@ Public Class FrmLevelEditor
         'tblTagsDetailed.Location = New Point(tblTagsSummary.Left, tblTagsSummary.Bottom + 5)
     End Sub
 
-	
-	
+
+
     'save load
 
     Dim roomSaveLocation As String = ""
@@ -190,7 +190,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub btnRoomOpen_Click(sender As Object, e As EventArgs) Handles btnRoomOpen.Click
-        Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True}
+        Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True, .InitialDirectory = roomSaveLocation}
 
         If openDialog.ShowDialog() = DialogResult.OK Then
             For Each fileLocation As String In openDialog.FileNames
@@ -325,7 +325,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub btnLoadEntity_Click(sender As Object, e As EventArgs) Handles btnLoadEntity.Click
-        Dim openDialog As New OpenFileDialog With {.Filter = "Entity files (*.ent)|*.ent", .Multiselect = True}
+        Dim openDialog As New OpenFileDialog With {.Filter = "Entity files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.entityFolderLocation}
 
         If openDialog.ShowDialog() = DialogResult.OK Then
             For Each fileName As String In openDialog.FileNames
