@@ -95,14 +95,6 @@ Public Class PanelRenderEngine2
 
         Dim frames() As Frame
         Dim tags() As Tag
-        'Dim name As String
-
-        Dim currentFrame As UInteger
-        'Dim location As PointF          'location of the entity (either top left or center, not sure yet)
-        'Dim rotation As Single          'rotation clockwise in degrees
-        'Dim scale As Single         'how much each pixel is scaled up by
-        'Dim layer As Integer        'z index of entity, higher is further forward
-
 
         Public Sub New(startFrames() As Frame, startTags() As Tag, startLocation As PointF, Optional startRotation As Single = 0.0, Optional startScale As Single = 1.0)
             frames = startFrames
@@ -125,6 +117,17 @@ Public Class PanelRenderEngine2
 
         Public Overloads Function ToString(spriteFolderLocation As String) As String
             Return EntityStringHandler.CreateEntityString(Me, spriteFolderLocation)
+        End Function
+
+        Public Function Clone() As Entity
+            'returns a clone of this entity
+
+            Dim newClone As Entity
+
+            newClone.frames = frames
+            newClone.tags = tags
+
+            Return newClone
         End Function
 
 
@@ -153,7 +156,7 @@ Public Class PanelRenderEngine2
         End Function
 
         Public Sub AddTag(newTag As Tag)
-            'adds the given tag to this entities list of tags
+            'adds the given tag to this entity's list of tags
 
             If IsNothing(tags) = True Then
                 ReDim tags(0)
@@ -165,7 +168,7 @@ Public Class PanelRenderEngine2
         End Sub
 
         Public Sub RemoveTag(tagName As String)
-            'removes a tag with given name, removes all tags with the name
+            'removes all tags with the given name
 
             Dim tagIndex As Integer = 0
 
@@ -193,11 +196,8 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As String)
-                If HasTag("name") Then
-                    FindTag("name").args(0) = value
-                Else
-                    AddTag(New Tag("name", {value}))
-                End If
+                RemoveTag("name")
+                AddTag(New Tag("name", {value}))
             End Set
         End Property
 
@@ -210,11 +210,8 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As PointF)
-                If HasTag("location") Then
-                    FindTag("location").args(0) = value
-                Else
-                    AddTag(New Tag("location", {value}))
-                End If
+                RemoveTag("location")
+                AddTag(New Tag("location", {value}))
             End Set
         End Property
 
@@ -227,11 +224,8 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As Integer)
-                If HasTag("layer") Then
-                    FindTag("layer").args(0) = value
-                Else
-                    AddTag(New Tag("layer", {value}))
-                End If
+                RemoveTag("layer")
+                AddTag(New Tag("layer", {value}))
             End Set
         End Property
 
@@ -244,11 +238,8 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As Single)
-                If HasTag("scale") Then
-                    FindTag("scale").args(0) = value
-                Else
-                    AddTag(New Tag("scale", {value}))
-                End If
+                RemoveTag("scale")
+                AddTag(New Tag("scale", {value}))
             End Set
         End Property
 
@@ -261,11 +252,8 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As Single)
-                If HasTag("rotation") Then
-                    FindTag("rotation").args(0) = value
-                Else
-                    AddTag(New Tag("rotation", {value}))
-                End If
+                RemoveTag("rotation")
+                AddTag(New Tag("rotation", {value}))
             End Set
         End Property
 
@@ -280,9 +268,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As PointF)
-                If HasTag("rotationAnchor") Then
-                    RemoveTag("rotationAnchor")
-                End If
+                RemoveTag("rotationAnchor")
                 AddTag(New Tag("rotationAnchor", {value.X, value.Y}))
             End Set
         End Property
@@ -296,14 +282,24 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As Single)
-                If HasTag("opacity") Then
-                    RemoveTag("opacity")
-                End If
+                RemoveTag("opacity")
                 AddTag(New Tag("opacity", {value}))
             End Set
         End Property
 
-
+        Property currentFrame As UInteger
+            Get
+                If HasTag("currentFrame") Then
+                    Return FindTag("currentFrame").args(0)
+                Else
+                    Return 0
+                End If
+            End Get
+            Set(value As UInteger)
+                RemoveTag("currentFrame")
+                AddTag(New Tag("currentFrame", {value}))
+            End Set
+        End Property
 
 
     End Structure
