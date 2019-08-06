@@ -32,14 +32,71 @@ Public Class FrmGame
 
         Dim instances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
         Dim name As String
-		Dim fileLocation As String
+        Dim fileLocation As String
+
+        Dim parameters() As PRE2.Tag
+
+        Public Function FindParam(paramName As String) As PRE2.Tag
+            'returns the first parameter this room has with the given name
+
+            If IsNothing(parameters) = False Then
+                For index As Integer = 0 To UBound(parameters)
+                    If LCase(parameters(index).name) = LCase(paramName) Then
+                        Return parameters(index)
+                    End If
+                Next index
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function HasParam(paramName As String) As Boolean
+            'returns whether or not this room has a parameter with the given name
+
+            If FindParam(paramName).name <> Nothing Then
+                Return True
+            Else
+                Return False
+            End If
+        End Function
+
+        Public Sub AddParam(newParam As PRE2.Tag)
+            'adds the given parameter to this room's list of tags
+
+            If IsNothing(parameters) = True Then
+                ReDim parameters(0)
+            Else
+                ReDim Preserve parameters(UBound(parameters) + 1)
+            End If
+
+            parameters(UBound(parameters)) = newParam
+        End Sub
+
+        Public Sub RemoveParam(paramName As String)
+            'removes all parameters with the given name
+
+            Dim paramIndex As Integer = 0
+
+            Do While paramIndex <= UBound(parameters)
+                If parameters(paramIndex).name = paramName Then
+                    For removeIndex As Integer = paramIndex To UBound(parameters) - 1
+                        parameters(removeIndex) = parameters(removeIndex + 1)
+                    Next removeIndex
+
+                    ReDim Preserve parameters(UBound(parameters) - 1)
+                Else
+                    paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
+                End If
+            Loop
+        End Sub
     End Structure
 
     Public Structure Level
         'class to store entity defaults and rooms
 
         Dim templates() As PRE2.Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
-        Dim parameters() As PRE2.Tag            'essentially global variables for the level
+        Dim globalParameters() As PRE2.Tag            'essentially global variables for the level
+
         Dim rooms() As Room                     'stores each room in a 2D array, indexed from the uppermost
         Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
         Dim currentRoomCoords As Point          'stores the coordinates of which room is being used currently
@@ -56,6 +113,36 @@ Public Class FrmGame
             PRE2.DisplayError("Couldn't find a room with coordinates " & Str(coords.X) & "," & Str(coords.Y))
             Return Nothing
         End Function
+
+        Public Sub AddParam(newParam As PRE2.Tag)
+            'adds the given parameter to this level's list of tags
+
+            If IsNothing(globalParameters) = True Then
+                ReDim globalParameters(0)
+            Else
+                ReDim Preserve globalParameters(UBound(globalParameters) + 1)
+            End If
+
+            globalParameters(UBound(globalParameters)) = newParam
+        End Sub
+
+        Public Sub RemoveParam(paramName As String)
+            'removes all parameters with the given name
+
+            Dim paramIndex As Integer = 0
+
+            Do While paramIndex <= UBound(globalParameters)
+                If globalParameters(paramIndex).name = paramName Then
+                    For removeIndex As Integer = paramIndex To UBound(globalParameters) - 1
+                        globalParameters(removeIndex) = globalParameters(removeIndex + 1)
+                    Next removeIndex
+
+                    ReDim Preserve globalParameters(UBound(globalParameters) - 1)
+                Else
+                    paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
+                End If
+            Loop
+        End Sub
     End Structure
 
     'save load
@@ -112,9 +199,7 @@ Public Class FrmGame
     Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2) As Level
         If IO.File.Exists(fileLocation) = True Then
             Dim levelString As String = PRE2.ReadFile(fileLocation)
-
             Dim thisLevel As Level = New Level
-
             Dim lines() As String = levelString.Split(Environment.NewLine)
 
             For lineIndex As Integer = 0 To UBound(lines)
@@ -146,13 +231,14 @@ Public Class FrmGame
         Dim attributes() As String = line.Split(":")(1).Split("/")     'the specifics of what the line does, the order matters, delimited by /
 
         Select Case lineType
-            Case "roomFolder"   'sets the folder for this levels rooms
+            Case "roomFolder"   'sets the folder for this levels rooms (folder location (excluding everything up to and including the level folder))
                 renderEngine.roomFolderLocation = renderEngine.levelFolderLocation & attributes(0)
-            Case "loadEnt"      'loads an entity from a file (file location, name)
+
+            Case "loadEnt"      'loads an entity from a file (file location)
                 Dim newEntity As PRE2.Entity
 
                 newEntity = LoadEntity(attributes(0), renderEngine)
-                newEntity.AddTag(New PRE2.Tag("name", {attributes(1)}))
+                'newEntity.AddTag(New PRE2.Tag("name", {attributes(1)}))
 
                 If IsNothing(thisLevel.templates) = True Then
                     ReDim thisLevel.templates(0)
@@ -160,6 +246,7 @@ Public Class FrmGame
                     ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) + 1)
                 End If
                 thisLevel.templates(UBound(thisLevel.templates)) = newEntity
+
             Case "loadRoom"     'loads a room from a file (file location, room coords (x,y))
                 Dim newRoom As Room = LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel)
                 Dim coords As New Point(Int(attributes(1).Split(",")(0)), Int(attributes(1).Split(",")(1)))
@@ -174,26 +261,12 @@ Public Class FrmGame
 
                 thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
                 thisLevel.roomCoords(UBound(thisLevel.rooms)) = coords
-            Case "addParam"     'adds a parameter but wont delete any duplicates (tag)
-                Dim newParam As PRE2.Tag = New PRE2.Tag(attributes(0))
-                ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) + 1)
-                thisLevel.parameters(UBound(thisLevel.parameters)) = newParam
-            Case "editParam"    'changes a parameter (tag)
-                Dim newParam As PRE2.Tag = New PRE2.Tag(attributes(0))
 
-                'removes any other parameters with the same name
-                For paramIndex As Integer = 0 To UBound(thisLevel.parameters)
-                    If thisLevel.parameters(paramIndex).name = newParam.name Then
-                        For index As Integer = paramIndex To UBound(thisLevel.parameters) - 1
-                            thisLevel.parameters(index) = thisLevel.parameters(index + 1)
-                        Next index
+            Case "addParam"     'adds a parameter and deletes any duplicates (tag)
+                Dim newTag As New PRE2.Tag(attributes(0))
 
-                        ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) - 1)
-                    End If
-                Next paramIndex
-
-                ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) + 1)
-                thisLevel.parameters(UBound(thisLevel.parameters)) = newParam
+                thisLevel.RemoveParam(newTag.name)
+                thisLevel.AddParam(newTag)
 
             Case Else           'unknown line type
                 PRE2.DisplayError("Unknown line type: " & lineType)
@@ -203,9 +276,13 @@ Public Class FrmGame
     Public Shared Function LoadRoomFile(fileLocation As String, ByRef thisLevel As Level) As Room
         If IO.File.Exists(fileLocation) = True Then
             Dim roomString As String = PRE2.ReadFile(fileLocation)
-
-            Dim thisRoom As New Room With {.fileLocation = fileLocation}
+            Dim thisRoom As New Room With {
+                .fileLocation = fileLocation,
+                .parameters = thisLevel.globalParameters
+            }           'initial parameters are inherited from the level
             Dim lines() As String = roomString.Split(Environment.NewLine)
+
+
 
             For lineIndex As Integer = 0 To UBound(lines)
                 ParseRoomLine(lines(lineIndex), thisRoom, thisLevel)
@@ -228,6 +305,25 @@ Public Class FrmGame
             Case "addEnt"       'creates a new instance of a loaded entity (template name, instance name, tags...)
                 Dim entityTemplate As New PRE2.Entity
 
+                'modifies the name of the instance if necessary
+                'checks that there isn't another instance with the same name as the new instance
+                Dim newInstanceName As String = ""
+                Dim duplicateNames As UInteger = 0
+                Dim nameUnique As Boolean = True
+                Do
+                    nameUnique = True
+                    If duplicateNames > 0 Then
+                        newInstanceName = attributes(1) & "-" & Trim(Str(duplicateNames + 1))
+                    End If
+
+                    For Each instance As PRE2.Entity In thisRoom.instances
+                        If instance.name = newInstanceName Then
+                            duplicateNames += 1
+                            nameUnique = False
+                        End If
+                    Next instance
+                Loop Until nameUnique = False
+
                 'finds the entity template with the name
                 For index As Integer = 0 To UBound(thisLevel.templates)
                     If thisLevel.templates(index).FindTag("name").args(0) = attributes(0) Then
@@ -242,17 +338,12 @@ Public Class FrmGame
                     Dim newEnt As PRE2.Entity = entityTemplate
 
                     newEnt.RemoveTag("name")
-                    newEnt.AddTag(New PRE2.Tag("name", {attributes(1)}))
+                    newEnt.AddTag(New PRE2.Tag("name", {newInstanceName}))
 
                     'adds the rest of the tags to the entity
                     For index As Integer = 2 To UBound(attributes)
                         Dim currentTag As New PRE2.Tag(attributes(index))
-
-                        'if the entity already has the tag then removes the previous copy of it
-                        If newEnt.HasTag(currentTag.name) Then
-                            newEnt.RemoveTag(currentTag.name)
-                        End If
-
+                        newEnt.RemoveTag(currentTag.name)
                         newEnt.AddTag(currentTag)
                     Next index
 
@@ -290,6 +381,15 @@ Public Class FrmGame
                         entityInstance.AddTag(currentTag)
                     Next index
                 End If
+
+            Case "addParam"     'adds a parameter to this level (parameter aka tag) and removes any duplicates
+                Dim newTag As New PRE2.Tag(attributes(0))
+
+                thisRoom.RemoveParam(newTag.name)
+                thisRoom.AddParam(newTag)
+
+            Case Else
+                PRE2.DisplayError("Unknown line type: " & lineType)
         End Select
 
     End Sub
@@ -320,7 +420,11 @@ Public Class FrmGame
         End If
     End Sub
 
+
+    'render control
+
     Dim renderer As PRE2            'panel render engine 2
+
     Public currentLevel As Level
     Public currentRoom As Room
     Public playerEntity As PRE2.Entity
@@ -334,8 +438,6 @@ Public Class FrmGame
 
         renderer.DoGameRender(entitiesToRender)
     End Sub
-
-
 
     Public Sub EntityEvent(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional entTarget As PRE2.Entity = Nothing)
 

@@ -24,6 +24,7 @@ Public Class FrmLevelEditor
         LayoutInitialisation()
         ControlInitialisation()
         LoadInitialisation()
+        RefreshControlsEnabled()
     End Sub
 
     Private Sub LayoutInitialisation()
@@ -83,44 +84,7 @@ Public Class FrmLevelEditor
     Private Sub SaveLevel(levelToSave As FrmGame.Level, saveLocation As String)
         'saves a level (not the rooms) to a file
 
-        Dim levelString As String = ""
-
-        'adds an addParam line for each parameter
-        If Not IsNothing(levelToSave.parameters) Then
-            For Each param As PRE2.Tag In levelToSave.parameters
-                levelString += "addParam: " & param.ToString & Environment.NewLine
-            Next param
-        End If
-
-        'adds a loadEnt line for each template
-        If Not IsNothing(levelToSave.templates) Then
-            For Each template As PRE2.Entity In levelToSave.templates
-                If template.HasTag("fileName") = True Then
-                    Dim line As String = "loadEnt: " & template.FindTag("fileName").args(0) & "/" & template.name
-
-                    'adds each tag
-                    For Each thisTag As PRE2.Tag In template.tags
-                        line += "/" & thisTag.ToString
-                    Next
-
-                    levelString += line & Environment.NewLine
-                Else
-                    PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
-                End If
-            Next
-        End If
-
-        'adds a loadRoom line for each room
-        If Not IsNothing(levelToSave.rooms) Then
-            For Each currentRoom As FrmGame.Room In levelToSave.rooms
-                Dim line As String = "loadRoom: "
-                line += thisRoom.fileLocation.Remove(renderer.roomFolderLocation)       'the saved part is the location relative to the room folder
-                levelString += line & Environment.NewLine
-            Next currentRoom
-        End If
-
-        'saves level string to file
-        PRE2.WriteFile(saveLocation, levelString)
+        PRE2.WriteFile(saveLocation, CreateLevelString(levelToSave))
     End Sub
 
     Private Sub btnLevelOpen_Click(sender As Object, e As EventArgs) Handles btnLevelOpen.Click
@@ -145,8 +109,48 @@ Public Class FrmLevelEditor
         SaveLevel(thisLevel, levelSaveLocation)
     End Sub
 
+    Private Function CreateLevelString(level As FrmGame.Level)
+        'creates a string of a level so it can be saved and loaded
 
-	
+        Dim levelString As String = ""
+
+        'adds an addParam line for each parameter
+        If Not IsNothing(level.globalParameters) Then
+            For Each param As PRE2.Tag In level.globalParameters
+                levelString += "addParam: " & param.ToString & Environment.NewLine
+            Next param
+        End If
+
+        'adds a loadEnt line for each template
+        If Not IsNothing(level.templates) Then
+            For Each template As PRE2.Entity In level.templates
+                If template.HasTag("fileName") = True Then
+                    Dim line As String = "loadEnt: " & template.FindTag("fileName").args(0) & "/" & template.name
+
+                    'adds each tag
+                    For Each thisTag As PRE2.Tag In template.tags
+                        line += "/" & thisTag.ToString
+                    Next
+
+                    levelString += line & Environment.NewLine
+                Else
+                    PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
+                End If
+            Next
+        End If
+
+        'adds a loadRoom line for each room
+        If Not IsNothing(level.rooms) Then
+            For Each currentRoom As FrmGame.Room In level.rooms
+                Dim line As String = "loadRoom: "
+                line += thisRoom.fileLocation.Remove(renderer.roomFolderLocation)       'the saved part is the location relative to the room folder
+                levelString += line & Environment.NewLine
+            Next currentRoom
+        End If
+
+        Return levelString
+    End Function
+
     'rooms save/load
 
     Private Sub LoadRoom(fileLocation As String)
@@ -266,11 +270,15 @@ Public Class FrmLevelEditor
 
     'entities
 
-    Private Sub AddEntityInstance(ByVal template As PRE2.Entity)
+    Private Sub AddEntityInstance(template As PRE2.Entity)
         'creates a new instance from the given entity
 
-        Dim newInstance As PRE2.Entity = template
-        newInstance.AddTag(New PRE2.Tag("templateName", {template.name}))       'instance stores the name of its template so the instance can be created from the correct template when loading
+        'Dim templateName As String = template.name
+
+        Dim newInstance As PRE2.Entity = template.Clone
+        If Not newInstance.HasTag("templateName") Then      'doesn't add template name if template is an instance of a template
+            newInstance.AddTag(New PRE2.Tag("templateName", {template.name}))       'instance stores the name of its template so the instance can be created from the correct template when loading
+        End If
 
         'checks if there are any instances with the same name yet, and numbers the instance accordingly
         If IsNothing(thisRoom.instances) = True Then
@@ -303,7 +311,10 @@ Public Class FrmLevelEditor
             thisRoom.instances(UBound(thisRoom.instances)) = newInstance
         End If
 
+        'template.name = templateName
+
         RefreshInstancesList()
+        RefreshTemplatesList()
     End Sub
 
     Private Sub RemoveEntityInstance(instanceIndex As Integer)
@@ -575,98 +586,160 @@ Public Class FrmLevelEditor
     'parameters
 
     Private Sub RefreshParameterList()
-        Dim items() As String
-
-        If IsNothing(thisLevel.parameters) = False Then
-            ReDim items(UBound(thisLevel.parameters))
+        'refreshes both lstLevelParams and lstRoomParams
+        Dim items() As String = {}
+        If IsNothing(thisLevel.globalParameters) = False Then
+            ReDim items(UBound(thisLevel.globalParameters))
 
             For index As Integer = 0 To UBound(items)
-                items(index) = thisLevel.parameters(index).ToString
+                items(index) = thisLevel.globalParameters(index).ToString
             Next index
         End If
+        RefreshList(lstLevelParams, items)
 
-        RefreshList(lstParams, items)
+        items = {}
+        If IsNothing(thisRoom.parameters) = False Then
+            ReDim items(UBound(thisRoom.parameters))
+
+            For index As Integer = 0 To UBound(items)
+                items(index) = thisRoom.parameters(index).ToString
+            Next index
+        End If
+        RefreshList(lstRoomParams, items)
     End Sub
 
-    Private Sub AddParameter(newParam As PRE2.Tag)
+    Private Sub AddParameter(newParam As PRE2.Tag, ByRef parameterList() As PRE2.Tag)
         'adds a given parameter to the level
 
-        If IsNothing(thisLevel.parameters) = True Then
-            ReDim thisLevel.parameters(0)
+        'If IsNothing(thisLevel.globalParameters) = True Then
+        '    ReDim thisLevel.globalParameters(0)
+        'Else
+        '    ReDim Preserve thisLevel.globalParameters(UBound(thisLevel.globalParameters) + 1)
+        'End If
+        'thisLevel.globalParameters(UBound(thisLevel.globalParameters)) = newParam
+
+        If IsNothing(parameterList) = True Then
+            ReDim parameterList(0)
         Else
-            ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) + 1)
+            ReDim Preserve parameterList(UBound(parameterList) + 1)
         End If
-        thisLevel.parameters(UBound(thisLevel.parameters)) = newParam
+        parameterList(UBound(parameterList)) = newParam
 
         RefreshParameterList()
     End Sub
 
-    Private Sub ReplaceParameter(paramIndex As Integer, newParam As PRE2.Tag)
+    Private Sub ReplaceParameter(paramIndex As Integer, newParam As PRE2.Tag, parameterList() As PRE2.Tag)
         'replaces the parameter in the given index with the given parameter
 
-        thisLevel.parameters(paramIndex) = newParam
+        parameterList(paramIndex) = newParam
 
         RefreshParameterList()
     End Sub
 
-    Private Sub RemoveParameter(paramIndex As Integer)
+    Private Sub RemoveParameter(paramIndex As Integer, parameterList() As PRE2.Tag)
         'removes the parameter at the given index
 
-        For index As Integer = paramIndex To UBound(thisLevel.parameters) - 1
-            thisLevel.parameters(index) = thisLevel.parameters(index + 1)
+        For index As Integer = paramIndex To UBound(parameterList) - 1
+            parameterList(index) = parameterList(index + 1)
         Next index
 
-        If UBound(thisLevel.parameters) > 0 Then
-            ReDim Preserve thisLevel.parameters(UBound(thisLevel.parameters) - 1)
+        If UBound(parameterList) > 0 Then
+            ReDim Preserve parameterList(UBound(parameterList) - 1)
         Else
-            thisLevel.parameters = Nothing
+            parameterList = Nothing
         End If
 
         RefreshParameterList()
     End Sub
 
-    Private Sub lstParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstParams.SelectedIndexChanged
+    Private Sub lstLevelParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstLevelParams.SelectedIndexChanged
         'a different parameter is selected for editing/removing
 
-        If lstParams.SelectedIndex > -1 Then
-            btnParamEdit.Enabled = True
-            btnParamRemove.Enabled = True
+        If lstLevelParams.SelectedIndex > -1 Then
+            btnLevelParamEdit.Enabled = True
+            btnLevelParamRemove.Enabled = True
         Else
-            btnParamEdit.Enabled = False
-            btnParamRemove.Enabled = False
+            btnLevelParamEdit.Enabled = False
+            btnLevelParamRemove.Enabled = False
         End If
     End Sub
 
-    Private Sub btnParamAdd_Click(sender As Object, e As EventArgs) Handles btnParamAdd.Click
+    Private Sub btnLevelParamAdd_Click(sender As Object, e As EventArgs) Handles btnLevelParamAdd.Click
         'user creates a new parameter using FrmTagMaker
 
         'gets the user to create a parameter (same as a tag)
         Dim tagMaker As New FrmTagMaker
         tagMaker.ShowDialog()
         If tagMaker.userFinished = True Then
-            AddParameter(tagMaker.createdTag)
+            AddParameter(tagMaker.createdTag, thisLevel.globalParameters)
         End If
     End Sub
 
-    Private Sub btnParamEdit_Click(sender As Object, e As EventArgs) Handles btnParamEdit.Click
+    Private Sub btnLevelParamEdit_Click(sender As Object, e As EventArgs) Handles btnLevelParamEdit.Click
         'user changes an existing parameter using FrmTagMaker
 
-        If lstParams.SelectedIndex > -1 Then
+        If lstLevelParams.SelectedIndex > -1 Then
             'gets the user to create a parameter (same as a tag)
-            Dim tagMaker As New FrmTagMaker(thisLevel.parameters(lstParams.SelectedIndex))
+            Dim tagMaker As New FrmTagMaker(thisLevel.globalParameters(lstLevelParams.SelectedIndex))
             tagMaker.ShowDialog()
             If tagMaker.userFinished = True Then
-                ReplaceParameter(lstParams.SelectedIndex, tagMaker.createdTag)
+                ReplaceParameter(lstLevelParams.SelectedIndex, tagMaker.createdTag, thisLevel.globalParameters)
             End If
         End If
     End Sub
 
-    Private Sub btnParamRemove_Click(sender As Object, e As EventArgs) Handles btnParamRemove.Click
+    Private Sub btnLevelParamRemove_Click(sender As Object, e As EventArgs) Handles btnLevelParamRemove.Click
         'user deletes an existing parameter
 
-        If lstParams.SelectedIndex > -1 Then
-            If MsgBox("Are you sure you wish to delete parameter " & thisLevel.parameters(lstParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
-                RemoveParameter(lstParams.SelectedIndex)
+        If lstLevelParams.SelectedIndex > -1 Then
+            If MsgBox("Are you sure you wish to delete parameter " & thisLevel.globalParameters(lstLevelParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+                RemoveParameter(lstLevelParams.SelectedIndex, thisLevel.globalParameters)
+            End If
+        End If
+    End Sub
+
+    Private Sub lstRoomParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstRoomParams.SelectedIndexChanged
+        'a different parameter is selected for editing/removing
+
+        If lstLevelParams.SelectedIndex > -1 Then
+            btnEditRoomParam.Enabled = True
+            btnRemoveRoomParam.Enabled = True
+        Else
+            btnEditRoomParam.Enabled = False
+            btnRemoveRoomParam.Enabled = False
+        End If
+    End Sub
+
+    Private Sub btnAddRoomParam_Click(sender As Object, e As EventArgs) Handles btnAddRoomParam.Click
+        'user creates a new parameter using FrmTagMaker
+
+        'gets the user to create a parameter (same as a tag)
+        Dim tagMaker As New FrmTagMaker
+        tagMaker.ShowDialog()
+        If tagMaker.userFinished = True Then
+            AddParameter(tagMaker.createdTag, thisRoom.parameters)
+        End If
+    End Sub
+
+    Private Sub btnRemoveRoomParam_Click(sender As Object, e As EventArgs) Handles btnRemoveRoomParam.Click
+        'user deletes an existing parameter
+
+        If lstRoomParams.SelectedIndex > -1 Then
+            If MsgBox("Are you sure you wish to delete parameter " & thisRoom.parameters(lstRoomParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+                RemoveParameter(lstRoomParams.SelectedIndex, thisRoom.parameters)
+            End If
+        End If
+    End Sub
+
+    Private Sub btnEditRoomParam_Click(sender As Object, e As EventArgs) Handles btnEditRoomParam.Click
+        'user changes an existing parameter using FrmTagMaker
+
+        If lstRoomParams.SelectedIndex > -1 Then
+            'gets the user to create a parameter (same as a tag)
+            Dim tagMaker As New FrmTagMaker(thisRoom.parameters(lstRoomParams.SelectedIndex))
+            tagMaker.ShowDialog()
+            If tagMaker.userFinished = True Then
+                ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.createdTag, thisRoom.parameters)
             End If
         End If
     End Sub
@@ -855,5 +928,75 @@ Public Class FrmLevelEditor
             'PRE2.DisplayError("A list tried to refresh but doesn't exist")
         End If
     End Sub
-   
+
+    Private Sub AnySelectionChanged(sender As Object, e As EventArgs) Handles _
+        lstInstances.SelectedIndexChanged, lstLevelParams.SelectedIndexChanged, lstRoomParams.SelectedIndexChanged,
+        lstRooms.SelectedIndexChanged, lstTags.SelectedIndexChanged, lstTemplates.SelectedIndexChanged
+
+        RefreshControlsEnabled()
+    End Sub
+
+    Private Sub RefreshControlsEnabled()
+        'enables or disables controls based on current condition
+
+        Dim templateSelected As Boolean = If(lstTemplates.SelectedIndex > -1, True, False)
+        Dim instanceSelected As Boolean = If(lstInstances.SelectedIndex > -1, True, False)
+        Dim roomSelected As Boolean = If(lstRooms.SelectedIndex > -1, True, False)
+        Dim entityTagSelected As Boolean = If(lstTags.SelectedIndex > -1, True, False)
+        Dim roomParamSelected As Boolean = If(lstRoomParams.SelectedIndex > -1, True, False)
+        Dim levelParamSelected As Boolean = If(lstLevelParams.SelectedIndex > -1, True, False)
+
+        Dim controlsDefaultDisabled() As Control = {
+            btnInstanceCreate, btnInstanceDuplicate, btnInstanceDelete, btnRemoveEntity, btnLevelSave, btnRoomSaveAs, btnRoomSave,
+            btnTagAdd, btnTagEdit, btnTagRemove, btnAddRoomParam, btnEditRoomParam, btnRemoveRoomParam, btnLevelParamRemove, btnLevelParamEdit,
+            btnRoomEditCoords, btnLevelRoomRemove
+        }
+        Dim controlsDefaultEnabled() As Control = {
+            btnRoomOpen, btnLevelOpen, btnLevelRoomAdd, btnLoadEntity, btnCreateEntity, btnLevelParamAdd
+        }
+        For Each ctrl As Control In controlsDefaultDisabled
+            ctrl.Enabled = False
+        Next ctrl
+        For Each ctrl As Control In controlsDefaultEnabled
+            ctrl.Enabled = True
+        Next
+
+        If roomSelected Then
+            btnLevelRoomRemove.Enabled = True
+            btnRoomEditCoords.Enabled = True
+            btnRoomSaveAs.Enabled = True
+            btnAddRoomParam.Enabled = True
+
+            If templateSelected Then
+                btnInstanceCreate.Enabled = True
+                btnTagAdd.Enabled = True
+
+                If entityTagSelected Then
+                    btnTagEdit.Enabled = True
+                    btnTagRemove.Enabled = True
+                End If
+            End If
+
+            If instanceSelected Then
+                btnInstanceDuplicate.Enabled = True
+                btnInstanceDelete.Enabled = True
+            End If
+
+            If roomParamSelected Then
+                btnEditRoomParam.Enabled = True
+                btnRemoveRoomParam.Enabled = True
+            End If
+        End If
+
+        If templateSelected Then
+            btnRemoveEntity.Enabled = True
+        End If
+
+        If levelParamSelected Then
+            btnLevelParamEdit.Enabled = True
+            btnLevelParamRemove.Enabled = True
+        End If
+    End Sub
+
+
 End Class
