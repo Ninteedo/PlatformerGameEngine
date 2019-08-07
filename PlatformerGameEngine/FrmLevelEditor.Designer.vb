@@ -207,6 +207,7 @@ Partial Class FrmLevelEditor
         '
         'numTagLocX
         '
+        Me.numTagLocX.DecimalPlaces = 1
         Me.numTagLocX.Location = New System.Drawing.Point(79, 64)
         Me.numTagLocX.Maximum = New Decimal(New Integer() {32767, 0, 0, 0})
         Me.numTagLocX.Minimum = New Decimal(New Integer() {32768, 0, 0, -2147483648})
@@ -216,6 +217,7 @@ Partial Class FrmLevelEditor
         '
         'numTagLocY
         '
+        Me.numTagLocY.DecimalPlaces = 1
         Me.numTagLocY.Location = New System.Drawing.Point(169, 64)
         Me.numTagLocY.Maximum = New Decimal(New Integer() {32767, 0, 0, 0})
         Me.numTagLocY.Minimum = New Decimal(New Integer() {32768, 0, 0, -2147483648})
@@ -244,10 +246,9 @@ Partial Class FrmLevelEditor
         'numTagScale
         '
         Me.numTagScale.DecimalPlaces = 2
-        Me.numTagScale.Increment = New Decimal(New Integer() {1, 0, 0, 131072})
+        Me.numTagScale.Increment = New Decimal(New Integer() {10, 0, 0, 131072})
         Me.numTagScale.Location = New System.Drawing.Point(79, 136)
         Me.numTagScale.Maximum = New Decimal(New Integer() {255, 0, 0, 0})
-        Me.numTagScale.Minimum = New Decimal(New Integer() {256, 0, 0, -2147483648})
         Me.numTagScale.Name = "numTagScale"
         Me.numTagScale.Size = New System.Drawing.Size(84, 26)
         Me.numTagScale.TabIndex = 15
