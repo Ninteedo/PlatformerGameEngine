@@ -115,6 +115,12 @@ Public Class PanelRenderEngine2
 
         End Sub
 
+        Public Overrides Function ToString() As String
+            'simple ToString function for seeing the name of entity quickly whilst debugging
+
+            Return name
+        End Function
+
         Public Overloads Function ToString(spriteFolderLocation As String) As String
             Return EntityStringHandler.CreateEntityString(Me, spriteFolderLocation)
         End Function
@@ -699,13 +705,15 @@ Public Class PanelRenderEngine2
                     For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
                         For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
                             Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
-                            Dim scale As SizeF = New SizeF(currentEntity.scale * RenderScale.Width / 2, currentEntity.scale * RenderScale.Height / 2)
+                            Dim scale As SizeF = New SizeF(
+                                currentEntity.scale * RenderScale.Width,
+                                currentEntity.scale * RenderScale.Height)
 
                             'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
                             'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
                             Dim pixelCentre As New PointF(
-                            (currentEntity.location.X + pixelX * 1.5) * (scale.Width * 1),
-                            (currentEntity.location.Y + pixelY * 1.5) * (scale.Height * 1))
+                            (currentEntity.location.X * RenderScale.Width) + (pixelX * scale.Width * 2 / 3),
+                            (currentEntity.location.Y * RenderScale.Height) + (pixelY * scale.Height * 2 / 3))
 
                             DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
                         Next pixelX
@@ -748,7 +756,9 @@ Public Class PanelRenderEngine2
         Dim angleDegrees As Single = (360 / sides) * (index + 0.5) + rotation
         Dim angleRads As Single = (Math.PI / 180) * angleDegrees
 
-        Return New PointF(center.X + (scale.Width * Math.Cos(angleRads)), center.Y + (scale.Height * Math.Sin(angleRads)))
+        Return New PointF(
+            center.X + (scale.Width / 2 * Math.Cos(angleRads)),
+            center.Y + (scale.Height / 2 * Math.Sin(angleRads)))
     End Function
 
     Public Sub ResizeRenderWindow()
