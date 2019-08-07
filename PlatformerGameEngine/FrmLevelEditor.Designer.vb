@@ -69,11 +69,11 @@ Partial Class FrmLevelEditor
         Me.btnLevelRoomRemove = New System.Windows.Forms.Button()
         Me.btnRoomEditCoords = New System.Windows.Forms.Button()
         Me.tblLevelParam = New System.Windows.Forms.TableLayoutPanel()
-        Me.lblLevelParamsList = New System.Windows.Forms.Label()
         Me.lstLevelParams = New System.Windows.Forms.ListBox()
         Me.btnLevelParamAdd = New System.Windows.Forms.Button()
         Me.btnLevelParamRemove = New System.Windows.Forms.Button()
         Me.btnLevelParamEdit = New System.Windows.Forms.Button()
+        Me.lblLevelParamsList = New System.Windows.Forms.Label()
         Me.TableLayoutPanel1 = New System.Windows.Forms.TableLayoutPanel()
         Me.lblRoomParamsList = New System.Windows.Forms.Label()
         Me.lstRoomParams = New System.Windows.Forms.ListBox()
@@ -667,16 +667,6 @@ Partial Class FrmLevelEditor
         Me.tblLevelParam.Size = New System.Drawing.Size(454, 266)
         Me.tblLevelParam.TabIndex = 24
         '
-        'lblLevelParamsList
-        '
-        Me.lblLevelParamsList.AutoSize = True
-        Me.lblLevelParamsList.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblLevelParamsList.Location = New System.Drawing.Point(3, 0)
-        Me.lblLevelParamsList.Name = "lblLevelParamsList"
-        Me.lblLevelParamsList.Size = New System.Drawing.Size(164, 25)
-        Me.lblLevelParamsList.TabIndex = 0
-        Me.lblLevelParamsList.Text = "Level Parameters"
-        '
         'lstLevelParams
         '
         Me.lstLevelParams.BorderStyle = System.Windows.Forms.BorderStyle.None
@@ -720,6 +710,16 @@ Partial Class FrmLevelEditor
         Me.btnLevelParamEdit.TabIndex = 22
         Me.btnLevelParamEdit.Text = "Edit Param"
         Me.btnLevelParamEdit.UseVisualStyleBackColor = True
+        '
+        'lblLevelParamsList
+        '
+        Me.lblLevelParamsList.AutoSize = True
+        Me.lblLevelParamsList.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblLevelParamsList.Location = New System.Drawing.Point(3, 0)
+        Me.lblLevelParamsList.Name = "lblLevelParamsList"
+        Me.lblLevelParamsList.Size = New System.Drawing.Size(164, 25)
+        Me.lblLevelParamsList.TabIndex = 0
+        Me.lblLevelParamsList.Text = "Level Parameters"
         '
         'TableLayoutPanel1
         '

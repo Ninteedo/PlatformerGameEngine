@@ -143,7 +143,7 @@ Public Class FrmLevelEditor
         If Not IsNothing(level.rooms) Then
             For Each currentRoom As FrmGame.Room In level.rooms
                 Dim line As String = "loadRoom: "
-                line += thisRoom.fileLocation.Remove(renderer.roomFolderLocation)       'the saved part is the location relative to the room folder
+                line += SelectedRoom.fileLocation.Remove(renderer.roomFolderLocation)       'the saved part is the location relative to the room folder
                 levelString += line & Environment.NewLine
             Next currentRoom
         End If
@@ -175,23 +175,7 @@ Public Class FrmLevelEditor
         PRE2.WriteFile(saveLocation, CreateRoomString(levelOfRoom, roomToSave))
     End Sub
 
-    Private Sub LoadEntityTemplate(fileLocation As String)
-        'loads an entity saved to a file for a template
-		
-		Dim entityString As String = PRE2.ReadFile(fileLocation)
-		If IsNothing(entityString) = False Then
-            Dim newTemplate As PRE2.Entity = EntityStringHandler.ReadEntityString(entityString, renderer)
 
-            If IsNothing(thisLevel.templates) = True Then
-                ReDim thisLevel.templates(0)
-            Else
-                ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) + 1)
-            End If
-            thisLevel.templates(UBound(thisLevel.templates)) = newTemplate
-
-            RefreshTemplatesList()
-        End If
-    End Sub
 
     Private Sub btnRoomOpen_Click(sender As Object, e As EventArgs) Handles btnRoomOpen.Click
         Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True, .InitialDirectory = roomSaveLocation}
@@ -208,13 +192,13 @@ Public Class FrmLevelEditor
 
         If fileName.Length >= 1 Then        'checks that the user actually entered something
             roomSaveLocation = renderer.roomFolderLocation & fileName & ".room"
-            SaveRoom(thisLevel, thisRoom, roomSaveLocation)
+            SaveRoom(thisLevel, SelectedRoom, roomSaveLocation)
             btnRoomSave.Enabled = True
         End If
     End Sub
 
     Private Sub btnRoomSave_Click(sender As Object, e As EventArgs) Handles btnRoomSave.Click
-        SaveRoom(thisLevel, thisRoom, roomSaveLocation)
+        SaveRoom(thisLevel, SelectedRoom, roomSaveLocation)
     End Sub
 
 
@@ -253,22 +237,106 @@ Public Class FrmLevelEditor
     End Function
 
 
-	
+
     'render
-	
+
     Dim renderer As New PRE2
     Dim thisLevel As FrmGame.Level
-    Dim thisRoom As FrmGame.Room
+    'Dim thisRoom As FrmGame.Room
+
+    Private ReadOnly Property SelectedRoom As FrmGame.Room
+        Get
+            If lstRooms.SelectedIndex > -1 And lstRooms.SelectedIndex <= UBound(thisLevel.rooms) Then
+                Return thisLevel.rooms(lstRooms.SelectedIndex)
+            Else
+                Return Nothing
+            End If
+        End Get
+    End Property
 
     Private Sub RenderCurrentRoom()
         'renders the current room
 
-        renderer.DoGameRender(thisRoom.instances)
+        renderer.DoGameRender(SelectedRoom.instances)
     End Sub
 
 
 
     'entities
+
+    Private Sub LoadEntityTemplate(fileLocation As String)
+        'loads an entity saved to a file for a template
+
+        Dim entityString As String = PRE2.ReadFile(fileLocation)
+        If IsNothing(entityString) = False Then
+            Dim successfulLoad As Boolean = False
+            Dim newTemplate As PRE2.Entity = EntityStringHandler.ReadEntityString(entityString, renderer, successfulLoad)
+
+            If successfulLoad Then
+                If IsNothing(thisLevel.templates) = True Then
+                    ReDim thisLevel.templates(0)
+                Else
+                    ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) + 1)
+                End If
+                thisLevel.templates(UBound(thisLevel.templates)) = newTemplate
+            End If
+
+            RefreshTemplatesList()
+        End If
+    End Sub
+
+    Private Sub RemoveEntityTemplate(templateIndex As Integer)
+        'removes the template of an entity and all instances made from that template from the level
+
+        If Not IsNothing(thisLevel.templates) Then
+            If templateIndex >= 0 And templateIndex <= UBound(thisLevel.templates) Then
+                'first removes all instances with the templateName tag which is the same as the name of the template
+                Dim templateName As String = thisLevel.templates(templateIndex).name
+
+                If Not IsNothing(thisLevel.rooms) Then
+                    'goes through each room
+                    For roomIndex As Integer = 0 To UBound(thisLevel.rooms)
+                        Dim currentRoom As FrmGame.Room = thisLevel.rooms(roomIndex)
+
+                        If Not IsNothing(currentRoom.instances) AndAlso UBound(currentRoom.instances) >= 0 Then
+                            Dim instanceIndex As Integer = 0
+                            Do
+                                Dim currentInstance As PRE2.Entity = currentRoom.instances(instanceIndex)
+
+                                If currentInstance.FindTag("templateName").args(0) = templateName Then
+                                    'removes current instance if the templateName matches
+                                    For index As Integer = instanceIndex To UBound(currentRoom.instances) - 1
+                                        currentRoom.instances(index) = currentRoom.instances(index + 1)
+                                    Next index
+
+                                    ReDim Preserve currentRoom.instances(UBound(currentRoom.instances) - 1)
+                                Else
+                                    instanceIndex += 1
+                                End If
+                            Loop Until instanceIndex > UBound(currentRoom.instances) - 1
+
+                            thisLevel.rooms(roomIndex) = currentRoom
+                        End If
+                    Next roomIndex
+                End If
+
+                'then removes the template itself
+                For index As Integer = templateIndex To UBound(thisLevel.templates) - 1
+                    thisLevel.templates(index) = thisLevel.templates(index + 1)
+                Next index
+
+                ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) - 1)
+            Else
+                PRE2.DisplayError("Provided template index (" & templateIndex & ") was an out of bounds")
+            End If
+        Else
+            PRE2.DisplayError("There is currently no templates")
+        End If
+
+        RefreshInstancesList()
+        RefreshTemplatesList()
+
+    End Sub
 
     Private Sub AddEntityInstance(template As PRE2.Entity)
         'creates a new instance from the given entity
@@ -281,11 +349,11 @@ Public Class FrmLevelEditor
         End If
 
         'checks if there are any instances with the same name yet, and numbers the instance accordingly
-        If IsNothing(thisRoom.instances) = True Then
+        If IsNothing(SelectedRoom.instances) = True Then
             newInstance.name = template.name & "-1"
 
-            ReDim thisRoom.instances(0)
-            thisRoom.instances(0) = newInstance
+            ReDim thisLevel.rooms(lstRooms.SelectedIndex).instances(0)
+            SelectedRoom.instances(0) = newInstance
         Else
             Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
             Dim nameUnique As Boolean = False
@@ -297,7 +365,7 @@ Public Class FrmLevelEditor
                 nameUnique = True
 
                 'checks if name is unique
-                For Each instance As PRE2.Entity In thisRoom.instances
+                For Each instance As PRE2.Entity In SelectedRoom.instances
                     If instance.name = generatedName Then
                         nameUnique = False
                         Exit For
@@ -307,8 +375,8 @@ Public Class FrmLevelEditor
 
             newInstance.name = generatedName
 
-            ReDim Preserve thisRoom.instances(UBound(thisRoom.instances) + 1)
-            thisRoom.instances(UBound(thisRoom.instances)) = newInstance
+            ReDim Preserve thisLevel.rooms(lstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) + 1)
+            SelectedRoom.instances(UBound(SelectedRoom.instances)) = newInstance
         End If
 
         'template.name = templateName
@@ -321,15 +389,15 @@ Public Class FrmLevelEditor
         'deletes the instance with the given index
 
         'removes the instance from the room
-        If instanceIndex >= 0 And instanceIndex <= UBound(thisRoom.instances) Then
-            For index As Integer = instanceIndex To UBound(thisRoom.instances) - 1
-                thisRoom.instances(index) = thisRoom.instances(index + 1)
+        If instanceIndex >= 0 And instanceIndex <= UBound(SelectedRoom.instances) Then
+            For index As Integer = instanceIndex To UBound(SelectedRoom.instances) - 1
+                SelectedRoom.instances(index) = SelectedRoom.instances(index + 1)
             Next index
 
-            ReDim Preserve thisRoom.instances(UBound(thisRoom.instances) - 1)
+            ReDim Preserve thisLevel.rooms(lstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) - 1)
 
         Else
-            PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(thisRoom.instances))
+            PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(SelectedRoom.instances))
         End If
 
         RefreshInstancesList()
@@ -342,6 +410,15 @@ Public Class FrmLevelEditor
             For Each fileName As String In openDialog.FileNames
                 LoadEntityTemplate(fileName)
             Next
+        End If
+    End Sub
+
+    Private Sub btnRemoveEntity_Click(sender As Object, e As EventArgs) Handles btnRemoveEntity.Click
+        If lstTemplates.SelectedIndex > -1 Then
+            If MsgBox("Are you sure you wish to remove this template?" & Environment.NewLine &
+                  "This will also remove all instances which use this template") = DialogResult.OK Then
+                RemoveEntityTemplate(lstTemplates.SelectedIndex)
+            End If
         End If
     End Sub
 
@@ -362,7 +439,7 @@ Public Class FrmLevelEditor
 
         'checks that an instance is selected
         If lstInstances.SelectedIndex > -1 Then
-            AddEntityInstance(thisRoom.instances(lstInstances.SelectedIndex))
+            AddEntityInstance(SelectedRoom.instances(lstInstances.SelectedIndex))
         Else
             PRE2.DisplayError("No selected instance to duplicate")
         End If
@@ -374,7 +451,7 @@ Public Class FrmLevelEditor
         'checks that an instance is selected
         If lstInstances.SelectedIndex > -1 Then
             'asks the user to confirm deleting the instance
-            If MsgBox("Are you sure you wish to delete instance " & thisRoom.instances(lstInstances.SelectedIndex).name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+            If MsgBox("Are you sure you wish to delete instance " & SelectedRoom.instances(lstInstances.SelectedIndex).name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
                 RemoveEntityInstance(lstInstances.SelectedIndex)
             End If
         End If
@@ -382,23 +459,23 @@ Public Class FrmLevelEditor
 
 
     Private Sub RefreshTemplatesList()
-		If IsNothing(thisLevel.templates) = False Then
-			Dim names(UBound(thisLevel.templates)) As String
-		
-			For index As Integer = 0 To UBound(thisLevel.templates)
-				names(index) = thisLevel.templates(index).name
-			Next
-			
-			RefreshList(lstTemplates, names)
-		End If
+        If IsNothing(thisLevel.templates) = False Then
+            Dim names(UBound(thisLevel.templates)) As String
+
+            For index As Integer = 0 To UBound(thisLevel.templates)
+                names(index) = thisLevel.templates(index).name
+            Next
+
+            RefreshList(lstTemplates, names)
+        End If
     End Sub
 
     Private Sub RefreshInstancesList()
-        If IsNothing(thisRoom.instances) = False Then
-            Dim names(UBound(thisRoom.instances)) As String
+        If IsNothing(SelectedRoom.instances) = False Then
+            Dim names(UBound(SelectedRoom.instances)) As String
 
-            For index As Integer = 0 To UBound(thisRoom.instances)
-                names(index) = thisRoom.instances(index).name
+            For index As Integer = 0 To UBound(SelectedRoom.instances)
+                names(index) = SelectedRoom.instances(index).name
             Next
 
             RefreshList(lstInstances, names)
@@ -415,14 +492,11 @@ Public Class FrmLevelEditor
 
             ToggleTagControls(True)
             ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
-            btnInstanceCreate.Enabled = True
-            btnInstanceDuplicate.Enabled = False
         Else
             If lstInstances.SelectedIndex = -1 Then
                 ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
+                ShowEntityTags(Nothing, False)
             End If
-            btnInstanceCreate.Enabled = False
-            btnInstanceDuplicate.Enabled = True
         End If
     End Sub
 
@@ -433,12 +507,13 @@ Public Class FrmLevelEditor
             lstTemplates.SelectedIndex = -1
 
             ToggleTagControls(True)     'enables tag controls as an instance has been selected
-            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
 
             RenderCurrentRoom()
         Else
             If lstTemplates.SelectedIndex = -1 Then
                 ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
+                ShowEntityTags(Nothing, False)
             End If
         End If
     End Sub
@@ -497,9 +572,9 @@ Public Class FrmLevelEditor
         'x position of instance changed
 
         If lstInstances.SelectedIndex > -1 Then
-            thisRoom.instances(lstInstances.SelectedIndex).location = New PointF(numTagLocX.Value, thisRoom.instances(lstInstances.SelectedIndex).location.Y)
+            SelectedRoom.instances(lstInstances.SelectedIndex).location = New PointF(numTagLocX.Value, SelectedRoom.instances(lstInstances.SelectedIndex).location.Y)
             RenderCurrentRoom()
-            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
         End If
     End Sub
 
@@ -507,9 +582,9 @@ Public Class FrmLevelEditor
         'y position of instance changed
 
         If lstInstances.SelectedIndex > -1 Then
-            thisRoom.instances(lstInstances.SelectedIndex).location = New PointF(thisRoom.instances(lstInstances.SelectedIndex).location.X, numTagLocY.Value)
+            SelectedRoom.instances(lstInstances.SelectedIndex).location = New PointF(SelectedRoom.instances(lstInstances.SelectedIndex).location.X, numTagLocY.Value)
             RenderCurrentRoom()
-            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
         End If
     End Sub
 
@@ -517,9 +592,9 @@ Public Class FrmLevelEditor
         'z position (layer) of instance changed
 
         If lstInstances.SelectedIndex > -1 Then
-            thisRoom.instances(lstInstances.SelectedIndex).layer = numTagLayer.Value
+            SelectedRoom.instances(lstInstances.SelectedIndex).layer = numTagLayer.Value
             RenderCurrentRoom()
-            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
         End If
     End Sub
 
@@ -527,9 +602,9 @@ Public Class FrmLevelEditor
         'scale of instance changed
 
         If lstInstances.SelectedIndex > -1 Then
-            thisRoom.instances(lstInstances.SelectedIndex).scale = numTagScale.Value
+            SelectedRoom.instances(lstInstances.SelectedIndex).scale = numTagScale.Value
             RenderCurrentRoom()
-            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
         End If
     End Sub
 
@@ -541,8 +616,8 @@ Public Class FrmLevelEditor
             tagMaker.ShowDialog()
 
             If tagMaker.userFinished = True Then
-                thisRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.createdTag)
-                ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+                SelectedRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.createdTag)
+                ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
             End If
         End If
     End Sub
@@ -551,12 +626,12 @@ Public Class FrmLevelEditor
         'allows the user to edit a tag using FrmTagMaker
 
         If lstInstances.SelectedIndex > -1 And lstTags.SelectedIndex > -1 Then
-            Dim tagMaker As New FrmTagMaker(thisRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
+            Dim tagMaker As New FrmTagMaker(SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
             tagMaker.ShowDialog()
 
             If tagMaker.userFinished = True Then
-                thisRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
-                ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+                SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
+                ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
             End If
         End If
     End Sub
@@ -565,7 +640,7 @@ Public Class FrmLevelEditor
         'removes the selected tag
 
         If lstInstances.SelectedIndex > -1 And lstTags.SelectedIndex > -1 Then
-            Dim newTags() As PRE2.Tag = thisRoom.instances(lstInstances.SelectedIndex).tags
+            Dim newTags() As PRE2.Tag = SelectedRoom.instances(lstInstances.SelectedIndex).tags
             For index As Integer = lstTags.SelectedIndex To UBound(newTags) - 1
                 newTags(index) = newTags(index + 1)
             Next
@@ -576,8 +651,8 @@ Public Class FrmLevelEditor
                 newTags = Nothing
             End If
 
-            thisRoom.instances(lstInstances.SelectedIndex).tags = newTags
-            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            SelectedRoom.instances(lstInstances.SelectedIndex).tags = newTags
+            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
         End If
     End Sub
 
@@ -598,11 +673,11 @@ Public Class FrmLevelEditor
         RefreshList(lstLevelParams, items)
 
         items = {}
-        If IsNothing(thisRoom.parameters) = False Then
-            ReDim items(UBound(thisRoom.parameters))
+        If IsNothing(SelectedRoom.parameters) = False Then
+            ReDim items(UBound(SelectedRoom.parameters))
 
             For index As Integer = 0 To UBound(items)
-                items(index) = thisRoom.parameters(index).ToString
+                items(index) = SelectedRoom.parameters(index).ToString
             Next index
         End If
         RefreshList(lstRoomParams, items)
@@ -717,7 +792,7 @@ Public Class FrmLevelEditor
         Dim tagMaker As New FrmTagMaker
         tagMaker.ShowDialog()
         If tagMaker.userFinished = True Then
-            AddParameter(tagMaker.createdTag, thisRoom.parameters)
+            AddParameter(tagMaker.createdTag, SelectedRoom.parameters)
         End If
     End Sub
 
@@ -725,8 +800,8 @@ Public Class FrmLevelEditor
         'user deletes an existing parameter
 
         If lstRoomParams.SelectedIndex > -1 Then
-            If MsgBox("Are you sure you wish to delete parameter " & thisRoom.parameters(lstRoomParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
-                RemoveParameter(lstRoomParams.SelectedIndex, thisRoom.parameters)
+            If MsgBox("Are you sure you wish to delete parameter " & SelectedRoom.parameters(lstRoomParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+                RemoveParameter(lstRoomParams.SelectedIndex, SelectedRoom.parameters)
             End If
         End If
     End Sub
@@ -736,56 +811,72 @@ Public Class FrmLevelEditor
 
         If lstRoomParams.SelectedIndex > -1 Then
             'gets the user to create a parameter (same as a tag)
-            Dim tagMaker As New FrmTagMaker(thisRoom.parameters(lstRoomParams.SelectedIndex))
+            Dim tagMaker As New FrmTagMaker(SelectedRoom.parameters(lstRoomParams.SelectedIndex))
             tagMaker.ShowDialog()
             If tagMaker.userFinished = True Then
-                ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.createdTag, thisRoom.parameters)
+                ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.createdTag, SelectedRoom.parameters)
             End If
         End If
     End Sub
 
     Private Sub txtTagName_Leave(sender As Object, e As EventArgs) Handles txtTagName.Leave
-        'changes the name of an instance
+        'changes the name of an instance or template
+
+        Dim templateMode As Boolean = False
+
+        If lstTemplates.SelectedIndex > -1 Then
+            templateMode = True
+        ElseIf lstInstances.SelectedIndex > -1 Then
+            templateMode = False
+        Else
+            'no instance or template is selected
+            Exit Sub
+        End If
 
         Dim newName As String = txtTagName.Text
-        Dim oldName As String = thisRoom.instances(lstInstances.SelectedIndex).name
+        Dim oldName As String = If(templateMode, thisLevel.templates(lstTemplates.SelectedIndex).name, SelectedRoom.instances(lstInstances.SelectedIndex).name)
 
         If newName = "" Then        'resets the name if nothing was entered
             txtTagName.Text = oldName
         Else
             'checks that the name is unique
             Dim nameUnique As Boolean = True
-            For Each instance As PRE2.Entity In thisRoom.instances
-                If newName = instance.name Then
+            For Each entity As PRE2.Entity In If(templateMode, thisLevel.templates, SelectedRoom.instances)
+                If newName = entity.name Then
                     nameUnique = False
                     Exit For
                 End If
-            Next instance
+            Next entity
 
             If nameUnique = True Then
-                thisRoom.instances(lstInstances.SelectedIndex).name = newName
-                lstInstances.Items(lstInstances.SelectedIndex) = newName
+                If templateMode Then
+                    thisLevel.templates(lstTemplates.SelectedIndex).name = newName
+                    RefreshTemplatesList()
+                Else
+                    SelectedRoom.instances(lstInstances.SelectedIndex).name = newName
+                    RefreshInstancesList()
+                End If
             Else
                 PRE2.DisplayError("This name is already being used")
                 txtTagName.Text = oldName
             End If
-            ShowEntityTags(thisRoom.instances(lstInstances.SelectedIndex), False)
+            ShowEntityTags(If(templateMode, thisLevel.templates(lstTemplates.SelectedIndex), SelectedRoom.instances(lstInstances.SelectedIndex)), False)
         End If
     End Sub
 
-    
+
 
     'rooms 
 
-    Private Sub RefreshRoomsList()	
+    Private Sub RefreshRoomsList()
         If IsNothing(thisLevel.rooms) = False Then
-			Dim names(UBound(thisLevel.rooms)) As String
-		
+            Dim names(UBound(thisLevel.rooms)) As String
+
             For index As Integer = 0 To UBound(thisLevel.rooms)
                 names(index) = thisLevel.rooms(index).name
             Next
-			
-			RefreshList(lstRooms, names)
+
+            RefreshList(lstRooms, names)
         End If
     End Sub
 
@@ -793,14 +884,14 @@ Public Class FrmLevelEditor
         'adds a new room to the level
 
         'checks that name isn't already being used
-		If IsNothing(thisLevel.rooms) = False Then
-			For Each currentRoom As FrmGame.Room In thisLevel.rooms
-				If currentRoom.name = newRoom.name Then
-					PRE2.DisplayError("Room name (" & newRoom.name & ") is in use, please use a different one")
-					Exit Sub
-				End If
-			Next
-		End If
+        If IsNothing(thisLevel.rooms) = False Then
+            For Each currentRoom As FrmGame.Room In thisLevel.rooms
+                If currentRoom.name = newRoom.name Then
+                    PRE2.DisplayError("Room name (" & newRoom.name & ") is in use, please use a different one")
+                    Exit Sub
+                End If
+            Next
+        End If
 
         If IsNothing(thisLevel.rooms) = True Then
             ReDim thisLevel.rooms(0)
@@ -855,9 +946,9 @@ Public Class FrmLevelEditor
         'currently selected room is changed
 
         If lstRooms.SelectedIndex > -1 Then
-            thisRoom = thisLevel.rooms(lstRooms.SelectedIndex)
+            'thisRoom = thisLevel.rooms(lstRooms.SelectedIndex)
 
-            lstTemplates.SelectedIndex = -1
+            'lstTemplates.SelectedIndex = -1
             lstInstances.SelectedIndex = -1
             RefreshInstancesList()
             RenderCurrentRoom()
@@ -884,7 +975,7 @@ Public Class FrmLevelEditor
         'checks that a room is selected
         If lstRooms.SelectedIndex > -1 Then
             'asks the user to confirm deleting the room
-            If MsgBox("Are you sure you wish to delete room " & thisRoom.name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+            If MsgBox("Are you sure you wish to delete room " & SelectedRoom.name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
                 RemoveRoom(lstRooms.SelectedIndex)
             End If
         End If
@@ -916,6 +1007,8 @@ Public Class FrmLevelEditor
 	Private Sub RefreshList(list As ListBox, values() As String)
         'empties a list and fills it with given values
 
+        Dim startSelectedIndex As Integer = list.SelectedIndex
+
         list.Items.Clear()
 
         If IsNothing(list) = False Then
@@ -923,8 +1016,12 @@ Public Class FrmLevelEditor
                 For Each value As String In values
                     list.Items.Add(value)
                 Next value
+
+                If list.Items.Count > startSelectedIndex Then
+                    list.SelectedIndex = startSelectedIndex
+                End If
             End If
-        Else
+            Else
             'PRE2.DisplayError("A list tried to refresh but doesn't exist")
         End If
     End Sub
@@ -980,6 +1077,12 @@ Public Class FrmLevelEditor
             If instanceSelected Then
                 btnInstanceDuplicate.Enabled = True
                 btnInstanceDelete.Enabled = True
+
+                btnTagAdd.Enabled = True
+                If entityTagSelected Then
+                    btnTagEdit.Enabled = True
+                    btnTagRemove.Enabled = True
+                End If
             End If
 
             If roomParamSelected Then
