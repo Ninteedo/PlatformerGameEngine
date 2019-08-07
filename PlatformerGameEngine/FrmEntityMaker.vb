@@ -19,7 +19,6 @@ Public Class FrmEntityMaker
         renderer = New PRE2 With {.renderPanel = pnlFramePreview}
 
         LayoutInitialisation()
-
         GetFolderLocations()
     End Sub
 
@@ -44,6 +43,7 @@ Public Class FrmEntityMaker
     Private Sub GetFolderLocations()
         'asks the user to select the game loader file
 
+        MsgBox("Please select the loader file for the game")
         Dim openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Title = "Select Loader File"}
         If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
             If IO.File.Exists(openDialog.FileName) = True Then
