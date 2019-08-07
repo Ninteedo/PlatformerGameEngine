@@ -246,7 +246,7 @@ Public Class FrmLevelEditor
 
     Private ReadOnly Property SelectedRoom As FrmGame.Room
         Get
-            If lstRooms.SelectedIndex > -1 And lstRooms.SelectedIndex <= UBound(thisLevel.rooms) Then
+            If lstRooms.SelectedIndex > -1 AndAlso lstRooms.SelectedIndex <= UBound(thisLevel.rooms) Then
                 Return thisLevel.rooms(lstRooms.SelectedIndex)
             Else
                 Return Nothing
@@ -297,6 +297,7 @@ Public Class FrmLevelEditor
                     'goes through each room
                     For roomIndex As Integer = 0 To UBound(thisLevel.rooms)
                         Dim currentRoom As FrmGame.Room = thisLevel.rooms(roomIndex)
+                        lstRooms.SelectedIndex = roomIndex
 
                         If Not IsNothing(currentRoom.instances) AndAlso UBound(currentRoom.instances) >= 0 Then
                             Dim instanceIndex As Integer = 0
@@ -305,11 +306,13 @@ Public Class FrmLevelEditor
 
                                 If currentInstance.FindTag("templateName").args(0) = templateName Then
                                     'removes current instance if the templateName matches
-                                    For index As Integer = instanceIndex To UBound(currentRoom.instances) - 1
-                                        currentRoom.instances(index) = currentRoom.instances(index + 1)
-                                    Next index
+                                    RemoveEntityInstance(instanceIndex)
 
-                                    ReDim Preserve currentRoom.instances(UBound(currentRoom.instances) - 1)
+                                    'For index As Integer = instanceIndex To UBound(currentRoom.instances) - 1
+                                    '    currentRoom.instances(index) = currentRoom.instances(index + 1)
+                                    'Next index
+
+                                    'ReDim Preserve currentRoom.instances(UBound(currentRoom.instances) - 1)
                                 Else
                                     instanceIndex += 1
                                 End If
@@ -325,9 +328,13 @@ Public Class FrmLevelEditor
                     thisLevel.templates(index) = thisLevel.templates(index + 1)
                 Next index
 
-                ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) - 1)
+                If UBound(thisLevel.templates) > 0 Then
+                    ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) - 1)
+                Else
+                    thisLevel.templates = Nothing
+                End If
             Else
-                PRE2.DisplayError("Provided template index (" & templateIndex & ") was an out of bounds")
+                    PRE2.DisplayError("Provided template index (" & templateIndex & ") was an out of bounds")
             End If
         Else
             PRE2.DisplayError("There is currently no templates")
@@ -394,10 +401,13 @@ Public Class FrmLevelEditor
                 SelectedRoom.instances(index) = SelectedRoom.instances(index + 1)
             Next index
 
-            ReDim Preserve thisLevel.rooms(lstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) - 1)
-
+            If UBound(SelectedRoom.instances) Then
+                ReDim Preserve thisLevel.rooms(lstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) - 1)
+            Else
+                thisLevel.rooms(lstRooms.SelectedIndex).instances = Nothing
+            End If
         Else
-            PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(SelectedRoom.instances))
+                PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(SelectedRoom.instances))
         End If
 
         RefreshInstancesList()
@@ -467,6 +477,8 @@ Public Class FrmLevelEditor
             Next
 
             RefreshList(lstTemplates, names)
+        Else
+            RefreshList(lstTemplates, Nothing)
         End If
     End Sub
 
@@ -522,7 +534,7 @@ Public Class FrmLevelEditor
 
     'tags
 
-    Dim tagControls() As Object
+    Dim tagControls() As Control
 
     Private Sub ControlInitialisation()
         tagControls = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
@@ -530,23 +542,30 @@ Public Class FrmLevelEditor
         ToggleTagControls(False)
     End Sub
 
-    Private Sub ToggleTagControls(enable As Boolean)
+    Private Sub ToggleTagControls(enabled As Boolean)
         'enables or disables all controls for tags, depending on whether provided True or False
 
         For Each ctrl As Object In tagControls
-            ctrl.Enabled = enable
+            ctrl.Enabled = enabled
         Next
     End Sub
 
-    Private Sub ShowEntityTags(ent As PRE2.Entity, isTemplate As Boolean)
+    Private Sub ShowEntityTags(ByVal ent As PRE2.Entity, isTemplate As Boolean)
         'changes the values displayed in the controls for tags to show values of the current entity
 
+        If IsNothing(ent) Then      'if no entity provided then uses an empty entity
+            ent = New PRE2.Entity With {.name = "No Entity Selected"}       'this doesn't work as entities have some default properties
+            ToggleTagControls(False)
+        End If
+
         txtTagName.Text = ent.name
-        If isTemplate = False Then      'templates dont have x and y values
+        If Not isTemplate Then      'templates dont have x and y values
             numTagLocX.Value = ent.location.X
             numTagLocY.Value = ent.location.Y
-            numTagLocX.Enabled = True
-            numTagLocY.Enabled = True
+            If txtTagName.Enabled Then
+                numTagLocX.Enabled = True
+                numTagLocY.Enabled = True
+            End If
         Else
             numTagLocX.Value = 0
             numTagLocY.Value = 0
@@ -1009,6 +1028,7 @@ Public Class FrmLevelEditor
 
         Dim startSelectedIndex As Integer = list.SelectedIndex
 
+        list.SelectedIndex = -1
         list.Items.Clear()
 
         If IsNothing(list) = False Then
@@ -1021,7 +1041,7 @@ Public Class FrmLevelEditor
                     list.SelectedIndex = startSelectedIndex
                 End If
             End If
-            Else
+        Else
             'PRE2.DisplayError("A list tried to refresh but doesn't exist")
         End If
     End Sub
