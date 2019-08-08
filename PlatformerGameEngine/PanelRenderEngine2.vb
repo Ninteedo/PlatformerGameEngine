@@ -178,17 +178,19 @@ Public Class PanelRenderEngine2
 
             Dim tagIndex As Integer = 0
 
-            Do While tagIndex <= UBound(tags)
-                If tags(tagIndex).name = tagName Then
-                    For removeIndex As Integer = tagIndex To UBound(tags) - 1
-                        tags(removeIndex) = tags(removeIndex + 1)
-                    Next removeIndex
+            If Not IsNothing(tags) Then
+                Do While tagIndex <= UBound(tags)
+                    If tags(tagIndex).name = tagName Then
+                        For removeIndex As Integer = tagIndex To UBound(tags) - 1
+                            tags(removeIndex) = tags(removeIndex + 1)
+                        Next removeIndex
 
-                    ReDim Preserve tags(UBound(tags) - 1)
-                Else
-                    tagIndex += 1       'tag index isn't incremented when a tag with matching name is found so none are skipped
-                End If
-            Loop
+                        ReDim Preserve tags(UBound(tags) - 1)
+                    Else
+                        tagIndex += 1       'tag index isn't incremented when a tag with matching name is found so none are skipped
+                    End If
+                Loop
+            End If
         End Sub
 
 

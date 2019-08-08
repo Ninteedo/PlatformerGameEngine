@@ -43,8 +43,8 @@ Public Class FrmLevelEditor
 
     'save load
 
-    Dim roomSaveLocation As String = ""
-    Dim levelSaveLocation As String = ""
+    'Dim roomSaveLocation As String = ""
+    Dim levelSaveLocation As String = Nothing
 
     Private Sub LoadInitialisation()
         'gets the folder locations from the loader file
@@ -67,18 +67,23 @@ Public Class FrmLevelEditor
     End Sub
 
 
-	
-    'levels
+
+    'level save/load
 
     Private Sub LoadLevel(fileLocation As String)
         'loads a level and sets the interface up
 
-        thisLevel = FrmGame.LoadLevelFile(fileLocation, renderer)
+        If IO.File.Exists(fileLocation) Then
+            levelSaveLocation = fileLocation
+            thisLevel = FrmGame.LoadLevelFile(levelSaveLocation, renderer)
 
-        RefreshRoomsList()
-        RefreshInstancesList()
-        RefreshTemplatesList()
-        RefreshParameterList()
+            RefreshRoomsList()
+            RefreshInstancesList()
+            RefreshTemplatesList()
+            RefreshParameterList()
+        Else
+            PRE2.DisplayError("No file found at " & fileLocation)
+        End If
     End Sub
 
     Private Sub SaveLevel(levelToSave As FrmGame.Level, saveLocation As String)
@@ -88,7 +93,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub btnLevelOpen_Click(sender As Object, e As EventArgs) Handles btnLevelOpen.Click
-        Dim openDialog As New OpenFileDialog With {.Filter = "Level file (*.lvl)|*.lvl"}
+        Dim openDialog As New OpenFileDialog With {.Filter = "Level file (*.lvl)|*.lvl", .InitialDirectory = renderer.levelFolderLocation}
 
         If openDialog.ShowDialog() = DialogResult.OK Then
             LoadLevel(openDialog.FileName)
@@ -143,10 +148,12 @@ Public Class FrmLevelEditor
         If Not IsNothing(level.rooms) Then
             For Each currentRoom As FrmGame.Room In level.rooms
                 Dim line As String = "loadRoom: "
-                line += SelectedRoom.fileLocation.Remove(renderer.roomFolderLocation)       'the saved part is the location relative to the room folder
+                line += currentRoom.name & ".room"       'the saved part is the location relative to the room folder
                 levelString += line & Environment.NewLine
             Next currentRoom
         End If
+        'levelString = levelString.Remove(Len(levelString) - 2, 2)
+        levelString = levelString.Trim
 
         Return levelString
     End Function
@@ -156,7 +163,7 @@ Public Class FrmLevelEditor
     Private Sub LoadRoom(fileLocation As String)
         'loads a room from a file (is this necessary?)
 
-        Dim newRoom As FrmGame.Room = FrmGame.LoadRoomFile(fileLocation, thisLevel)
+        Dim newRoom As FrmGame.Room = FrmGame.LoadRoomFile(fileLocation, thisLevel, renderer.roomFolderLocation)
 
         If IsNothing(thisLevel.rooms) = True Then
             ReDim thisLevel.rooms(0)
@@ -169,16 +176,16 @@ Public Class FrmLevelEditor
         lstRooms.SelectedIndex = UBound(thisLevel.rooms)        'automatically selects the loaded room
     End Sub
 
-    Private Sub SaveRoom(levelOfRoom As FrmGame.Level, roomToSave As FrmGame.Room, saveLocation As String)
+    Private Sub SaveRoom(levelOfRoom As FrmGame.Level, roomToSave As FrmGame.Room)
         'saves a single room to a file, can only be loaded when the level is loaded
 
-        PRE2.WriteFile(saveLocation, CreateRoomString(levelOfRoom, roomToSave))
+        PRE2.WriteFile(renderer.roomFolderLocation & roomToSave.name & ".room", CreateRoomString(levelOfRoom, roomToSave))
     End Sub
 
 
 
     Private Sub btnRoomOpen_Click(sender As Object, e As EventArgs) Handles btnRoomOpen.Click
-        Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True, .InitialDirectory = roomSaveLocation}
+        Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True, .InitialDirectory = renderer.roomFolderLocation}
 
         If openDialog.ShowDialog() = DialogResult.OK Then
             For Each fileLocation As String In openDialog.FileNames
@@ -188,17 +195,28 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub btnRoomSaveAs_Click(sender As Object, e As EventArgs) Handles btnRoomSaveAs.Click
-        Dim fileName As String = InputBox("Enter file name for room. For example: " & vbCrLf & "- 1,3" & vbCrLf & "- pillars" & vbCrLf & "- room3")
 
-        If fileName.Length >= 1 Then        'checks that the user actually entered something
-            roomSaveLocation = renderer.roomFolderLocation & fileName & ".room"
-            SaveRoom(thisLevel, SelectedRoom, roomSaveLocation)
+        If Not IsNothing(levelSaveLocation) Then
+            'Dim fileName As String = InputBox("Enter file name for room. For example: " & vbCrLf & "- 1,3" & vbCrLf & "- pillars" & vbCrLf & "- room3")
+            'Dim fileName As String = SelectedRoom.name
+
+            'If fileName.Length >= 1 Then        'checks that the user actually entered something
+            'roomSaveLocation = renderer.roomFolderLocation & fileName & ".room"
+            'thisLevel.rooms(lstRooms.SelectedIndex).fileLocation = renderer.roomFolderLocation & fileName & ".room"
+            SaveRoom(thisLevel, SelectedRoom)
             btnRoomSave.Enabled = True
+            'End If
+        Else
+            PRE2.DisplayError("Please save the level first before saving any rooms")
         End If
     End Sub
 
     Private Sub btnRoomSave_Click(sender As Object, e As EventArgs) Handles btnRoomSave.Click
-        SaveRoom(thisLevel, SelectedRoom, roomSaveLocation)
+        If Not IsNothing(levelSaveLocation) Then
+            SaveRoom(thisLevel, SelectedRoom)
+        Else
+            PRE2.DisplayError("Please save the level first before saving any rooms")
+        End If
     End Sub
 
 
@@ -273,6 +291,8 @@ Public Class FrmLevelEditor
             Dim newTemplate As PRE2.Entity = EntityStringHandler.ReadEntityString(entityString, renderer, successfulLoad)
 
             If successfulLoad Then
+                newTemplate.AddTag(New PRE2.Tag("fileName", {fileLocation.Remove(0, Len(renderer.entityFolderLocation))}))
+
                 If IsNothing(thisLevel.templates) = True Then
                     ReDim thisLevel.templates(0)
                 Else
@@ -1034,7 +1054,9 @@ Public Class FrmLevelEditor
         If IsNothing(list) = False Then
             If IsNothing(values) = False Then
                 For Each value As String In values
-                    list.Items.Add(value)
+                    If Not IsNothing(value) Then
+                        list.Items.Add(value)
+                    End If
                 Next value
 
                 If list.Items.Count > startSelectedIndex Then
@@ -1081,17 +1103,11 @@ Public Class FrmLevelEditor
         If roomSelected Then
             btnLevelRoomRemove.Enabled = True
             btnRoomEditCoords.Enabled = True
-            btnRoomSaveAs.Enabled = True
+            'btnRoomSaveAs.Enabled = True
             btnAddRoomParam.Enabled = True
 
             If templateSelected Then
                 btnInstanceCreate.Enabled = True
-                btnTagAdd.Enabled = True
-
-                If entityTagSelected Then
-                    btnTagEdit.Enabled = True
-                    btnTagRemove.Enabled = True
-                End If
             End If
 
             If instanceSelected Then
@@ -1113,6 +1129,12 @@ Public Class FrmLevelEditor
 
         If templateSelected Then
             btnRemoveEntity.Enabled = True
+
+            btnTagAdd.Enabled = True
+            If entityTagSelected Then
+                btnTagEdit.Enabled = True
+                btnTagRemove.Enabled = True
+            End If
         End If
 
         If levelParamSelected Then

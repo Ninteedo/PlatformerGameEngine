@@ -28,11 +28,10 @@ Public Class FrmGame
 
 
     Public Structure Room
-        'a room is a collection of entities which are all used at once
+        'a room is a collection of entities which are all rendered at once
 
         Dim instances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
         Dim name As String
-        Dim fileLocation As String
 
         Dim parameters() As PRE2.Tag
 
@@ -131,17 +130,19 @@ Public Class FrmGame
 
             Dim paramIndex As Integer = 0
 
-            Do While paramIndex <= UBound(globalParameters)
-                If globalParameters(paramIndex).name = paramName Then
-                    For removeIndex As Integer = paramIndex To UBound(globalParameters) - 1
-                        globalParameters(removeIndex) = globalParameters(removeIndex + 1)
-                    Next removeIndex
+            If Not IsNothing(globalParameters) Then
+                Do While paramIndex <= UBound(globalParameters)
+                    If globalParameters(paramIndex).name = paramName Then
+                        For removeIndex As Integer = paramIndex To UBound(globalParameters) - 1
+                            globalParameters(removeIndex) = globalParameters(removeIndex + 1)
+                        Next removeIndex
 
-                    ReDim Preserve globalParameters(UBound(globalParameters) - 1)
-                Else
-                    paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
-                End If
-            Loop
+                        ReDim Preserve globalParameters(UBound(globalParameters) - 1)
+                    Else
+                        paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
+                    End If
+                Loop
+            End If
         End Sub
     End Structure
 
@@ -200,7 +201,7 @@ Public Class FrmGame
         If IO.File.Exists(fileLocation) = True Then
             Dim levelString As String = PRE2.ReadFile(fileLocation)
             Dim thisLevel As Level = New Level
-            Dim lines() As String = levelString.Split(Environment.NewLine)
+            Dim lines() As String = levelString.Trim.Split(Environment.NewLine)
 
             For lineIndex As Integer = 0 To UBound(lines)
                 ParseLevelLine(lines(lineIndex), thisLevel, renderEngine)
@@ -230,14 +231,21 @@ Public Class FrmGame
         Dim lineType As String = line.Split(":")(0)          'line type decides what the current line does, eg loadEnt
         Dim attributes() As String = line.Split(":")(1).Split("/")     'the specifics of what the line does, the order matters, delimited by /
 
-        Select Case lineType
+        'removes any whitespace in the attributes
+        If Not IsNothing(attributes) Then
+            For index As Integer = 0 To UBound(attributes)
+                attributes(index) = attributes(index).Trim()
+            Next index
+        End If
+
+        Select Case lineType.Trim
             Case "roomFolder"   'sets the folder for this levels rooms (folder location (excluding everything up to and including the level folder))
                 renderEngine.roomFolderLocation = renderEngine.levelFolderLocation & attributes(0)
 
             Case "loadEnt"      'loads an entity from a file (file location)
                 Dim newEntity As PRE2.Entity
 
-                newEntity = LoadEntity(attributes(0), renderEngine)
+                newEntity = LoadEntity(renderEngine.entityFolderLocation & attributes(0), renderEngine)
                 'newEntity.AddTag(New PRE2.Tag("name", {attributes(1)}))
 
                 If IsNothing(thisLevel.templates) = True Then
@@ -248,8 +256,13 @@ Public Class FrmGame
                 thisLevel.templates(UBound(thisLevel.templates)) = newEntity
 
             Case "loadRoom"     'loads a room from a file (file location, room coords (x,y))
-                Dim newRoom As Room = LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel)
-                Dim coords As New Point(Int(attributes(1).Split(",")(0)), Int(attributes(1).Split(",")(1)))
+                Dim newRoom As Room = LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel, renderEngine.roomFolderLocation)
+                Dim coords As Point
+                If UBound(attributes) >= 1 Then
+                    coords = New Point(Int(attributes(1).Split(",")(0)), Int(attributes(1).Split(",")(1)))
+                Else        'safeguard for if room has no coords
+                    coords = New Point
+                End If
 
                 If IsNothing(thisLevel.rooms) = True Then
                     ReDim thisLevel.rooms(0)
@@ -273,14 +286,14 @@ Public Class FrmGame
         End Select
     End Sub
 
-    Public Shared Function LoadRoomFile(fileLocation As String, ByRef thisLevel As Level) As Room
+    Public Shared Function LoadRoomFile(fileLocation As String, ByRef thisLevel As Level, roomFolderLocation As String) As Room
         If IO.File.Exists(fileLocation) = True Then
             Dim roomString As String = PRE2.ReadFile(fileLocation)
             Dim thisRoom As New Room With {
-                .fileLocation = fileLocation,
+                .name = fileLocation.Remove(Len(fileLocation) - 5, 5).Remove(1, roomFolderLocation),
                 .parameters = thisLevel.globalParameters
             }           'initial parameters are inherited from the level
-            Dim lines() As String = roomString.Split(Environment.NewLine)
+            Dim lines() As String = roomString.Trim.Split(Environment.NewLine)
 
 
 
@@ -301,7 +314,14 @@ Public Class FrmGame
         Dim lineType As String = line.Split(":")(0)          'line type decides what the current line does, eg loadEnt
         Dim attributes() As String = line.Split(":")(1).Split("/")     'the specifics of what the line does, the order matters, delimited by /
 
-        Select Case lineType
+        'removes any whitespace from attributes
+        If Not IsNothing(attributes) Then
+            For index As Integer = 0 To UBound(attributes)
+                attributes(index) = attributes(index).Trim
+            Next index
+        End If
+
+        Select Case lineType.Trim
             Case "addEnt"       'creates a new instance of a loaded entity (template name, instance name, tags...)
                 Dim entityTemplate As New PRE2.Entity
 
@@ -316,13 +336,15 @@ Public Class FrmGame
                         newInstanceName = attributes(1) & "-" & Trim(Str(duplicateNames + 1))
                     End If
 
-                    For Each instance As PRE2.Entity In thisRoom.instances
-                        If instance.name = newInstanceName Then
-                            duplicateNames += 1
-                            nameUnique = False
-                        End If
-                    Next instance
-                Loop Until nameUnique = False
+                    If Not IsNothing(thisRoom.instances) Then
+                        For Each instance As PRE2.Entity In thisRoom.instances
+                            If instance.name = newInstanceName Then
+                                duplicateNames += 1
+                                nameUnique = False
+                            End If
+                        Next instance
+                    End If
+                Loop Until nameUnique
 
                 'finds the entity template with the name
                 For index As Integer = 0 To UBound(thisLevel.templates)

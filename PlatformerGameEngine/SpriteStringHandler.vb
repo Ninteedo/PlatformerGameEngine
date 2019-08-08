@@ -175,8 +175,6 @@ Public Module SpriteStringHandler
     Private Sub ProcessColourIndex(ByVal colourIndex As Integer, ByRef repeatedColourStreak As Integer, ByRef repeatedColourIndex As Integer, ByRef result As String, ByVal last As Boolean)
         'used to find repeats of the same colour
 
-
-
         If last = True Then
             ProcessColourIndex(colourIndex, repeatedColourStreak, repeatedColourIndex, result, False)       'if this wasn't here then last pixel wouldn't get checked
         End If
