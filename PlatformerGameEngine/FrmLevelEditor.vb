@@ -28,10 +28,10 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub LayoutInitialisation()
-        tblRoom.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
+        tblControlsOverall.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
         tblLevel.Location = New Point(pnlRender.Left, pnlRender.Bottom + 10)
 
-        Me.Size = New Size(tblRoom.Right + 20, tblLevel.Bottom + 40)
+        Me.Size = New Size(tblControlsOverall.Right + 20, tblLevel.Bottom + 40)
 
         'flwSaveLoad.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
         'tblEntities.Location = New Point(flwSaveLoad.Left, flwSaveLoad.Bottom + 5)
