@@ -238,11 +238,11 @@ Public Class FrmGame
             Next index
         End If
 
-        Select Case lineType.Trim
-            Case "roomFolder"   'sets the folder for this levels rooms (folder location (excluding everything up to and including the level folder))
+        Select Case LCase(lineType.Trim)
+            Case "roomfolder"   'sets the folder for this levels rooms (folder location (excluding everything up to and including the level folder))
                 renderEngine.roomFolderLocation = renderEngine.levelFolderLocation & attributes(0)
 
-            Case "loadEnt"      'loads an entity from a file (file location)
+            Case "loadent"      'loads an entity from a file (file location)
                 Dim newEntity As PRE2.Entity
 
                 newEntity = LoadEntity(renderEngine.entityFolderLocation & attributes(0), renderEngine)
@@ -255,7 +255,7 @@ Public Class FrmGame
                 End If
                 thisLevel.templates(UBound(thisLevel.templates)) = newEntity
 
-            Case "loadRoom"     'loads a room from a file (file location, room coords (x,y))
+            Case "loadroom"     'loads a room from a file (file location, room coords (x,y))
                 Dim newRoom As Room = LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel, renderEngine.roomFolderLocation)
                 Dim coords As Point
                 If UBound(attributes) >= 1 Then
@@ -275,7 +275,7 @@ Public Class FrmGame
                 thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
                 thisLevel.roomCoords(UBound(thisLevel.rooms)) = coords
 
-            Case "addParam"     'adds a parameter and deletes any duplicates (tag)
+            Case "addparam"     'adds a parameter and deletes any duplicates (tag)
                 Dim newTag As New PRE2.Tag(attributes(0))
 
                 thisLevel.RemoveParam(newTag.name)
@@ -321,8 +321,8 @@ Public Class FrmGame
             Next index
         End If
 
-        Select Case lineType.Trim
-            Case "addEnt"       'creates a new instance of a loaded entity (template name, instance name, tags...)
+        Select Case LCase(lineType.Trim)
+            Case "addent"       'creates a new instance of a loaded entity (template name, instance name, tags...)
                 Dim entityTemplate As New PRE2.Entity
 
                 'modifies the name of the instance if necessary
@@ -377,7 +377,7 @@ Public Class FrmGame
                     thisRoom.instances(UBound(thisRoom.instances)) = newEnt
                 End If
 
-            Case "editEnt"      'modifies an instance of an entity (instance name, tags)
+            Case "editent"      'modifies an instance of an entity (instance name, tags)
                 Dim entityInstance As PRE2.Entity
 
                 'finds the entity instance with the name
@@ -404,7 +404,7 @@ Public Class FrmGame
                     Next index
                 End If
 
-            Case "addParam"     'adds a parameter to this level (parameter aka tag) and removes any duplicates
+            Case "addparam"     'adds a parameter to this level (parameter aka tag) and removes any duplicates
                 Dim newTag As New PRE2.Tag(attributes(0))
 
                 thisRoom.RemoveParam(newTag.name)
