@@ -31,7 +31,7 @@ Public Class FrmLevelEditor
         tblControlsOverall.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
         tblLevel.Location = New Point(pnlRender.Left, pnlRender.Bottom + 10)
 
-        Me.Size = New Size(tblControlsOverall.Right + 20, tblLevel.Bottom + 40)
+        Me.Size = New Size(tblControlsOverall.Right + 20, tblControlsOverall.Bottom + 40)
 
         'flwSaveLoad.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
         'tblEntities.Location = New Point(flwSaveLoad.Left, flwSaveLoad.Bottom + 5)
@@ -291,6 +291,14 @@ Public Class FrmLevelEditor
             Dim newTemplate As PRE2.Entity = EntityStringHandler.ReadEntityString(entityString, renderer, successfulLoad)
 
             If successfulLoad Then
+                If Not IsNothing(thisLevel.templates) Then      'makes name unique
+                    Dim templateNames(UBound(thisLevel.templates)) As String
+                    For index As Integer = 0 To UBound(templateNames)
+                        templateNames(index) = thisLevel.templates(index).name
+                    Next index
+                    newTemplate.name = MakeNameUnique(newTemplate.name, templateNames, True)
+                End If
+
                 newTemplate.AddTag(New PRE2.Tag("fileName", {fileLocation.Remove(0, Len(renderer.entityFolderLocation))}))
 
                 If IsNothing(thisLevel.templates) = True Then
@@ -354,7 +362,7 @@ Public Class FrmLevelEditor
                     thisLevel.templates = Nothing
                 End If
             Else
-                    PRE2.DisplayError("Provided template index (" & templateIndex & ") was an out of bounds")
+                PRE2.DisplayError("Provided template index (" & templateIndex & ") was an out of bounds")
             End If
         Else
             PRE2.DisplayError("There is currently no templates")
@@ -382,25 +390,15 @@ Public Class FrmLevelEditor
             ReDim thisLevel.rooms(lstRooms.SelectedIndex).instances(0)
             SelectedRoom.instances(0) = newInstance
         Else
-            Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
-            Dim nameUnique As Boolean = False
-            Dim generatedName As String = ""
+            Dim instanceNames(UBound(SelectedRoom.instances)) As String
 
-            Do
-                copyNumber += 1
-                generatedName = template.name & "-" & Trim(Str(copyNumber))
-                nameUnique = True
+            For index As Integer = 0 To UBound(SelectedRoom.instances)
+                instanceNames(index) = SelectedRoom.instances(index).name
+            Next index
 
-                'checks if name is unique
-                For Each instance As PRE2.Entity In SelectedRoom.instances
-                    If instance.name = generatedName Then
-                        nameUnique = False
-                        Exit For
-                    End If
-                Next
-            Loop Until nameUnique = True
+            Dim newName As String = MakeNameUnique(newInstance.name, instanceNames, False)
 
-            newInstance.name = generatedName
+            newInstance.name = newName
 
             ReDim Preserve thisLevel.rooms(lstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) + 1)
             SelectedRoom.instances(UBound(SelectedRoom.instances)) = newInstance
@@ -695,7 +693,79 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
+    Private Sub txtTagName_Leave(sender As Object, e As EventArgs) Handles txtTagName.Leave
+        'changes the name of an instance or template
 
+        Dim templateMode As Boolean
+        'Dim index As Integer
+        Dim oldName As String
+        Dim newName As String = txtTagName.Text
+
+        If lstTemplates.SelectedIndex > -1 Then
+            templateMode = True
+            oldName = thisLevel.templates(lstTemplates.SelectedIndex).name
+        ElseIf lstInstances.SelectedIndex > -1 Then
+            templateMode = False
+            oldName = SelectedRoom.instances(lstInstances.SelectedIndex).name
+        Else
+            'no instance or template is selected
+            Exit Sub
+        End If
+
+
+        If newName = "" Then        'resets the name if nothing was entered
+            txtTagName.Text = oldName
+        Else
+            'checks that the name is unique
+            Dim nameUnique As Boolean = True
+            For Each entity As PRE2.Entity In If(templateMode, thisLevel.templates, SelectedRoom.instances)
+                If newName = entity.name Then
+                    nameUnique = False
+                    Exit For
+                End If
+            Next entity
+
+            If nameUnique = True Then
+                If templateMode Then
+                    thisLevel.templates(lstTemplates.SelectedIndex).name = newName
+                    RefreshTemplatesList()
+                Else
+                    SelectedRoom.instances(lstInstances.SelectedIndex).name = newName
+                    RefreshInstancesList()
+                End If
+            Else
+                PRE2.DisplayError("This name is already being used")
+                txtTagName.Text = oldName
+            End If
+            ShowEntityTags(If(templateMode, thisLevel.templates(lstTemplates.SelectedIndex), SelectedRoom.instances(lstInstances.SelectedIndex)), False)
+        End If
+    End Sub
+
+    Private Function MakeNameUnique(name As String, otherNames() As String, removeUnnecessary As Boolean) As String
+        'returns a name with a number appended to it so the name is unique
+
+        Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
+        Dim nameUnique As Boolean = False
+        Dim generatedName As String = name
+
+        Do
+            copyNumber += 1
+            If Not removeUnnecessary Or copyNumber > 1 Then
+                generatedName = name & "-" & Trim(Str(copyNumber))
+            End If
+            nameUnique = True
+
+            'checks if name is unique
+            For Each otherName As String In otherNames
+                If otherName = generatedName Then
+                    nameUnique = False
+                    Exit For
+                End If
+            Next
+        Loop Until nameUnique = True
+
+        Return generatedName
+    End Function
 
     'parameters
 
@@ -855,51 +925,6 @@ Public Class FrmLevelEditor
             If tagMaker.userFinished = True Then
                 ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.createdTag, SelectedRoom.parameters)
             End If
-        End If
-    End Sub
-
-    Private Sub txtTagName_Leave(sender As Object, e As EventArgs) Handles txtTagName.Leave
-        'changes the name of an instance or template
-
-        Dim templateMode As Boolean = False
-
-        If lstTemplates.SelectedIndex > -1 Then
-            templateMode = True
-        ElseIf lstInstances.SelectedIndex > -1 Then
-            templateMode = False
-        Else
-            'no instance or template is selected
-            Exit Sub
-        End If
-
-        Dim newName As String = txtTagName.Text
-        Dim oldName As String = If(templateMode, thisLevel.templates(lstTemplates.SelectedIndex).name, SelectedRoom.instances(lstInstances.SelectedIndex).name)
-
-        If newName = "" Then        'resets the name if nothing was entered
-            txtTagName.Text = oldName
-        Else
-            'checks that the name is unique
-            Dim nameUnique As Boolean = True
-            For Each entity As PRE2.Entity In If(templateMode, thisLevel.templates, SelectedRoom.instances)
-                If newName = entity.name Then
-                    nameUnique = False
-                    Exit For
-                End If
-            Next entity
-
-            If nameUnique = True Then
-                If templateMode Then
-                    thisLevel.templates(lstTemplates.SelectedIndex).name = newName
-                    RefreshTemplatesList()
-                Else
-                    SelectedRoom.instances(lstInstances.SelectedIndex).name = newName
-                    RefreshInstancesList()
-                End If
-            Else
-                PRE2.DisplayError("This name is already being used")
-                txtTagName.Text = oldName
-            End If
-            ShowEntityTags(If(templateMode, thisLevel.templates(lstTemplates.SelectedIndex), SelectedRoom.instances(lstInstances.SelectedIndex)), False)
         End If
     End Sub
 
