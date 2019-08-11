@@ -310,6 +310,23 @@ Public Class PanelRenderEngine2
         End Property
 
 
+        Public Shared Operator =(ent1 As Entity, ent2 As Entity)
+            Return AreEntitiesEqual(ent1, ent2)
+        End Operator
+
+        Public Shared Operator <>(ent1 As Entity, ent2 As Entity)
+            Return Not AreEntitiesEqual(ent1, ent2)
+        End Operator
+
+        Public Shared Function AreEntitiesEqual(ent1 As Entity, ent2 As Entity) As Boolean
+            'returns whether 2 provided frames are identical
+
+            If ent1.tags IsNot ent2.tags OrElse ent1.frames IsNot ent2.frames Then
+                Return False
+            Else
+                Return True
+            End If
+        End Function
     End Structure
 
     Public Structure Frame

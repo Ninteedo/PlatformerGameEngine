@@ -43,7 +43,6 @@ Public Class FrmLevelEditor
 
     'save load
 
-    'Dim roomSaveLocation As String = ""
     Dim levelSaveLocation As String = Nothing
 
     Private Sub LoadInitialisation()
@@ -89,7 +88,7 @@ Public Class FrmLevelEditor
     Private Sub SaveLevel(levelToSave As FrmGame.Level, saveLocation As String)
         'saves a level (not the rooms) to a file
 
-        PRE2.WriteFile(saveLocation, CreateLevelString(levelToSave))
+        PRE2.WriteFile(saveLocation, levelToSave.ToString)
     End Sub
 
     Private Sub btnLevelOpen_Click(sender As Object, e As EventArgs) Handles btnLevelOpen.Click
@@ -114,145 +113,72 @@ Public Class FrmLevelEditor
         SaveLevel(thisLevel, levelSaveLocation)
     End Sub
 
-    Private Function CreateLevelString(level As FrmGame.Level)
-        'creates a string of a level so it can be saved and loaded
-
-        Dim levelString As String = ""
-
-        'adds an addParam line for each parameter
-        If Not IsNothing(level.globalParameters) Then
-            For Each param As PRE2.Tag In level.globalParameters
-                levelString += "addParam: " & param.ToString & Environment.NewLine
-            Next param
-        End If
-
-        'adds a loadEnt line for each template
-        If Not IsNothing(level.templates) Then
-            For Each template As PRE2.Entity In level.templates
-                If template.HasTag("fileName") = True Then
-                    Dim line As String = "loadEnt: " & template.FindTag("fileName").args(0) & "/" & template.name
-
-                    'adds each tag
-                    For Each thisTag As PRE2.Tag In template.tags
-                        line += "/" & thisTag.ToString
-                    Next
-
-                    levelString += line & Environment.NewLine
-                Else
-                    PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
-                End If
-            Next
-        End If
-
-        'adds a loadRoom line for each room
-        If Not IsNothing(level.rooms) Then
-            For Each currentRoom As FrmGame.Room In level.rooms
-                Dim line As String = "loadRoom: "
-                line += currentRoom.name & ".room"       'the saved part is the location relative to the room folder
-                levelString += line & Environment.NewLine
-            Next currentRoom
-        End If
-        'levelString = levelString.Remove(Len(levelString) - 2, 2)
-        levelString = levelString.Trim
-
-        Return levelString
-    End Function
 
     'rooms save/load
 
-    Private Sub LoadRoom(fileLocation As String)
-        'loads a room from a file (is this necessary?)
+    'Private Sub LoadRoom(fileLocation As String)
+    '    'loads a room from a file (is this necessary?)
 
-        Dim newRoom As FrmGame.Room = FrmGame.LoadRoomFile(fileLocation, thisLevel, renderer.roomFolderLocation)
+    '    Dim newRoom As FrmGame.Room = FrmGame.LoadRoomFile(fileLocation, thisLevel, renderer.roomFolderLocation)
 
-        If IsNothing(thisLevel.rooms) = True Then
-            ReDim thisLevel.rooms(0)
-        Else
-            ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) + 1)
-        End If
-        thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
+    '    If IsNothing(thisLevel.rooms) = True Then
+    '        ReDim thisLevel.rooms(0)
+    '    Else
+    '        ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) + 1)
+    '    End If
+    '    thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
 
-        RefreshRoomsList()
-        lstRooms.SelectedIndex = UBound(thisLevel.rooms)        'automatically selects the loaded room
-    End Sub
+    '    RefreshRoomsList()
+    '    lstRooms.SelectedIndex = UBound(thisLevel.rooms)        'automatically selects the loaded room
+    'End Sub
 
-    Private Sub SaveRoom(levelOfRoom As FrmGame.Level, roomToSave As FrmGame.Room)
-        'saves a single room to a file, can only be loaded when the level is loaded
+    'Private Sub SaveRoom(levelOfRoom As FrmGame.Level, roomToSave As FrmGame.Room)
+    '    'saves a single room to a file, can only be loaded when the level is loaded
 
-        PRE2.WriteFile(renderer.roomFolderLocation & roomToSave.name & ".room", CreateRoomString(levelOfRoom, roomToSave))
-    End Sub
+    '    PRE2.WriteFile(renderer.roomFolderLocation & roomToSave.name & ".room", CreateRoomString(levelOfRoom, roomToSave))
+    'End Sub
 
 
 
     Private Sub btnRoomOpen_Click(sender As Object, e As EventArgs) Handles btnRoomOpen.Click
-        Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True, .InitialDirectory = renderer.roomFolderLocation}
+        MsgBox("Should probably remove this button")
 
-        If openDialog.ShowDialog() = DialogResult.OK Then
-            For Each fileLocation As String In openDialog.FileNames
-                LoadRoom(fileLocation)
-            Next
-        End If
+        'Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True, .InitialDirectory = renderer.roomFolderLocation}
+
+        'If openDialog.ShowDialog() = DialogResult.OK Then
+        '    For Each fileLocation As String In openDialog.FileNames
+        '        LoadRoom(fileLocation)
+        '    Next
+        'End If      
     End Sub
 
     Private Sub btnRoomSaveAs_Click(sender As Object, e As EventArgs) Handles btnRoomSaveAs.Click
+        MsgBox("Should probably remove this button")
 
-        If Not IsNothing(levelSaveLocation) Then
-            'Dim fileName As String = InputBox("Enter file name for room. For example: " & vbCrLf & "- 1,3" & vbCrLf & "- pillars" & vbCrLf & "- room3")
-            'Dim fileName As String = SelectedRoom.name
+        'If Not IsNothing(levelSaveLocation) Then
+        '    'Dim fileName As String = InputBox("Enter file name for room. For example: " & vbCrLf & "- 1,3" & vbCrLf & "- pillars" & vbCrLf & "- room3")
+        '    'Dim fileName As String = SelectedRoom.name
 
-            'If fileName.Length >= 1 Then        'checks that the user actually entered something
-            'roomSaveLocation = renderer.roomFolderLocation & fileName & ".room"
-            'thisLevel.rooms(lstRooms.SelectedIndex).fileLocation = renderer.roomFolderLocation & fileName & ".room"
-            SaveRoom(thisLevel, SelectedRoom)
-            btnRoomSave.Enabled = True
-            'End If
-        Else
-            PRE2.DisplayError("Please save the level first before saving any rooms")
-        End If
+        '    'If fileName.Length >= 1 Then        'checks that the user actually entered something
+        '    'roomSaveLocation = renderer.roomFolderLocation & fileName & ".room"
+        '    'thisLevel.rooms(lstRooms.SelectedIndex).fileLocation = renderer.roomFolderLocation & fileName & ".room"
+        '    SaveRoom(thisLevel, SelectedRoom)
+        '    btnRoomSave.Enabled = True
+        '    'End If
+        'Else
+        '    PRE2.DisplayError("Please save the level first before saving any rooms")
+        'End If
     End Sub
 
     Private Sub btnRoomSave_Click(sender As Object, e As EventArgs) Handles btnRoomSave.Click
-        If Not IsNothing(levelSaveLocation) Then
-            SaveRoom(thisLevel, SelectedRoom)
-        Else
-            PRE2.DisplayError("Please save the level first before saving any rooms")
-        End If
+        MsgBox("Should probably remove this button")
+
+        'If Not IsNothing(levelSaveLocation) Then
+        '    SaveRoom(thisLevel, SelectedRoom)
+        'Else
+        '    PRE2.DisplayError("Please save the level first before saving any rooms")
+        'End If
     End Sub
-
-
-    Private Function CreateRoomString(levelOfRoom As FrmGame.Level, roomForString As FrmGame.Room) As String
-        'returns a string to save the given room
-
-        Dim roomString As String = ""
-
-        'adds an addEnt line for each instance
-        For Each instance As PRE2.Entity In roomForString.instances
-            Dim templateOfInstance As PRE2.Entity           'used so that tags can be compared and identical ones can be ignored
-            For Each template As PRE2.Entity In levelOfRoom.templates
-                If template.name = instance.FindTag("templateName").args(0) Then
-                    templateOfInstance = template
-                    Exit For
-                End If
-            Next template
-
-            If IsNothing(templateOfInstance) = True Then
-                PRE2.DisplayError("Could not find a template called " & instance.FindTag("templateName").args(0) & " for instance " & instance.name)
-            Else
-                Dim line As String = "addEnt: " & instance.FindTag("templateName").args(0) & "/" & instance.name
-
-                'adds each added tag to the line, which is not identical to one which the template has
-                For Each thisTag As PRE2.Tag In instance.tags
-                    If IsNothing(templateOfInstance.FindTag(thisTag.name)) = False AndAlso templateOfInstance.FindTag(thisTag.name) <> thisTag Then
-                        line += "/" & thisTag.ToString
-                    End If
-                Next thisTag
-
-                roomString += line & Environment.NewLine
-            End If
-        Next instance
-
-        Return roomString
-    End Function
 
 
 
@@ -719,7 +645,7 @@ Public Class FrmLevelEditor
             'checks that the name is unique
             Dim nameUnique As Boolean = True
             For Each entity As PRE2.Entity In If(templateMode, thisLevel.templates, SelectedRoom.instances)
-                If newName = entity.name Then
+                If newName = entity.name AndAlso entity <> If(templateMode, thisLevel.templates(lstTemplates.SelectedIndex), SelectedRoom.instances(lstInstances.SelectedIndex)) Then
                     nameUnique = False
                     Exit For
                 End If
