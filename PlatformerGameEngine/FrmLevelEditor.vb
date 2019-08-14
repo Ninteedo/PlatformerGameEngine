@@ -222,7 +222,7 @@ Public Class FrmLevelEditor
                     For index As Integer = 0 To UBound(templateNames)
                         templateNames(index) = thisLevel.templates(index).name
                     Next index
-                    newTemplate.name = MakeNameUnique(newTemplate.name, templateNames, True)
+                    newTemplate.name = FrmGame.MakeNameUnique(newTemplate.name, templateNames, True)
                 End If
 
                 newTemplate.AddTag(New PRE2.Tag("fileName", {fileLocation.Remove(0, Len(renderer.entityFolderLocation))}))
@@ -322,7 +322,7 @@ Public Class FrmLevelEditor
                 instanceNames(index) = SelectedRoom.instances(index).name
             Next index
 
-            Dim newName As String = MakeNameUnique(newInstance.name, instanceNames, False)
+            Dim newName As String = FrmGame.MakeNameUnique(newInstance.name, instanceNames, False)
 
             newInstance.name = newName
 
@@ -479,6 +479,7 @@ Public Class FrmLevelEditor
     'tags
 
     Dim tagControls() As Control
+    Dim disableTagChangedEvent As Boolean = False
 
     Private Sub ControlInitialisation()
         tagControls = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
@@ -496,6 +497,8 @@ Public Class FrmLevelEditor
 
     Private Sub ShowEntityTags(ByVal ent As PRE2.Entity, isTemplate As Boolean)
         'changes the values displayed in the controls for tags to show values of the current entity
+
+        disableTagChangedEvent = True
 
         If IsNothing(ent) Then      'if no entity provided then uses an empty entity
             ent = New PRE2.Entity With {.name = "No Entity Selected"}       'this doesn't work as entities have some default properties
@@ -529,58 +532,92 @@ Public Class FrmLevelEditor
             Next thisTag
         End If
 
+        disableTagChangedEvent = False
     End Sub
 
-    Private Sub numTagLocX_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged
-        'x position of instance changed
+    Private Sub KeyTagChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged, numTagLocY.ValueChanged,
+        numTagLayer.ValueChanged, numTagScale.ValueChanged ', txtTagName.TextChanged
+        'updates the key tags (location, layer, scale) of selected entity using the key tags controls' values
 
-        If lstInstances.SelectedIndex > -1 Then
-            SelectedRoom.instances(lstInstances.SelectedIndex).location = New PointF(numTagLocX.Value, SelectedRoom.instances(lstInstances.SelectedIndex).location.Y)
-            RenderCurrentRoom()
-            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+        If Not disableTagChangedEvent Then
+            'selects the entity to update, currently selected instance or template
+            Dim entityToUpdate As PRE2.Entity
+            If lstInstances.SelectedIndex > -1 Then
+                entityToUpdate = SelectedRoom.instances(lstInstances.SelectedIndex)
+            ElseIf lstTemplates.SelectedIndex > -1 Then
+                entityToUpdate = thisLevel.templates(lstTemplates.SelectedIndex)
+            Else
+                Exit Sub
+            End If
+
+            'entityToUpdate.name = txtTagName.Text
+            entityToUpdate.location = New PointF(numTagLocX.Value, numTagLocY.Value)
+            entityToUpdate.layer = numTagLayer.Value
+            entityToUpdate.scale = numTagScale.Value
+
+            If lstInstances.SelectedIndex > -1 Then
+                thisLevel.rooms(lstRooms.SelectedIndex).instances(lstInstances.SelectedIndex) = entityToUpdate
+            Else
+                thisLevel.templates(lstTemplates.SelectedIndex) = entityToUpdate
+            End If
+
+            ShowEntityTags(entityToUpdate, lstTemplates.SelectedIndex > -1)
         End If
     End Sub
 
-    Private Sub numTagLocY_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocY.ValueChanged
-        'y position of instance changed
+    'Private Sub numTagLocX_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged
+    '    'x position of instance changed
 
-        If lstInstances.SelectedIndex > -1 Then
-            SelectedRoom.instances(lstInstances.SelectedIndex).location = New PointF(SelectedRoom.instances(lstInstances.SelectedIndex).location.X, numTagLocY.Value)
-            RenderCurrentRoom()
-            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-        End If
-    End Sub
+    '    If lstInstances.SelectedIndex > -1 Then
+    '        SelectedRoom.instances(lstInstances.SelectedIndex).location = New PointF(numTagLocX.Value, SelectedRoom.instances(lstInstances.SelectedIndex).location.Y)
+    '        RenderCurrentRoom()
+    '        ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+    '    End If
+    'End Sub
 
-    Private Sub numTagLayer_ValueChanged(sender As Object, e As EventArgs) Handles numTagLayer.ValueChanged
-        'z position (layer) of instance changed
+    'Private Sub numTagLocY_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocY.ValueChanged
+    '    'y position of instance changed
 
-        If lstInstances.SelectedIndex > -1 Then
-            SelectedRoom.instances(lstInstances.SelectedIndex).layer = numTagLayer.Value
-            RenderCurrentRoom()
-            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-        End If
-    End Sub
+    '    If lstInstances.SelectedIndex > -1 Then
+    '        SelectedRoom.instances(lstInstances.SelectedIndex).location = New PointF(SelectedRoom.instances(lstInstances.SelectedIndex).location.X, numTagLocY.Value)
+    '        RenderCurrentRoom()
+    '        ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+    '    End If
+    'End Sub
 
-    Private Sub numTagScale_ValueChanged(sender As Object, e As EventArgs) Handles numTagScale.ValueChanged
-        'scale of instance changed
+    'Private Sub numTagLayer_ValueChanged(sender As Object, e As EventArgs) Handles numTagLayer.ValueChanged
+    '    'z position (layer) of instance changed
 
-        If lstInstances.SelectedIndex > -1 Then
-            SelectedRoom.instances(lstInstances.SelectedIndex).scale = numTagScale.Value
-            RenderCurrentRoom()
-            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-        End If
-    End Sub
+    '    If lstInstances.SelectedIndex > -1 Then
+    '        SelectedRoom.instances(lstInstances.SelectedIndex).layer = numTagLayer.Value
+    '        RenderCurrentRoom()
+    '        ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+    '    End If
+    'End Sub
+
+    'Private Sub numTagScale_ValueChanged(sender As Object, e As EventArgs) Handles numTagScale.ValueChanged
+    '    'scale of instance changed
+
+    '    If lstInstances.SelectedIndex > -1 Then
+    '        SelectedRoom.instances(lstInstances.SelectedIndex).scale = numTagScale.Value
+    '        RenderCurrentRoom()
+    '        ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+    '    End If
+    'End Sub
 
     Private Sub btnTagAdd_Click(sender As Object, e As EventArgs) Handles btnTagAdd.Click
         'adds a tag created by the user using FrmTagMaker
 
-        If lstInstances.SelectedIndex > -1 Then
-            Dim tagMaker As New FrmTagMaker
-            tagMaker.ShowDialog()
+        Dim tagMaker As New FrmTagMaker
+        tagMaker.ShowDialog()
 
-            If tagMaker.userFinished = True Then
+        If tagMaker.userFinished = True Then
+            If lstInstances.SelectedIndex > -1 Then
                 SelectedRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.createdTag)
                 ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+            ElseIf lstTemplates.SelectedIndex > -1 Then
+                thisLevel.templates(lstTemplates.SelectedIndex).AddTag(tagMaker.createdTag)
+                ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
             End If
         End If
     End Sub
@@ -588,13 +625,16 @@ Public Class FrmLevelEditor
     Private Sub btnTagEdit_Click(sender As Object, e As EventArgs) Handles btnTagEdit.Click
         'allows the user to edit a tag using FrmTagMaker
 
-        If lstInstances.SelectedIndex > -1 And lstTags.SelectedIndex > -1 Then
-            Dim tagMaker As New FrmTagMaker(SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
-            tagMaker.ShowDialog()
+        Dim tagMaker As New FrmTagMaker(SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
+        tagMaker.ShowDialog()
 
-            If tagMaker.userFinished = True Then
+        If tagMaker.userFinished = True Then
+            If lstInstances.SelectedIndex > -1 Then
                 SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
                 ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+            ElseIf lstTemplates.SelectedIndex > -1 Then
+                thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
+                ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
             End If
         End If
     End Sub
@@ -602,20 +642,31 @@ Public Class FrmLevelEditor
     Private Sub btnTagRemove_Click(sender As Object, e As EventArgs) Handles btnTagRemove.Click
         'removes the selected tag
 
-        If lstInstances.SelectedIndex > -1 And lstTags.SelectedIndex > -1 Then
-            Dim newTags() As PRE2.Tag = SelectedRoom.instances(lstInstances.SelectedIndex).tags
-            For index As Integer = lstTags.SelectedIndex To UBound(newTags) - 1
-                newTags(index) = newTags(index + 1)
-            Next
+        Dim newTags() As PRE2.Tag
+        If lstInstances.SelectedIndex > -1 Then
+            newTags = SelectedRoom.instances(lstInstances.SelectedIndex).tags
+        ElseIf lstTemplates.SelectedIndex > -1 Then
+            newTags = thisLevel.templates(lstTemplates.SelectedIndex).tags
+        Else
+            Exit Sub
+        End If
 
-            If UBound(newTags) > 0 Then
-                ReDim Preserve newTags(UBound(newTags) - 1)
-            Else
-                newTags = Nothing
-            End If
+        For index As Integer = lstTags.SelectedIndex To UBound(newTags) - 1
+            newTags(index) = newTags(index + 1)
+        Next
 
+        If UBound(newTags) > 0 Then
+            ReDim Preserve newTags(UBound(newTags) - 1)
+        Else
+            newTags = Nothing
+        End If
+
+        If lstInstances.SelectedIndex > -1 Then
             SelectedRoom.instances(lstInstances.SelectedIndex).tags = newTags
             ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+        ElseIf lstTemplates.SelectedIndex > -1 Then
+            thisLevel.templates(lstTemplates.SelectedIndex).tags = newTags
+            ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
         End If
     End Sub
 
@@ -624,19 +675,19 @@ Public Class FrmLevelEditor
 
         Dim templateMode As Boolean
         'Dim index As Integer
-        Dim oldName As String
         Dim newName As String = txtTagName.Text
-
+        Dim entityToUpdate As PRE2.Entity
         If lstTemplates.SelectedIndex > -1 Then
             templateMode = True
-            oldName = thisLevel.templates(lstTemplates.SelectedIndex).name
+            entityToUpdate = thisLevel.templates(lstTemplates.SelectedIndex)
         ElseIf lstInstances.SelectedIndex > -1 Then
             templateMode = False
-            oldName = SelectedRoom.instances(lstInstances.SelectedIndex).name
+            entityToUpdate = SelectedRoom.instances(lstInstances.SelectedIndex)
         Else
             'no instance or template is selected
             Exit Sub
         End If
+        Dim oldName As String = entityToUpdate.name
 
 
         If newName = "" Then        'resets the name if nothing was entered
@@ -645,53 +696,31 @@ Public Class FrmLevelEditor
             'checks that the name is unique
             Dim nameUnique As Boolean = True
             For Each entity As PRE2.Entity In If(templateMode, thisLevel.templates, SelectedRoom.instances)
-                If newName = entity.name AndAlso entity <> If(templateMode, thisLevel.templates(lstTemplates.SelectedIndex), SelectedRoom.instances(lstInstances.SelectedIndex)) Then
+                If newName = entity.name AndAlso entity <> entityToUpdate Then
                     nameUnique = False
                     Exit For
                 End If
             Next entity
 
-            If nameUnique = True Then
-                If templateMode Then
-                    thisLevel.templates(lstTemplates.SelectedIndex).name = newName
-                    RefreshTemplatesList()
-                Else
-                    SelectedRoom.instances(lstInstances.SelectedIndex).name = newName
-                    RefreshInstancesList()
-                End If
+            If nameUnique Then
+                entityToUpdate.name = newName
             Else
                 PRE2.DisplayError("This name is already being used")
                 txtTagName.Text = oldName
             End If
-            ShowEntityTags(If(templateMode, thisLevel.templates(lstTemplates.SelectedIndex), SelectedRoom.instances(lstInstances.SelectedIndex)), False)
+            ShowEntityTags(entityToUpdate, templateMode)
+
+            If templateMode Then
+                thisLevel.templates(lstTemplates.SelectedIndex) = entityToUpdate
+            Else
+                thisLevel.rooms(lstRooms.SelectedIndex).instances(lstInstances.SelectedIndex) = entityToUpdate
+            End If
+            RefreshTemplatesList()
+            RefreshInstancesList()
         End If
     End Sub
 
-    Private Function MakeNameUnique(name As String, otherNames() As String, removeUnnecessary As Boolean) As String
-        'returns a name with a number appended to it so the name is unique
 
-        Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
-        Dim nameUnique As Boolean = False
-        Dim generatedName As String = name
-
-        Do
-            copyNumber += 1
-            If Not removeUnnecessary Or copyNumber > 1 Then
-                generatedName = name & "-" & Trim(Str(copyNumber))
-            End If
-            nameUnique = True
-
-            'checks if name is unique
-            For Each otherName As String In otherNames
-                If otherName = generatedName Then
-                    nameUnique = False
-                    Exit For
-                End If
-            Next
-        Loop Until nameUnique = True
-
-        Return generatedName
-    End Function
 
     'parameters
 
@@ -746,7 +775,7 @@ Public Class FrmLevelEditor
         RefreshParameterList()
     End Sub
 
-    Private Sub RemoveParameter(paramIndex As Integer, parameterList() As PRE2.Tag)
+    Private Function RemoveParameter(paramIndex As Integer, ByRef parameterList() As PRE2.Tag) As PRE2.Tag()
         'removes the parameter at the given index
 
         For index As Integer = paramIndex To UBound(parameterList) - 1
@@ -760,7 +789,7 @@ Public Class FrmLevelEditor
         End If
 
         RefreshParameterList()
-    End Sub
+    End Function
 
     'level params
 
