@@ -562,6 +562,8 @@ Public Class FrmLevelEditor
             End If
 
             ShowEntityTags(entityToUpdate, lstTemplates.SelectedIndex > -1)
+
+            RenderCurrentRoom()
         End If
     End Sub
 
@@ -625,7 +627,14 @@ Public Class FrmLevelEditor
     Private Sub btnTagEdit_Click(sender As Object, e As EventArgs) Handles btnTagEdit.Click
         'allows the user to edit a tag using FrmTagMaker
 
-        Dim tagMaker As New FrmTagMaker(SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
+        Dim tagMaker As FrmTagMaker
+        If lstInstances.SelectedIndex > -1 Then
+            tagMaker = New FrmTagMaker(SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
+        ElseIf lstTemplates.SelectedIndex > -1 Then
+            tagMaker = New FrmTagMaker(thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex))
+        Else
+            Exit Sub
+        End If
         tagMaker.ShowDialog()
 
         If tagMaker.userFinished = True Then

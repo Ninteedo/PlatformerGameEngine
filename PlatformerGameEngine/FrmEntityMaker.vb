@@ -257,20 +257,22 @@ Public Class FrmEntityMaker
     Private Sub btnFrameAddSprite_Click(sender As Object, e As EventArgs) Handles btnFrameAddSprite.Click
         'adds the selected sprite and asks the user for the offset
 
-        Dim spriteIndex As Integer = lstSprites.SelectedIndex
-        Dim frameIndex As Integer = lstFrames.SelectedIndex
-        Dim offset As Point
-        Dim userInput As String = InputBox("Enter offset for current sprite e.g. (10,5)", "Enter Offset", "0,0")
-        Dim inputSplit() As String = userInput.Split(",")
+        If lstFrames.SelectedIndex > -1 Then
+            Dim spriteIndex As Integer = lstSprites.SelectedIndex
+            Dim frameIndex As Integer = lstFrames.SelectedIndex
+            Dim offset As Point
+            Dim userInput As String = InputBox("Enter offset for current sprite e.g. (10,5)", "Enter Offset", "0,0")
+            Dim inputSplit() As String = userInput.Split(",")
 
-        If userInput <> "" Then
-            If inputSplit.Length = 2 AndAlso IsNumeric(Trim(inputSplit(0))) = True And IsNumeric(Trim(inputSplit(1))) = True Then
-                offset = New Point(Int(Trim(inputSplit(0))), Int(Trim(inputSplit(1))))
-                ent.frames(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
+            If userInput <> "" Then
+                If inputSplit.Length = 2 AndAlso IsNumeric(Trim(inputSplit(0))) = True And IsNumeric(Trim(inputSplit(1))) = True Then
+                    offset = New Point(Int(Trim(inputSplit(0))), Int(Trim(inputSplit(1))))
+                    ent.frames(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
 
-                DrawFramePreview(ent.frames(frameIndex))
-            Else
-                PRE2.DisplayError("Offsets need to be provided in the form x,y e.g. 10,5")
+                    DrawFramePreview(ent.frames(frameIndex))
+                Else
+                    PRE2.DisplayError("Offsets need to be provided in the form x,y e.g. 10,5")
+                End If
             End If
         End If
     End Sub

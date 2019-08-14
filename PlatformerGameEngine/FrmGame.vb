@@ -24,6 +24,8 @@ Public Class FrmGame
         'renderer = New PRE2 With {.panelCanvasGameArea = New PaintEventArgs(pnlGame.CreateGraphics, New Rectangle(New Point(0, 0), pnlGame.Size))}
         renderer = New PRE2 With {.renderPanel = pnlGame}
         LoadGame()
+
+        AddHandler frameTimer.Tick, AddressOf GameTick
     End Sub
 
 
@@ -323,6 +325,8 @@ Public Class FrmGame
                 If IsNothing(currentFile) = False Then
                     ReDim Preserve levelFiles(index)
                     levelFiles(index) = currentFile
+
+                    index += 1
                 Else
                     finished = True
                 End If
@@ -338,11 +342,11 @@ Public Class FrmGame
     Public Sub PlayLevel(levelNumber As UInteger)
         'loads the level into memory and starts playing it
 
-        If IsNothing(levelFiles(levelNumber)) = True Then
+        If IsNothing(levelFiles(levelNumber - 1)) = True Then
             PRE2.DisplayError("No known level number " & levelNumber)
         Else
             currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer, levelDelimiters, roomDelimiters)
-            currentRoom = currentLevel.RoomWithCoords(New Point(0, 0))      'sets the starting room to the one with coords 0,0
+            currentRoom = currentLevel.rooms(0) 'currentLevel.RoomWithCoords(New Point(0, 0))      'sets the starting room to the one with coords 0,0
             Const frameRate As Single = 60
 
             frameTimer.Interval = 1000 / frameRate
@@ -410,7 +414,7 @@ Public Class FrmGame
                         templateNames(index) = thisLevel.templates(index).name
                     Next index
                 End If
-                newEntity.name = MakeNameUnique(newEntity.name, templateNames, False)
+                newEntity.name = MakeNameUnique(newEntity.name, templateNames, True)
 
                 If IsNothing(thisLevel.templates) = True Then
                     ReDim thisLevel.templates(0)
@@ -644,8 +648,8 @@ Public Class FrmGame
     Private Sub GameTick()
         Dim entitiesToRender() As PRE2.Entity
         entitiesToRender = currentRoom.instances
-        ReDim Preserve entitiesToRender(UBound(entitiesToRender) + 1)
-        entitiesToRender(UBound(entitiesToRender)) = playerEntity
+        'ReDim Preserve entitiesToRender(UBound(entitiesToRender) + 1)
+        'entitiesToRender(UBound(entitiesToRender)) = playerEntity
 
         renderer.DoGameRender(entitiesToRender)
     End Sub

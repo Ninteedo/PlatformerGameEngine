@@ -308,7 +308,7 @@ Partial Class FrmEntityMaker
         Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblControlLayout.Size = New System.Drawing.Size(829, 741)
+        Me.tblControlLayout.Size = New System.Drawing.Size(725, 694)
         Me.tblControlLayout.TabIndex = 20
         '
         'flwNameEdit

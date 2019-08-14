@@ -212,7 +212,10 @@ Public Class PanelRenderEngine2
         Property location As PointF
             Get
                 If HasTag("location") Then
-                    Return FindTag("location").args(0)
+                    Dim textForm As String = FindTag("location").args(0)
+                    Dim result As New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
+                                            Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
+                    Return result
                 Else
                     Return New PointF(0, 0)
                 End If
@@ -336,6 +339,9 @@ Public Class PanelRenderEngine2
         'Dim dimensions As Size
         Dim sprites() As Sprite
         Dim offsets() As Point
+
+        Dim bitmapVersion As Bitmap
+
         'Dim fileLocation As String
 
         Public Sub New(frameString As String, spriteFolderLocation As String)
@@ -358,6 +364,8 @@ Public Class PanelRenderEngine2
                     DisplayError("Coordinates provided for an offset (" & splits(index).Split("/")(1) & ") are not numeric")
                 End If
             Next
+
+            bitmapVersion = ToBitmap()
         End Sub
 
         Public Function ToColourArray() As Color(,)
@@ -385,6 +393,21 @@ Public Class PanelRenderEngine2
             Next index
 
             Return pixels
+        End Function
+
+        Public Function ToBitmap() As Bitmap
+            Dim pixels(,) As Color = ToColourArray()
+
+            Dim result As New Bitmap(pixels.GetUpperBound(0) + 1, pixels.GetUpperBound(1) + 1)
+            result.MakeTransparent()
+
+            For pixelY As Integer = 0 To pixels.GetUpperBound(1)
+                For pixelX As Integer = 0 To pixels.GetUpperBound(0)
+                    result.SetPixel(pixelX, pixelY, pixels(pixelX, pixelY))
+                Next pixelX
+            Next pixelY
+
+            Return result
         End Function
 
         Public Function Dimensions() As Size
@@ -673,8 +696,10 @@ Public Class PanelRenderEngine2
 
         Dim canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
         canvas.Graphics.Clear(Color.White)
+        canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
 
         Const rotationEnabled As Boolean = False        'used for when rotation isn't working properly
+        Const bitmapMode As Boolean = True
 
         'render layers
         Dim context As BufferedGraphicsContext = BufferedGraphicsManager.Current
@@ -721,22 +746,37 @@ Public Class PanelRenderEngine2
                     Dim rotation As Single = If(rotationEnabled, currentEntity.rotation, 0)
 
                     'draws the pixels of the entity to the correct layer
-                    For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
-                        For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
-                            Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
-                            Dim scale As SizeF = New SizeF(
-                                currentEntity.scale * RenderScale.Width,
-                                currentEntity.scale * RenderScale.Height)
+                    If bitmapMode Then
+                        If IsNothing(renderFrame.bitmapVersion) Then
+                            renderFrame.bitmapVersion = renderFrame.ToBitmap
+                        End If
 
-                            'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
-                            'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
-                            Dim pixelCentre As New PointF(
-                            (currentEntity.location.X * RenderScale.Width) + (pixelX * scale.Width * 2 / 3),
-                            (currentEntity.location.Y * RenderScale.Height) + (pixelY * scale.Height * 2 / 3))
+                        Dim scale As SizeF = New SizeF(
+                                    currentEntity.scale * RenderScale.Width,
+                                    currentEntity.scale * RenderScale.Height)
+                        Dim renderArea As New RectangleF(New PointF(currentEntity.location.X * RenderScale.Width,
+                                                                    currentEntity.location.Y * RenderScale.Height), scale)
+                        Dim imageToRender As Image = renderFrame.bitmapVersion
 
-                            DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
-                        Next pixelX
-                    Next pixelY
+                        canvas.Graphics.DrawImage(imageToRender, renderArea)
+                    Else
+                        For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
+                            For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
+                                Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
+                                Dim scale As SizeF = New SizeF(
+                                    currentEntity.scale * RenderScale.Width,
+                                    currentEntity.scale * RenderScale.Height)
+
+                                'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
+                                'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
+                                Dim pixelCentre As New PointF(
+                                (currentEntity.location.X * RenderScale.Width) + ((pixelX - currentEntity.rotationAnchor.X) * scale.Width * 2 / 3),
+                                (currentEntity.location.Y * RenderScale.Height) + ((pixelY - currentEntity.rotationAnchor.Y) * scale.Height * 2 / 3))
+
+                                DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
+                            Next pixelX
+                        Next pixelY
+                    End If
                 End If
             Next entityIndex
 
