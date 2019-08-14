@@ -31,15 +31,14 @@ Public Class FrmGame
         'a room is a collection of entities which are all rendered at once
 
         Dim instances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
-        Dim name As String
+        'Dim name As String
 
         Dim parameters() As PRE2.Tag
 
-        Public Overloads Function ToString(levelOfRoom As Level) As String
+        Public Overloads Function ToString(levelOfRoom As Level, roomDelimiters() As String) As String
             'returns a string to save the given room
 
             Dim roomString As String = ""
-            Dim delimiters() As String = {"|", "/", ";"}
 
             'adds an addParam line for each instance
             If Not IsNothing(parameters) Then
@@ -53,7 +52,7 @@ Public Class FrmGame
                     Next globalParam
 
                     If Not levelHasParam Then
-                        roomString += "addParam" & delimiters(0) & param.ToString & delimiters(2)
+                        roomString += "addParam" & roomDelimiters(0) & param.ToString & roomDelimiters(2)
                     End If
                 Next param
             End If
@@ -74,17 +73,17 @@ Public Class FrmGame
                     If IsNothing(templateOfInstance) Then
                         PRE2.DisplayError("Could not find a template called " & templateName & " for instance " & instance.name)
                     Else
-                        'Dim line As String = "addEnt" & delimiters(0) & templateName & delimiters(1) & instance.name        'this looks wrong
-                        Dim line As String = "addEnt" & delimiters(0)
+                        'Dim line As String = "addEnt" & roomDelimiters(0) & templateName & roomDelimiters(1) & instance.name        'this looks wrong
+                        Dim line As String = "addEnt" & roomDelimiters(0)
 
                         'adds each added tag to the line, which is not identical to one which the template has
                         For Each thisTag As PRE2.Tag In instance.tags
                             If Not IsNothing(templateOfInstance.FindTag(thisTag.name)) AndAlso templateOfInstance.FindTag(thisTag.name) <> thisTag Then
-                                line += delimiters(1) & thisTag.ToString
+                                line += roomDelimiters(1) & thisTag.ToString
                             End If
                         Next thisTag
 
-                        roomString += line & delimiters(2)
+                        roomString += line & roomDelimiters(2)
                     End If
                 Next instance
             End If
@@ -135,18 +134,48 @@ Public Class FrmGame
 
             Dim paramIndex As Integer = 0
 
-            Do While paramIndex <= UBound(parameters)
-                If parameters(paramIndex).name = paramName Then
-                    For removeIndex As Integer = paramIndex To UBound(parameters) - 1
-                        parameters(removeIndex) = parameters(removeIndex + 1)
-                    Next removeIndex
+            If Not IsNothing(parameters) Then
+                Do While paramIndex <= UBound(parameters)
+                    If parameters(paramIndex).name = paramName Then
+                        For removeIndex As Integer = paramIndex To UBound(parameters) - 1
+                            parameters(removeIndex) = parameters(removeIndex + 1)
+                        Next removeIndex
 
-                    ReDim Preserve parameters(UBound(parameters) - 1)
-                Else
-                    paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
-                End If
-            Loop
+                        ReDim Preserve parameters(UBound(parameters) - 1)
+                    Else
+                        paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
+                    End If
+                Loop
+            End If
         End Sub
+
+        Public Property name As String
+            Get
+                If HasParam("name") Then
+                    Return FindParam("name").args(0)
+                Else
+                    Return "UnnamedRoom"
+                End If
+            End Get
+            Set(value As String)
+                RemoveParam("name")
+                AddParam(New PRE2.Tag("name", {value}))
+            End Set
+        End Property
+
+        Public Property coords As Point     'need to implement a proper coords system
+            Get
+                If HasParam("coords") Then
+                    Return FindParam("coords").args(0)
+                Else
+                    Return New Point(0, 0)
+                End If
+            End Get
+            Set(value As Point)
+                RemoveParam("coords")
+                AddParam(New PRE2.Tag("coords", {value}))
+            End Set
+        End Property
     End Structure
 
     Public Structure Level
@@ -159,16 +188,15 @@ Public Class FrmGame
         Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
         Dim currentRoomCoords As Point          'stores the coordinates of which room is being used currently
 
-        Public Overrides Function ToString() As String
+        Public Overloads Function ToString(levelDelimiters() As String, roomDelimiters() As String) As String
             'creates a string of a level so it can be saved and loaded
 
             Dim levelString As String = ""
-            Dim delimiters() As String = {"||", "/", vbCrLf}
 
             'adds an addParam line for each parameter
             If Not IsNothing(globalParameters) Then
                 For Each param As PRE2.Tag In globalParameters
-                    levelString += "addParam" & delimiters(0) & param.ToString & delimiters(2)
+                    levelString += "addParam" & levelDelimiters(0) & param.ToString & levelDelimiters(2)
                 Next param
             End If
 
@@ -176,14 +204,14 @@ Public Class FrmGame
             If Not IsNothing(templates) Then
                 For Each template As PRE2.Entity In templates
                     If template.HasTag("fileName") = True Then
-                        Dim line As String = "loadEnt" & delimiters(0) & template.FindTag("fileName").args(0) & delimiters(1) & template.name
+                        Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").args(0) & levelDelimiters(1) & template.name
 
                         'adds each tag
                         For Each thisTag As PRE2.Tag In template.tags
-                            line += delimiters(1) & thisTag.ToString
+                            line += levelDelimiters(1) & thisTag.ToString
                         Next
 
-                        levelString += line & delimiters(2)
+                        levelString += line & levelDelimiters(2)
                     Else
                         PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
                     End If
@@ -193,7 +221,7 @@ Public Class FrmGame
             'adds a loadRoom line for each room
             If Not IsNothing(rooms) Then
                 For Each currentRoom As FrmGame.Room In rooms
-                    levelString += "loadRoom" & delimiters(0) & currentRoom.ToString(Me) & delimiters(2)
+                    levelString += "loadRoom" & levelDelimiters(0) & currentRoom.ToString(Me, roomDelimiters) & levelDelimiters(2)
                 Next currentRoom
             End If
             'levelString = levelString.Remove(Len(levelString) - 2, 2)
@@ -254,6 +282,9 @@ Public Class FrmGame
     Public loaderFileLocation As String
     Public levelFiles(0) As String
 
+    Public levelDelimiters() As String = {"||", "//", vbCrLf}
+    Public roomDelimiters() As String = {"|", "/", ";"}
+
     Private Sub LoadGame()      'this loads the game
         If IO.File.Exists(loaderFileLocation) = True Then
             Dim loaderFileText As String = PRE2.ReadFile(loaderFileLocation)
@@ -291,7 +322,7 @@ Public Class FrmGame
         If IsNothing(levelFiles(levelNumber)) = True Then
             PRE2.DisplayError("No known level number " & levelNumber)
         Else
-            currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer)
+            currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer, levelDelimiters, roomDelimiters)
             currentRoom = currentLevel.RoomWithCoords(New Point(0, 0))      'sets the starting room to the one with coords 0,0
             Const frameRate As Single = 60
 
@@ -300,14 +331,15 @@ Public Class FrmGame
         End If
     End Sub
 
-    Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2) As Level
+    Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2,
+                                         levelDelimiters() As String, roomDelimiters() As String) As Level
         If IO.File.Exists(fileLocation) = True Then
             Dim levelString As String = PRE2.ReadFile(fileLocation)
             Dim thisLevel As Level = New Level
-            Dim lines() As String = levelString.Trim.Split(Environment.NewLine)
+            Dim lines() As String = Strings.Split(levelString.Trim, levelDelimiters(2))
 
             For lineIndex As Integer = 0 To UBound(lines)
-                ParseLevelLine(lines(lineIndex), thisLevel, renderEngine)
+                ParseLevelLine(lines(lineIndex), thisLevel, renderEngine, levelDelimiters, roomDelimiters)
             Next lineIndex
 
             Return thisLevel
@@ -320,22 +352,20 @@ Public Class FrmGame
 
 
 
-    Public Shared Sub ParseLevelLine(line As String, ByRef thisLevel As Level, renderEngine As PRE2)
+    Public Shared Sub ParseLevelLine(line As String, ByRef thisLevel As Level, renderEngine As PRE2,
+                                     levelDelimiters() As String, roomDelimiters() As String)
         'reads a line and loads/adds to/changes the level accordingly
-
-        Dim levelDelimiters() As String = {"||", "/", vbCrLf}
-        Dim roomDelimiters() As String = {"|", ";"}
 
         Try     'maybe clean this up
             Dim lineTypeTest As String = line.Split(levelDelimiters(0))(0)
-            Dim attributesTest() As String = line.Split(levelDelimiters(0))(1).Split("/")
+            Dim attributesTest() As String = line.Split(levelDelimiters(0))(1).Split(levelDelimiters(1))
         Catch ex As IndexOutOfRangeException        'failsafe for bad lines
             PRE2.DisplayError("Could not parse line: " & line)
             Exit Sub
         End Try
 
-        Dim lineType As String = line.Split(":")(0)          'line type decides what the current line does, eg loadEnt
-        Dim attributes() As String = line.Split(":")(1).Split("/")     'the specifics of what the line does, the order matters, delimited by /
+        Dim lineType As String = line.Split(levelDelimiters(0))(0)          'line type decides what the current line does, eg loadEnt
+        Dim attributes() As String = Strings.Split(Strings.Split(line, levelDelimiters(0))(1), levelDelimiters(1))   'the specifics of what the line does, the order matters
 
         'removes any whitespace in the attributes
         If Not IsNothing(attributes) Then
@@ -361,15 +391,15 @@ Public Class FrmGame
                 End If
                 thisLevel.templates(UBound(thisLevel.templates)) = newEntity
 
-            Case "loadroom"     'loads a room from a file (room name, room string)
+            Case "loadroom"     'loads a room from a file (room name, room string) or (room string)?
                 Dim newRoom As New Room
-                newRoom = LoadRoom(attributes(2), thisLevel) 'LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel, renderEngine.roomFolderLocation)
-                Dim coords As Point
-                If UBound(attributes) >= 1 Then
-                    coords = New Point(Int(attributes(1).Split(",")(0)), Int(attributes(1).Split(",")(1)))
-                Else        'safeguard for if room has no coords
-                    coords = New Point
-                End If
+                newRoom = LoadRoom(attributes(0).Trim, thisLevel, roomDelimiters) 'LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel, renderEngine.roomFolderLocation)
+                'Dim coords As Point
+                'If UBound(attributes) >= 1 Then
+                '    coords = New Point(Int(attributes(1).Split(levelDelimiters(2))(0)), Int(attributes(1).Split(levelDelimiters(2))(1)))
+                'Else        'safeguard for if room has no coords
+                '    coords = New Point
+                'End If
 
                 If IsNothing(thisLevel.rooms) = True Then
                     ReDim thisLevel.rooms(0)
@@ -380,7 +410,7 @@ Public Class FrmGame
                 End If
 
                 thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
-                thisLevel.roomCoords(UBound(thisLevel.rooms)) = coords
+                'thisLevel.roomCoords(UBound(thisLevel.rooms)) = coords
 
             Case "addparam"     'adds a parameter and deletes any duplicates (tag)
                 Dim newTag As New PRE2.Tag(attributes(0))
@@ -413,13 +443,15 @@ Public Class FrmGame
     '    End If
     'End Function
 
-    Public Shared Function LoadRoom(roomString As String, ByRef thisLevel As Level) As Room
+    Public Shared Function LoadRoom(roomString As String, ByRef thisLevel As Level, roomDelimiters() As String) As Room
         If Not IsNothing(thisLevel) Then
             Dim newRoom As New Room With {.parameters = thisLevel.globalParameters}
-            Dim lines() As String = roomString.Trim.Split(Environment.NewLine)
+            Dim lines() As String = roomString.Trim.Split(roomDelimiters(2))
 
             For Each line As String In lines
-                ParseRoomLine(line, newRoom, thisLevel)
+                If Len(line) > 0 Then
+                    ParseRoomLine(line, newRoom, thisLevel, roomDelimiters)
+                End If
             Next line
 
             Return newRoom
@@ -429,10 +461,10 @@ Public Class FrmGame
         End If
     End Function
 
-    Public Shared Sub ParseRoomLine(line As String, ByRef thisRoom As Room, ByRef thisLevel As Level)
+    Public Shared Sub ParseRoomLine(line As String, ByRef thisRoom As Room, ByRef thisLevel As Level, roomDelimiters() As String)
 
-        Dim lineType As String = line.Split(":")(0)          'line type decides what the current line does, eg loadEnt
-        Dim attributes() As String = line.Split(":")(1).Split("/")     'the specifics of what the line does, the order matters, delimited by /
+        Dim lineType As String = line.Split(roomDelimiters(0))(0)          'line type decides what the current line does, eg loadEnt
+        Dim attributes() As String = line.Split(roomDelimiters(0))(1).Split(roomDelimiters(1))     'the specifics of what the line does, the order matters
 
         'removes any whitespace from attributes
         If Not IsNothing(attributes) Then
@@ -543,24 +575,13 @@ Public Class FrmGame
     Public Shared Function LoadEntity(fileLocation As String, renderEngine As PRE2) As PRE2.Entity
         If IO.File.Exists(fileLocation) = True Then
             Dim fileText As String = PRE2.ReadFile(fileLocation)
-
-            Dim result As PRE2.Entity = EntityStringHandler.ReadEntityString(fileText, renderEngine)
-
-            Return result
+            Return EntityStringHandler.ReadEntityString(fileText, renderEngine)
         Else
             PRE2.DisplayError("Couldn't find entity file " & fileLocation)
         End If
 
         Return Nothing
     End Function
-
-    Private Sub LoadSprite(fileLocation As String)
-        If IO.File.Exists(fileLocation) = True Then
-            Dim fileText As String = PRE2.ReadFile(fileLocation)
-
-            'this is not finished, might be replaced by PRE2
-        End If
-    End Sub
 
 
     'render control

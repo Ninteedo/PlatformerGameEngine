@@ -74,7 +74,7 @@ Public Class FrmLevelEditor
 
         If IO.File.Exists(fileLocation) Then
             levelSaveLocation = fileLocation
-            thisLevel = FrmGame.LoadLevelFile(levelSaveLocation, renderer)
+            thisLevel = FrmGame.LoadLevelFile(levelSaveLocation, renderer, FrmGame.levelDelimiters, FrmGame.roomDelimiters)
 
             RefreshRoomsList()
             RefreshInstancesList()
@@ -88,7 +88,7 @@ Public Class FrmLevelEditor
     Private Sub SaveLevel(levelToSave As FrmGame.Level, saveLocation As String)
         'saves a level (not the rooms) to a file
 
-        PRE2.WriteFile(saveLocation, levelToSave.ToString)
+        PRE2.WriteFile(saveLocation, levelToSave.ToString(FrmGame.levelDelimiters, FrmGame.roomDelimiters))
     End Sub
 
     Private Sub btnLevelOpen_Click(sender As Object, e As EventArgs) Handles btnLevelOpen.Click
@@ -762,6 +762,8 @@ Public Class FrmLevelEditor
         RefreshParameterList()
     End Sub
 
+    'level params
+
     Private Sub lstLevelParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstLevelParams.SelectedIndexChanged
         'a different parameter is selected for editing/removing
 
@@ -807,6 +809,8 @@ Public Class FrmLevelEditor
             End If
         End If
     End Sub
+
+    'room params
 
     Private Sub lstRoomParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstRoomParams.SelectedIndexChanged
         'a different parameter is selected for editing/removing
@@ -941,6 +945,7 @@ Public Class FrmLevelEditor
             'lstTemplates.SelectedIndex = -1
             lstInstances.SelectedIndex = -1
             RefreshInstancesList()
+            RefreshParameterList()
             RenderCurrentRoom()
 
             btnLevelRoomRemove.Enabled = True
