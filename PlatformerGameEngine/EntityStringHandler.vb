@@ -99,7 +99,7 @@ Module EntityStringHandler
             successfulLoad = True       'so that what calls this function knows the load was successful
             Return result
         Catch ex As Exception
-            PRE2.DisplayError("An error occured whilst loading an entity")
+            PRE2.DisplayError("An error occured whilst loading an entity" & vbCrLf & ex.ToString)
             Return Nothing
         End Try
     End Function

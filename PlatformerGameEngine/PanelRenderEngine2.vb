@@ -583,11 +583,11 @@ Public Class PanelRenderEngine2
     Public Sub LoadSprite(fileLocation As String)
         'loads a sprite from a given location
 
-        If IO.File.Exists(fileLocation) = True Then
+        If IO.File.Exists(fileLocation) Then
             Dim newSprite As New Sprite(fileLocation)
             'Dim fileName As String = newSprite.fileName
 
-            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) = True Then      'checks that the same sprite isn't already loaded
+            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) Then      'checks that the same sprite isn't already loaded
                 If IsNothing(loadedSprites) = True Then
                     ReDim loadedSprites(0)
                 Else

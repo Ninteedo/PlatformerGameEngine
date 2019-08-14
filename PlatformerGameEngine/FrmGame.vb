@@ -44,16 +44,16 @@ Public Class FrmGame
             If Not IsNothing(parameters) Then
                 For Each param As PRE2.Tag In parameters
                     'only adds parameter if the level doesn't have an identical global parameter
-                    Dim levelHasParam As Boolean = False
-                    For Each globalParam As PRE2.Tag In levelOfRoom.globalParameters
-                        If param = globalParam Then
-                            levelHasParam = True
-                        End If
-                    Next globalParam
+                    'Dim levelHasParam As Boolean = False
+                    'For Each globalParam As PRE2.Tag In levelOfRoom.globalParameters
+                    '    If param = globalParam Then
+                    '        levelHasParam = True
+                    '    End If
+                    'Next globalParam
 
-                    If Not levelHasParam Then
-                        roomString += "addParam" & roomDelimiters(0) & param.ToString & roomDelimiters(2)
-                    End If
+                    'If Not levelHasParam Then
+                    roomString += "addParam" & roomDelimiters(0) & param.ToString & roomDelimiters(2)
+                    'End If
                 Next param
             End If
 
@@ -74,7 +74,7 @@ Public Class FrmGame
                         PRE2.DisplayError("Could not find a template called " & templateName & " for instance " & instance.name)
                     Else
                         'Dim line As String = "addEnt" & roomDelimiters(0) & templateName & roomDelimiters(1) & instance.name        'this looks wrong
-                        Dim line As String = "addEnt" & roomDelimiters(0)
+                        Dim line As String = "addEnt" & roomDelimiters(0) & templateName
 
                         'adds each added tag to the line, which is not identical to one which the template has
                         For Each thisTag As PRE2.Tag In instance.tags
@@ -231,6 +231,25 @@ Public Class FrmGame
         End Function
 
 
+        Public Function GetRoomParameters(roomIndex As Integer) As PRE2.Tag()
+            'returns the level's global parameters combined with the room's parameters
+
+            Dim result() As PRE2.Tag = rooms(roomIndex).parameters
+
+            For Each parameter As PRE2.Tag In globalParameters
+                If Not rooms(roomIndex).HasParam(parameter.name) Then
+                    If IsNothing(result) Then
+                        ReDim result(0)
+                    Else
+                        ReDim result(UBound(result) + 1)
+                    End If
+                    result(UBound(result)) = parameter
+                End If
+            Next
+
+            Return result
+        End Function
+
         Public Function RoomWithCoords(coords As Point) As Room
             'returns the room with the coords provided
 
@@ -384,6 +403,15 @@ Public Class FrmGame
                 newEntity = LoadEntity(renderEngine.entityFolderLocation & attributes(0), renderEngine)
                 'newEntity.AddTag(New PRE2.Tag("name", {attributes(1)}))
 
+                Dim templateNames() As String
+                If Not IsNothing(thisLevel.templates) Then
+                    ReDim templateNames(UBound(thisLevel.templates))
+                    For index As Integer = 0 To UBound(thisLevel.templates)
+                        templateNames(index) = thisLevel.templates(index).name
+                    Next index
+                End If
+                newEntity.name = MakeNameUnique(newEntity.name, templateNames, False)
+
                 If IsNothing(thisLevel.templates) = True Then
                     ReDim thisLevel.templates(0)
                 Else
@@ -445,7 +473,7 @@ Public Class FrmGame
 
     Public Shared Function LoadRoom(roomString As String, ByRef thisLevel As Level, roomDelimiters() As String) As Room
         If Not IsNothing(thisLevel) Then
-            Dim newRoom As New Room With {.parameters = thisLevel.globalParameters}
+            Dim newRoom As New Room 'With {.parameters = thisLevel.globalParameters}
             Dim lines() As String = roomString.Trim.Split(roomDelimiters(2))
 
             For Each line As String In lines
@@ -479,24 +507,14 @@ Public Class FrmGame
 
                 'modifies the name of the instance if necessary
                 'checks that there isn't another instance with the same name as the new instance
-                Dim newInstanceName As String = ""
-                Dim duplicateNames As UInteger = 0
-                Dim nameUnique As Boolean = True
-                Do
-                    nameUnique = True
-                    If duplicateNames > 0 Then
-                        newInstanceName = attributes(1) & "-" & Trim(Str(duplicateNames + 1))
-                    End If
-
-                    If Not IsNothing(thisRoom.instances) Then
-                        For Each instance As PRE2.Entity In thisRoom.instances
-                            If instance.name = newInstanceName Then
-                                duplicateNames += 1
-                                nameUnique = False
-                            End If
-                        Next instance
-                    End If
-                Loop Until nameUnique
+                Dim instanceNames() As String
+                If Not IsNothing(thisRoom.instances) Then
+                    ReDim instanceNames(UBound(thisRoom.instances))
+                    For index As Integer = 0 To UBound(thisRoom.instances)
+                        instanceNames(index) = thisRoom.instances(index).name
+                    Next index
+                End If
+                Dim newInstanceName As String = MakeNameUnique(entityTemplate.name, instanceNames, False)
 
                 'finds the entity template with the name
                 For index As Integer = 0 To UBound(thisLevel.templates)
@@ -581,6 +599,36 @@ Public Class FrmGame
         End If
 
         Return Nothing
+    End Function
+
+    Public Shared Function MakeNameUnique(name As String, otherNames() As String, removeUnnecessary As Boolean) As String
+        'returns a name with a number appended to it so the name is unique
+
+        If Not IsNothing(otherNames) Then
+            Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
+            Dim nameUnique As Boolean = False
+            Dim generatedName As String = name
+
+            Do
+                copyNumber += 1
+                If Not removeUnnecessary Or copyNumber > 1 Then
+                    generatedName = name & "-" & Trim(Str(copyNumber))
+                End If
+                nameUnique = True
+
+                'checks if name is unique
+                For Each otherName As String In otherNames
+                    If otherName = generatedName Then
+                        nameUnique = False
+                        Exit For
+                    End If
+                Next
+            Loop Until nameUnique = True
+
+            Return generatedName
+        Else
+            Return name & If(Not removeUnnecessary, "-1", "")
+        End If
     End Function
 
 
