@@ -750,13 +750,6 @@ Public Class FrmLevelEditor
     Private Sub AddParameter(newParam As PRE2.Tag, ByRef parameterList() As PRE2.Tag)
         'adds a given parameter to the level
 
-        'If IsNothing(thisLevel.globalParameters) = True Then
-        '    ReDim thisLevel.globalParameters(0)
-        'Else
-        '    ReDim Preserve thisLevel.globalParameters(UBound(thisLevel.globalParameters) + 1)
-        'End If
-        'thisLevel.globalParameters(UBound(thisLevel.globalParameters)) = newParam
-
         If IsNothing(parameterList) = True Then
             ReDim parameterList(0)
         Else
@@ -860,7 +853,7 @@ Public Class FrmLevelEditor
         Dim tagMaker As New FrmTagMaker
         tagMaker.ShowDialog()
         If tagMaker.userFinished = True Then
-            AddParameter(tagMaker.createdTag, SelectedRoom.parameters)
+            AddParameter(tagMaker.createdTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
         End If
     End Sub
 
@@ -869,7 +862,7 @@ Public Class FrmLevelEditor
 
         If lstRoomParams.SelectedIndex > -1 Then
             If MsgBox("Are you sure you wish to delete parameter " & SelectedRoom.parameters(lstRoomParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
-                RemoveParameter(lstRoomParams.SelectedIndex, SelectedRoom.parameters)
+                RemoveParameter(lstRoomParams.SelectedIndex, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
             End If
         End If
     End Sub
@@ -882,7 +875,7 @@ Public Class FrmLevelEditor
             Dim tagMaker As New FrmTagMaker(SelectedRoom.parameters(lstRoomParams.SelectedIndex))
             tagMaker.ShowDialog()
             If tagMaker.userFinished = True Then
-                ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.createdTag, SelectedRoom.parameters)
+                ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.createdTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
             End If
         End If
     End Sub
