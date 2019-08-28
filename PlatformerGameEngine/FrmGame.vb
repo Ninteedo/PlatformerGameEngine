@@ -646,12 +646,24 @@ Public Class FrmGame
     Dim frameTimer As New Timer
 
     Private Sub GameTick()
-        Dim entitiesToRender() As PRE2.Entity
-        entitiesToRender = currentRoom.instances
-        'ReDim Preserve entitiesToRender(UBound(entitiesToRender) + 1)
-        'entitiesToRender(UBound(entitiesToRender)) = playerEntity
+        'Dim entitiesToRender() As PRE2.Entity
+        'entitiesToRender = currentRoom.instances
 
-        renderer.DoGameRender(entitiesToRender)
+        For entityIndex As Integer = 0 To UBound(currentRoom.instances)
+            EntityTick(currentRoom.instances(entityIndex))
+        Next
+
+        renderer.DoGameRender(currentRoom.instances)
+    End Sub
+
+    Private Sub EntityTick(ByRef ent As PRE2.Entity)
+        'processes the entity's actions for this tick
+        Dim tagIndex As Integer = 0
+        Do
+            TagBehaviours.ProcessTag(ent, tagIndex)
+
+            tagIndex += 1
+        Loop Until tagIndex > UBound(ent.tags)
     End Sub
 
     Public Sub EntityEvent(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional entTarget As PRE2.Entity = Nothing)

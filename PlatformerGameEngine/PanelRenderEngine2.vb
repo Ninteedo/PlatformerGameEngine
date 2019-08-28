@@ -212,10 +212,14 @@ Public Class PanelRenderEngine2
         Property location As PointF
             Get
                 If HasTag("location") Then
+                    'Try
+                    '    Return FindTag("location").args(0)
+                    'Catch ex As InvalidCastException
                     Dim textForm As String = FindTag("location").args(0)
                     Dim result As New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
                                             Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
                     Return result
+                    'End Try
                 Else
                     Return New PointF(0, 0)
                 End If
@@ -691,7 +695,7 @@ Public Class PanelRenderEngine2
 
     'actual rendering part of the program
 
-    Public Sub DoGameRender(entityList() As Entity)
+    Public Sub DoGameRender(ByRef entityList() As Entity)
         'renders everything
 
         Dim canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
@@ -749,6 +753,7 @@ Public Class PanelRenderEngine2
                     If bitmapMode Then
                         If IsNothing(renderFrame.bitmapVersion) Then
                             renderFrame.bitmapVersion = renderFrame.ToBitmap
+                            entityList(entityIndex).frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
                         End If
 
                         Dim scale As SizeF = New SizeF(

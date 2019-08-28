@@ -97,8 +97,8 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FrmSpriteMaker.Designer.vb">
-			<DependentUpon>FrmSpriteMaker.vb</DependentUpon>
-		</Compile>
+      <DependentUpon>FrmSpriteMaker.vb</DependentUpon>
+    </Compile>
     <Compile Include="FrmSpriteMaker.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -125,6 +125,7 @@
     </Compile>
     <Compile Include="PanelRenderEngine2.vb" />
     <Compile Include="SpriteStringHandler.vb" />
+    <Compile Include="TagBehaviours.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FrmEntityMaker.resx">
