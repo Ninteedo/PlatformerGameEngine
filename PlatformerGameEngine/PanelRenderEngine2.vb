@@ -212,14 +212,9 @@ Public Class PanelRenderEngine2
         Property location As PointF
             Get
                 If HasTag("location") Then
-                    'Try
-                    '    Return FindTag("location").args(0)
-                    'Catch ex As InvalidCastException
-                    Dim textForm As String = FindTag("location").args(0)
-                    Dim result As New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
+                    Dim textForm As String = FindTag("location").args(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
+                    Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
                                             Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
-                    Return result
-                    'End Try
                 Else
                     Return New PointF(0, 0)
                 End If
@@ -699,11 +694,12 @@ Public Class PanelRenderEngine2
         'renders everything
 
         Dim canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
-        canvas.Graphics.Clear(Color.White)
+        'canvas.Graphics.Clear(Color.White)
         canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
 
         Const rotationEnabled As Boolean = False        'used for when rotation isn't working properly
         Const bitmapMode As Boolean = True
+        Const altLayerMode As Boolean = False
 
         'render layers
         Dim context As BufferedGraphicsContext = BufferedGraphicsManager.Current
@@ -724,68 +720,83 @@ Public Class PanelRenderEngine2
 
                     Dim renderLayer As BufferedGraphics
 
-                    'selects the correct layer to draw to for this entity
-                    If IsNothing(renderLayers) = False Then
-                        If renderLayerNumbers.Contains(currentEntity.layer) = True Then
-                            renderLayer = renderLayers(Array.IndexOf(renderLayerNumbers, currentEntity.layer))
-                        Else
-                            ReDim Preserve renderLayers(UBound(renderLayers) + 1)
-                            ReDim Preserve renderLayerNumbers(UBound(renderLayers))
+                    If altLayerMode Then
+                        'selects the correct layer to draw to for this entity
+                        If IsNothing(renderLayers) = False Then
+                            If renderLayerNumbers.Contains(currentEntity.layer) = True Then
+                                renderLayer = renderLayers(Array.IndexOf(renderLayerNumbers, currentEntity.layer))
+                            Else
+                                ReDim Preserve renderLayers(UBound(renderLayers) + 1)
+                                ReDim Preserve renderLayerNumbers(UBound(renderLayers))
 
-                            renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+                                renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+                                renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
+                                renderLayer = renderLayers(UBound(renderLayers))
+                                'renderLayer.Graphics.Clear(Color.Transparent)
+                                renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+                            End If
+                        Else
+                            ReDim renderLayers(0)
+                            ReDim renderLayerNumbers(0)
+
                             renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
+                            renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
                             renderLayer = renderLayers(UBound(renderLayers))
+                            renderLayer.Graphics.Clear(Color.White)
+                            renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
                         End If
                     Else
-                        ReDim renderLayerNumbers(0)
-                        ReDim renderLayers(0)
-
-                        renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
-                        renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
-                        renderLayer = renderLayers(UBound(renderLayers))
-                        renderLayer.Graphics.Clear(Color.Transparent)
+                        If IsNothing(renderLayers) Then
+                            ReDim renderLayers(0)
+                            renderLayers(0) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+                            renderLayer = renderLayers(0)
+                            renderLayer.Graphics.Clear(Color.White)
+                            renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+                        Else
+                            renderLayer = renderLayers(0)
+                        End If
                     End If
 
-                    Dim rotationAnchor As PointF = currentEntity.rotationAnchor       'the point where the entity is rotated from
-                    Dim rotation As Single = If(rotationEnabled, currentEntity.rotation, 0)
+                        Dim rotationAnchor As PointF = currentEntity.rotationAnchor       'the point where the entity is rotated from
+                        Dim rotation As Single = If(rotationEnabled, currentEntity.rotation, 0)
 
-                    'draws the pixels of the entity to the correct layer
-                    If bitmapMode Then
-                        If IsNothing(renderFrame.bitmapVersion) Then
-                            renderFrame.bitmapVersion = renderFrame.ToBitmap
-                            entityList(entityIndex).frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
-                        End If
+                        'draws the pixels of the entity to the correct layer
+                        If bitmapMode Then
+                            If IsNothing(renderFrame.bitmapVersion) Then
+                                renderFrame.bitmapVersion = renderFrame.ToBitmap
+                                entityList(entityIndex).frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
+                            End If
 
-                        Dim scale As SizeF = New SizeF(
-                                    currentEntity.scale * RenderScale.Width,
-                                    currentEntity.scale * RenderScale.Height)
-                        Dim renderArea As New RectangleF(New PointF(currentEntity.location.X * RenderScale.Width,
-                                                                    currentEntity.location.Y * RenderScale.Height), scale)
-                        Dim imageToRender As Image = renderFrame.bitmapVersion
+                            Dim scale As SizeF = New SizeF(
+                                currentEntity.scale * RenderScale.Width,
+                                currentEntity.scale * RenderScale.Height)
+                            Dim renderArea As New RectangleF(New PointF(currentEntity.location.X * RenderScale.Width,
+                                                                currentEntity.location.Y * RenderScale.Height), scale)
+                            Dim imageToRender As Image = renderFrame.bitmapVersion
 
-                        canvas.Graphics.DrawImage(imageToRender, renderArea)
-                    Else
-                        For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
-                            For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
-                                Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
-                                Dim scale As SizeF = New SizeF(
-                                    currentEntity.scale * RenderScale.Width,
-                                    currentEntity.scale * RenderScale.Height)
+                            renderLayer.Graphics.DrawImage(imageToRender, renderArea)
+                        Else
+                            For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
+                                For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
+                                    Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
+                                    Dim scale As SizeF = New SizeF(
+                                currentEntity.scale * RenderScale.Width,
+                                currentEntity.scale * RenderScale.Height)
 
-                                'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
-                                'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
-                                Dim pixelCentre As New PointF(
+                                    'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
+                                    'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
+                                    Dim pixelCentre As New PointF(
                                 (currentEntity.location.X * RenderScale.Width) + ((pixelX - currentEntity.rotationAnchor.X) * scale.Width * 2 / 3),
                                 (currentEntity.location.Y * RenderScale.Height) + ((pixelY - currentEntity.rotationAnchor.Y) * scale.Height * 2 / 3))
 
-                                DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
-                            Next pixelX
-                        Next pixelY
+                                    DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
+                                Next pixelX
+                            Next pixelY
+                        End If
                     End If
-                End If
             Next entityIndex
 
-            If False AndAlso IsNothing(renderLayers) = False Then
+            If altLayerMode AndAlso Not IsNothing(renderLayers) Then
                 'sorts the render layers from lowest to highest
                 Dim sortedRenderLayerNumbers() As Integer
                 sortedRenderLayerNumbers = renderLayerNumbers
@@ -794,8 +805,10 @@ Public Class PanelRenderEngine2
                 'renders each layer
                 For index As Integer = 0 To UBound(renderLayers)
                     renderLayers(Array.IndexOf(renderLayerNumbers, sortedRenderLayerNumbers(index))).Render()
-                    MsgBox("Artifical delay")
+                    'MsgBox("Artifical delay")
                 Next
+            ElseIf Not IsNothing(renderLayers) Then
+                renderLayers(0).Render()
             End If
         End If
     End Sub

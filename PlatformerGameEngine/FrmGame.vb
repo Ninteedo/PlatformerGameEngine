@@ -646,8 +646,6 @@ Public Class FrmGame
     Dim frameTimer As New Timer
 
     Private Sub GameTick()
-        'Dim entitiesToRender() As PRE2.Entity
-        'entitiesToRender = currentRoom.instances
 
         For entityIndex As Integer = 0 To UBound(currentRoom.instances)
             EntityTick(currentRoom.instances(entityIndex))
