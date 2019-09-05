@@ -294,6 +294,11 @@ Public Class PanelRenderEngine2
             Set(value As Single)
                 RemoveTag("opacity")
                 AddTag(New Tag("opacity", {value}))
+
+                'resets all the bitmaps because they are wrong now
+                For Each currentFrame As Frame In frames
+                    currentFrame.bitmapVersion = Nothing
+                Next
             End Set
         End Property
 
@@ -310,6 +315,7 @@ Public Class PanelRenderEngine2
                 AddTag(New Tag("currentFrame", {value}))
             End Set
         End Property
+
 
 
         Public Shared Operator =(ent1 As Entity, ent2 As Entity)
@@ -363,8 +369,6 @@ Public Class PanelRenderEngine2
                     DisplayError("Coordinates provided for an offset (" & splits(index).Split("/")(1) & ") are not numeric")
                 End If
             Next
-
-            bitmapVersion = ToBitmap()
         End Sub
 
         Public Function ToColourArray() As Color(,)
@@ -394,15 +398,21 @@ Public Class PanelRenderEngine2
             Return pixels
         End Function
 
-        Public Function ToBitmap() As Bitmap
+        Public Function ToBitmap(opacity As Single) As Bitmap
             Dim pixels(,) As Color = ToColourArray()
 
-            Dim result As New Bitmap(pixels.GetUpperBound(0) + 1, pixels.GetUpperBound(1) + 1)
+            Dim result As New Bitmap(pixels.GetUpperBound(0) + 1, pixels.GetUpperBound(1) + 1, Imaging.PixelFormat.Format32bppArgb)
             result.MakeTransparent()
 
             For pixelY As Integer = 0 To pixels.GetUpperBound(1)
                 For pixelX As Integer = 0 To pixels.GetUpperBound(0)
-                    result.SetPixel(pixelX, pixelY, pixels(pixelX, pixelY))
+                    'updates the alpha channel of the colour
+                    Dim pixelColour As Color = pixels(pixelX, pixelY)
+                    If pixelColour.A > 0 Then
+                        pixelColour = Color.FromArgb(opacity * 255, pixelColour)
+                    End If
+
+                    result.SetPixel(pixelX, pixelY, pixelColour)
                 Next pixelX
             Next pixelY
 
@@ -763,8 +773,8 @@ Public Class PanelRenderEngine2
                         'draws the pixels of the entity to the correct layer
                         If bitmapMode Then
                             If IsNothing(renderFrame.bitmapVersion) Then
-                                renderFrame.bitmapVersion = renderFrame.ToBitmap
-                                entityList(entityIndex).frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
+                            renderFrame.bitmapVersion = renderFrame.ToBitmap(currentEntity.opacity)
+                            entityList(entityIndex).frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
                             End If
 
                             Dim scale As SizeF = New SizeF(
@@ -800,7 +810,7 @@ Public Class PanelRenderEngine2
                 'sorts the render layers from lowest to highest
                 Dim sortedRenderLayerNumbers() As Integer
                 sortedRenderLayerNumbers = renderLayerNumbers
-                QuickSortRecursive(sortedRenderLayerNumbers, 0, UBound(sortedRenderLayerNumbers))
+                'QuickSortRecursive(sortedRenderLayerNumbers, 0, UBound(sortedRenderLayerNumbers))
 
                 'renders each layer
                 For index As Integer = 0 To UBound(renderLayers)
@@ -922,37 +932,4 @@ Public Class PanelRenderEngine2
 
         writer.Close()
     End Sub
-
-
-
-
-
-    'this is not my own code, I got it from https://www.programmingalgorithms.com/algorithm/quick-sort-recursive?lang=VB.Net
-    Public Shared Sub QuickSortRecursive(ByRef data As Integer(), left As Integer, right As Integer)
-        If left < right Then
-            Dim q As Integer = Partition(data, left, right)
-            QuickSortRecursive(data, left, q - 1)
-            QuickSortRecursive(data, q + 1, right)
-        End If
-    End Sub
-
-    Private Shared Function Partition(ByRef data As Integer(), left As Integer, right As Integer) As Integer
-        Dim pivot As Integer = data(right)
-        Dim temp As Integer
-        Dim i As Integer = left
-
-        For j As Integer = left To right - 1
-            If data(j) <= pivot Then
-                temp = data(j)
-                data(j) = data(i)
-                data(i) = temp
-                i += 1
-            End If
-        Next
-
-        data(right) = data(i)
-        data(i) = pivot
-
-        Return i
-    End Function
 End Class
