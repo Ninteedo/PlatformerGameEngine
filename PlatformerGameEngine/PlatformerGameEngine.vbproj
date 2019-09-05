@@ -126,6 +126,7 @@
     <Compile Include="PanelRenderEngine2.vb" />
     <Compile Include="SpriteStringHandler.vb" />
     <Compile Include="TagBehaviours.vb" />
+    <Compile Include="TagEvents.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FrmEntityMaker.resx">
