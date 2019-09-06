@@ -63,14 +63,17 @@ Public Class FrmGame
             If Not IsNothing(instances) Then
                 For Each instance As PRE2.Entity In instances
                     'finds the template of the instance
-                    Dim templateOfInstance As PRE2.Entity           'used so that tags can be compared and identical ones can be ignored
-                    Dim templateName As String = instance.FindTag("templateName").args(0)
-                    For Each template As PRE2.Entity In levelOfRoom.templates
-                        If template.name = templateName Then
-                            templateOfInstance = template
-                            Exit For
-                        End If
-                    Next template
+                    Dim templateOfInstance As PRE2.Entity = Nothing           'used so that tags can be compared and identical ones can be ignored
+                    Dim templateName As String = Nothing
+                    If instance.HasTag("templateName") Then
+                        templateName = instance.FindTag("templateName").args(0)
+                        For Each template As PRE2.Entity In levelOfRoom.templates
+                            If template.name = templateName Then
+                                templateOfInstance = template
+                                Exit For
+                            End If
+                        Next template
+                    End If
 
                     If IsNothing(templateOfInstance) Then
                         PRE2.DisplayError("Could not find a template called " & templateName & " for instance " & instance.name)
@@ -552,7 +555,7 @@ Public Class FrmGame
                 End If
 
             Case "editent"      'modifies an instance of an entity (instance name, tags)
-                Dim entityInstance As PRE2.Entity
+                Dim entityInstance As PRE2.Entity = Nothing
 
                 'finds the entity instance with the name
                 For index As Integer = 0 To UBound(thisRoom.instances)
@@ -642,10 +645,17 @@ Public Class FrmGame
 
     Public currentLevel As Level
     Public currentRoom As Room
-    Public playerEntity As PRE2.Entity
+    'Public playerEntity As PRE2.Entity
     Dim frameTimer As New Timer
 
     Private Sub GameTick()
+
+        'broadcasts the key held event for each key currently held
+        For keyIndex As Integer = 0 To UBound(keysHeld)
+            If Not IsNothing(keysHeld(keyIndex)) AndAlso keysHeld(keyIndex) > 0 Then
+                TagEvents.BroadcastEvent(New PRE2.Tag("event", {"key" & ChrW(keysHeld(keyIndex))}), currentRoom.instances)
+            End If
+        Next keyIndex
 
         For entityIndex As Integer = 0 To UBound(currentRoom.instances)
             EntityTick(currentRoom.instances(entityIndex))
@@ -658,7 +668,7 @@ Public Class FrmGame
         'processes the entity's actions for this tick
         Dim tagIndex As Integer = 0
         Do
-            TagBehaviours.ProcessTag(ent, tagIndex)
+            TagBehaviours.ProcessTag(ent, ent.tags(tagIndex), currentRoom)
 
             tagIndex += 1
         Loop Until tagIndex > UBound(ent.tags)
@@ -712,6 +722,26 @@ Public Class FrmGame
                     End If
                 Next index
         End Select
+    End Function
+
+    'higher level entity control
+
+    Public Function GetEntityArgument(tag As PRE2.Tag, argIndex As Integer, Optional ent As PRE2.Entity = Nothing,
+                                      Optional room As Room = Nothing, Optional defaultResult As Object = Nothing) As Object
+        'returns a processed entity argument
+
+        Dim result As Object = defaultResult
+
+        If Not IsNothing(tag.args) AndAlso argIndex <= UBound(tag.args) Then
+            Dim rawArg As Object = tag.args(argIndex)
+            Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
+
+            If IsNumeric(argCalculated) Then
+                result = argCalculated
+            End If
+        End If
+
+        Return result
     End Function
 
     'player control

@@ -8,53 +8,61 @@ Public Module TagBehaviours
 
     Dim errorMessageArgumentInvalid As String = " has an invalid argument"
 
-    Public Sub ProcessTag(ByRef ent As PRE2.Entity, tagIndex As Integer)
+    Public Sub ProcessTag(ByRef ent As PRE2.Entity, tag As PRE2.Tag, room As FrmGame.Room)
         'processes a single tag and modifies the entity accordingly
 
-        If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
-            Dim tag As PRE2.Tag = ent.tags(tagIndex)
+        'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
+        'Dim tag As PRE2.Tag = ent.tags(tagIndex)
 
-            Select Case LCase(tag.name)
-                'basic movement
-                Case LCase("xVel")
-                    TagXVel(ent, tagIndex)
-                Case LCase("yVel")
-                    TagYVel(ent, tagIndex)
-                Case LCase("gravity")
-                    TagGravity(ent, tagIndex)
-					
-				
-				Case LCase("setTag")
-				
-            End Select
-        End If
+        Select Case LCase(tag.name)
+            'basic movement
+            Case LCase("xVel")
+                'TagXVel(ent, tagIndex)
+                ent.location = New PointF(ent.location.X + FrmGame.GetEntityArgument(tag, 0, ent, room, 0), ent.location.Y)
+            Case LCase("yVel")
+                'TagYVel(ent, tagIndex)
+                ent.location = New PointF(ent.location.X, ent.location.Y + FrmGame.GetEntityArgument(tag, 0, ent, room, 0))
+            Case LCase("gravity")
+                'TagGravity(ent, tagIndex)
+                ent.AddTag(New PRE2.Tag("yVel", FrmGame.GetEntityArgument(tag, 0, ent, room, 0) * -1 +
+                                        FrmGame.GetEntityArgument(ent.FindTag("yVel"), 0, ent, room, 0)))
+
+
+            'meta
+            Case LCase("addTag")        '0: tagName, 1+: args
+                Dim newTag As New PRE2.Tag(FrmGame.GetEntityArgument(tag, 0, ent, room, "unnamedTag"))
+                If UBound(tag.args) > 0 Then
+                    ReDim newTag.args(UBound(tag.args) - 1)
+                    For argIndex As Integer = 1 To UBound(tag.args)
+                        newTag.args(argIndex - 1) = FrmGame.GetEntityArgument(tag, argIndex, ent, room)
+                    Next
+                End If
+                ent.RemoveTag(newTag.name)
+                ent.AddTag(newTag)
+        End Select
+        'End If
     End Sub
 
-    Private Sub TagXVel(ByRef ent As PRE2.Entity, tagIndex As Integer)
-        'changes the location of the entity by its x velocity
-
-        ent.location = New PointF(ent.location.X + ent.tags(tagIndex).args(0), ent.location.Y)
-    End Sub
-
-    Private Sub TagYVel(ByRef ent As PRE2.Entity, tagIndex As Integer)
-        'changes the location of the entity by its y velocity
-
-        ent.location = New PointF(ent.location.X, ent.location.Y + ent.tags(tagIndex).args(0))
-    End Sub
-
-    Private Sub TagGravity(ByRef ent As PRE2.Entity, tagIndex As Integer)
-        'changes the yVel by the value given
-
-        Dim newTag As New PRE2.Tag("yVel", ent.tags(tagIndex).args(0) * -1)
-        If ent.HasTag("yVel") Then
-            newTag.args(0) += ent.FindTag("yVel").args(0)
-            ent.RemoveTag("yVel")
-        End If
-        ent.AddTag(newTag)
-    End Sub
+    'Private Sub TagXVel(ByRef ent As PRE2.Entity, tagIndex As Integer)
+    '    'changes the location of the entity by its x velocity
 
 
-	Private Sub TagSetTag(ByRef ent As PRE2.Entity, tagIndex As Integer)
+    'End Sub
+
+    'Private Sub TagYVel(ByRef ent As PRE2.Entity, tagIndex As Integer)
+    '    'changes the location of the entity by its y velocity
+
+    '    ent.location = New PointF(ent.location.X, ent.location.Y + ent.tags(tagIndex).args(0))
+    'End Sub
+
+    'Private Sub TagGravity(ByRef ent As PRE2.Entity, tagIndex As Integer)
+    '    'changes the yVel by the value given
+
+
+    'End Sub
+
+
+    Private Sub TagSetTag(ByRef ent As PRE2.Entity, tagIndex As Integer)
 		'sets the tag with the given name to the given value
 		'0:new tag name, 1+:new tag arguments
 		

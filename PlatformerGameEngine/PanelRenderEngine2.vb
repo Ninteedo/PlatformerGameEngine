@@ -715,8 +715,8 @@ Public Class PanelRenderEngine2
         Dim context As BufferedGraphicsContext = BufferedGraphicsManager.Current
         context.MaximumBuffer = renderPanel.Size
 
-        Dim renderLayers() As BufferedGraphics      'each render layer
-        Dim renderLayerNumbers() As Integer         'the z coordinate of each render layer, parallel to above array
+        Dim renderLayers() As BufferedGraphics = Nothing      'each render layer
+        Dim renderLayerNumbers() As Integer = {}         'the z coordinate of each render layer, parallel to above array
 
         Dim overallRender As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
 

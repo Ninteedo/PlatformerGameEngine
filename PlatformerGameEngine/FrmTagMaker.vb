@@ -115,7 +115,7 @@ Public Class FrmTagMaker
 
                 If IsNumeric(arg) = True Then      'number
                     argString = "num:" & Trim(Val(arg))
-                ElseIf New PRE2.Tag(arg).name <> Nothing Then       'another tag
+                ElseIf Not IsNothing(New PRE2.Tag(arg.ToString)) Then       'another tag
                     argString = arg.ToString
                 Else                'plain string
                     argString = "text:" & arg

@@ -69,8 +69,8 @@ Public Module SpriteStringHandler
 
 
         'creates two lists, once of colour indices and the other of how many times in a row that index is repeated
-        Dim indices() As Integer
-        Dim repeats() As Integer
+        Dim indices() As Integer = {}
+        Dim repeats() As Integer = {}
 
         For y As Integer = 0 To sprite.pixels.GetUpperBound(1)
             For x As Integer = 0 To sprite.pixels.GetUpperBound(0)
@@ -154,9 +154,9 @@ Public Module SpriteStringHandler
     Public Function ReadPixelColours(spriteString As String) As Color(,)
         'returns a 2D array of colours for pixels
 
-        Dim colourIndices(,) As Integer
+        Dim colourIndices(,) As Integer = {}
         Dim gridSize As Size
-        Dim colours() As Color
+        Dim colours() As Color = Nothing
 
 
         ReadIndices(spriteString, colourIndices, gridSize, colours)
@@ -197,9 +197,9 @@ Public Module SpriteStringHandler
         'returns whether the text given is valid for a sprite
 
         Try
-            Dim colourIndices(,) As Integer
+            Dim colourIndices(,) As Integer = {}
             Dim gridSize As Size
-            Dim colours() As Color
+            Dim colours() As Color = {}
 
             ReadIndices(spriteString, colourIndices, gridSize, colours)
 

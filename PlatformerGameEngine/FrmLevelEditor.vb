@@ -628,22 +628,24 @@ Public Class FrmLevelEditor
         'allows the user to edit a tag using FrmTagMaker
 
         Dim tagMaker As FrmTagMaker
-        If lstInstances.SelectedIndex > -1 Then
-            tagMaker = New FrmTagMaker(SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
-        ElseIf lstTemplates.SelectedIndex > -1 Then
-            tagMaker = New FrmTagMaker(thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex))
-        Else
-            Exit Sub
-        End If
-        tagMaker.ShowDialog()
-
-        If tagMaker.userFinished = True Then
+        If lstTags.SelectedIndex > -1 Then
             If lstInstances.SelectedIndex > -1 Then
-                SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
-                ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+                tagMaker = New FrmTagMaker(SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
             ElseIf lstTemplates.SelectedIndex > -1 Then
-                thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
-                ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+                tagMaker = New FrmTagMaker(thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex))
+            Else
+                Exit Sub
+            End If
+            tagMaker.ShowDialog()
+
+            If tagMaker.userFinished = True Then
+                If lstInstances.SelectedIndex > -1 Then
+                    SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
+                    ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+                ElseIf lstTemplates.SelectedIndex > -1 Then
+                    thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
+                    ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+                End If
             End If
         End If
     End Sub
