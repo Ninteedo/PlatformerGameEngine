@@ -32,6 +32,7 @@ Partial Class FrmTagMaker
         Me.btnArgRemove = New System.Windows.Forms.Button()
         Me.btnFinish = New System.Windows.Forms.Button()
         Me.btnCancel = New System.Windows.Forms.Button()
+        Me.btnBasicEditor = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'txtName
@@ -128,12 +129,23 @@ Partial Class FrmTagMaker
         Me.btnCancel.Text = "Cancel"
         Me.btnCancel.UseVisualStyleBackColor = True
         '
+        'btnBasicEditor
+        '
+        Me.btnBasicEditor.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnBasicEditor.Location = New System.Drawing.Point(423, 6)
+        Me.btnBasicEditor.Name = "btnBasicEditor"
+        Me.btnBasicEditor.Size = New System.Drawing.Size(100, 70)
+        Me.btnBasicEditor.TabIndex = 8
+        Me.btnBasicEditor.Text = "Basic Editor"
+        Me.btnBasicEditor.UseVisualStyleBackColor = True
+        '
         'FrmTagMaker
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlDark
         Me.ClientSize = New System.Drawing.Size(535, 281)
+        Me.Controls.Add(Me.btnBasicEditor)
         Me.Controls.Add(Me.btnCancel)
         Me.Controls.Add(Me.btnFinish)
         Me.Controls.Add(Me.btnArgRemove)
@@ -161,4 +173,5 @@ Partial Class FrmTagMaker
     Friend WithEvents btnArgRemove As Button
     Friend WithEvents btnFinish As Button
     Friend WithEvents btnCancel As Button
+    Friend WithEvents btnBasicEditor As Button
 End Class

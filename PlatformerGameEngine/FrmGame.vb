@@ -736,7 +736,11 @@ Public Class FrmGame
             Dim rawArg As Object = tag.args(argIndex)
             Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
 
-            If IsNumeric(argCalculated) Then
+            If IsNothing(rawArg) Then           'is not anything
+                result = Nothing
+            ElseIf rawArg(0) = """" Then        'is a string
+                result = Mid(rawArg, 2, Len(rawArg) - 1)
+            ElseIf IsNumeric(argCalculated) Then    'is a calculation
                 result = argCalculated
             End If
         End If

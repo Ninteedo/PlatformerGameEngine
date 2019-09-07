@@ -30,44 +30,50 @@ Public Class PanelRenderEngine2
         Public Sub New(ByVal tagString As String)
             'creates a tag from a string
 
+            Dim newTag As Tag = JSONToTag(tagString)
+            name = newTag.name
+            args = newTag.args
+
             'checks that string is actually a tag
-            If Len(tagString) > 4 Then
-                If Mid(tagString, 1, 4) = "tag(" And Mid(tagString, Len(tagString), 1) = ")" Then
+            'If Len(tagString) > 4 Then
+            '    If Mid(tagString, 1, 4) = "tag(" And Mid(tagString, Len(tagString), 1) = ")" Then
 
-                    tagString = tagString.Remove(0, 4)      'removes "tag("
-                    tagString = tagString.Remove(Len(tagString) - 1, 1)   'removes ")"
+            '        tagString = tagString.Remove(0, 4)      'removes "tag("
+            '        tagString = tagString.Remove(Len(tagString) - 1, 1)   'removes ")"
 
-                    Dim values() As String = tagString.Split("\")
+            '        Dim values() As String = tagString.Split("\")
 
-                    name = values(0)
-                    ReDim args(UBound(values) - 1)
-                    For argIndex As Integer = 1 To UBound(values)
-                        If IsNumeric(values(argIndex)) = True Then      'number
-                            args(argIndex - 1) = Val(values(argIndex))
-                        ElseIf New Tag(values(argIndex)).name <> Nothing Then       'another tag
-                            args(argIndex - 1) = New Tag(values(argIndex))
-                        Else                'plain string
-                            args(argIndex - 1) = values(argIndex)
-                        End If
-                    Next argIndex
-                End If
-            End If
+            '        name = values(0)
+            '        ReDim args(UBound(values) - 1)
+            '        For argIndex As Integer = 1 To UBound(values)
+            '            If IsNumeric(values(argIndex)) = True Then      'number
+            '                args(argIndex - 1) = Val(values(argIndex))
+            '            ElseIf New Tag(values(argIndex)).name <> Nothing Then       'another tag
+            '                args(argIndex - 1) = New Tag(values(argIndex))
+            '            Else                'plain string
+            '                args(argIndex - 1) = values(argIndex)
+            '            End If
+            '        Next argIndex
+            '    End If
+            'End If
         End Sub
 
         Public Overrides Function ToString() As String
             'turns this tag into a string
 
-            Dim result As String = "tag(" & name
+            Return TagToJSON(Me)
 
-            If IsNothing(args) = False Then
-                For Each argument As Object In args
-                    result += "\" & argument.ToString
-                Next argument
-            End If
+            'Dim result As String = "tag(" & name
 
-            result += ")"
+            'If IsNothing(args) = False Then
+            '    For Each argument As Object In args
+            '        result += "\" & argument.ToString
+            '    Next argument
+            'End If
 
-            Return result
+            'result += ")"
+
+            'Return result
         End Function
 
         Public Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean

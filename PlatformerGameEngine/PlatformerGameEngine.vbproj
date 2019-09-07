@@ -108,6 +108,13 @@
     <Compile Include="FrmTagMaker.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FrmTagMakerBasic.Designer.vb">
+      <DependentUpon>FrmTagMakerBasic.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmTagMakerBasic.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="JSONHandler.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -144,6 +151,9 @@
     <EmbeddedResource Include="FrmSpriteMaker.resx" />
     <EmbeddedResource Include="FrmTagMaker.resx">
       <DependentUpon>FrmTagMaker.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmTagMakerBasic.resx">
+      <DependentUpon>FrmTagMakerBasic.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>

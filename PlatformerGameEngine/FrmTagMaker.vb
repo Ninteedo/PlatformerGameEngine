@@ -6,6 +6,8 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Class FrmTagMaker
 
+    'TODO: clean this all up
+
     Public dataTypes() As String = {"number", "text", "tag"}
     Public createdTag As New PRE2.Tag
     Public userFinished As Boolean = False
@@ -155,5 +157,17 @@ Public Class FrmTagMaker
         RefreshArgumentsList()
     End Sub
 
+    Private Sub BtnBasicEditor_Click(sender As Object, e As EventArgs) Handles btnBasicEditor.Click
+        'uses FrmTagMakerBasic
 
+        Using basicTagMaker As New FrmTagMakerBasic With {.TagCreated = createdTag}
+            basicTagMaker.ShowDialog()
+
+            If basicTagMaker.userFinished Then
+                createdTag = basicTagMaker.TagCreated
+                RefreshArgumentsList()
+                txtName.Text = createdTag.name
+            End If
+        End Using
+    End Sub
 End Class
