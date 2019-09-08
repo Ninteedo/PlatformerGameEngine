@@ -154,7 +154,7 @@ Public Class FrmGame
             End If
         End Sub
 
-        Public Property name As String
+        Public Property Name As String
             Get
                 If HasParam("name") Then
                     Return FindParam("name").args(0)
@@ -168,7 +168,7 @@ Public Class FrmGame
             End Set
         End Property
 
-        Public Property coords As Point     'need to implement a proper coords system
+        Public Property Coords As Point     'need to implement a proper coords system
             Get
                 If HasParam("coords") Then
                     Return FindParam("coords").args(0)
@@ -410,7 +410,7 @@ Public Class FrmGame
                 newEntity = LoadEntity(renderEngine.entityFolderLocation & attributes(0), renderEngine)
                 'newEntity.AddTag(New PRE2.Tag("name", {attributes(1)}))
 
-                Dim templateNames() As String
+                Dim templateNames() As String = Nothing
                 If Not IsNothing(thisLevel.templates) Then
                     ReDim templateNames(UBound(thisLevel.templates))
                     For index As Integer = 0 To UBound(thisLevel.templates)
@@ -427,8 +427,7 @@ Public Class FrmGame
                 thisLevel.templates(UBound(thisLevel.templates)) = newEntity
 
             Case "loadroom"     'loads a room from a file (room name, room string) or (room string)?
-                Dim newRoom As New Room
-                newRoom = LoadRoom(attributes(0).Trim, thisLevel, roomDelimiters) 'LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel, renderEngine.roomFolderLocation)
+                Dim newRoom As Room = LoadRoom(attributes(0).Trim, thisLevel, roomDelimiters) 'LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel, renderEngine.roomFolderLocation)        
                 'Dim coords As Point
                 'If UBound(attributes) >= 1 Then
                 '    coords = New Point(Int(attributes(1).Split(levelDelimiters(2))(0)), Int(attributes(1).Split(levelDelimiters(2))(1)))
@@ -514,7 +513,7 @@ Public Class FrmGame
 
                 'modifies the name of the instance if necessary
                 'checks that there isn't another instance with the same name as the new instance
-                Dim instanceNames() As String
+                Dim instanceNames() As String = Nothing
                 If Not IsNothing(thisRoom.instances) Then
                     ReDim instanceNames(UBound(thisRoom.instances))
                     For index As Integer = 0 To UBound(thisRoom.instances)
@@ -712,6 +711,8 @@ Public Class FrmGame
     End Sub
 
     Public Function EntityWithName(entityName As String, roomToCheck As Room) As PRE2.Entity
+        Dim result As PRE2.Entity = Nothing
+
         Select Case entityName
             Case "other"
 
@@ -722,6 +723,8 @@ Public Class FrmGame
                     End If
                 Next index
         End Select
+
+        Return result
     End Function
 
     'higher level entity control

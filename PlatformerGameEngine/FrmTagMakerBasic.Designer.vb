@@ -31,6 +31,7 @@ Partial Class FrmTagMakerBasic
         '
         Me.txtJSON.AcceptsReturn = True
         Me.txtJSON.AcceptsTab = True
+        Me.txtJSON.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.txtJSON.Location = New System.Drawing.Point(13, 13)
         Me.txtJSON.Multiline = True
         Me.txtJSON.Name = "txtJSON"

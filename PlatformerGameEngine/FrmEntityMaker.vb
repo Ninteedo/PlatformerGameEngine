@@ -27,16 +27,19 @@ Public Class FrmEntityMaker
 
         tblControlLayout.Location = New Point(pnlFramePreview.Right + 10, pnlFramePreview.Top)
         Me.Size = New Size(tblControlLayout.Right + 20, tblControlLayout.Bottom + 50)
+
+        RefreshControlsEnabled()
     End Sub
 
     'save load
 
     Dim saveLocation As String = ""
-    Dim gameLocation As String = ""
+    'Dim gameLocation As String = ""
 
     Private ReadOnly Property EntityString
         Get
-            Return EntityStringHandler.CreateEntityString(ent, renderer.spriteFolderLocation)
+            'Return EntityStringHandler.CreateEntityString(ent, renderer.spriteFolderLocation)
+            Return ent.ToString(renderer.spriteFolderLocation)
         End Get
     End Property
 
@@ -161,9 +164,6 @@ Public Class FrmEntityMaker
     End Sub
 
 
-    'frames
-
-    'Dim frames() As PRE2.Frame
     Dim renderer As PRE2
 
     Private Sub DrawFramePreview(frameToDraw As PRE2.Frame)
@@ -392,5 +392,48 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
+
+    'general procedures
+
+    Private Sub AnySelectionChanged(sender As Object, e As EventArgs) Handles _
+        lstTags.SelectedIndexChanged, lstFrames.SelectedIndexChanged, lstSprites.SelectedIndexChanged
+
+        RefreshControlsEnabled()
+    End Sub
+
+    Private Sub RefreshControlsEnabled()
+        'enables or disables controls as appropriate
+
+        Dim tagSelected As Boolean = lstTags.SelectedIndex > -1
+        Dim frameSelected As Boolean = lstFrames.SelectedIndex > -1
+        Dim spriteSelected As Boolean = lstSprites.SelectedIndex > -1
+        Dim saveLocationSelected As Boolean = Not IsNothing(saveLocation) AndAlso IO.File.Exists(saveLocation)
+
+        Dim controlsDefaultDisabled() As Control = {btnTagsEdit, btnTagRemove, btnFrameRemove, btnFrameAddSprite, btnSave, btnRedraw}
+        Dim controlsDefaultEnabled() As Control = {btnTagsNew, btnFrameNew, btnSpriteLoad, txtName, btnSaveAs, btnOpen}
+
+        For Each ctrl As Control In controlsDefaultDisabled
+            ctrl.Enabled = False
+        Next
+        For Each ctrl As Control In controlsDefaultEnabled
+            ctrl.Enabled = True
+        Next
+
+        If tagSelected Then
+            btnTagsEdit.Enabled = True
+            btnTagRemove.Enabled = True
+        End If
+        If frameSelected Then
+            btnFrameRemove.Enabled = True
+            btnRedraw.Enabled = True
+            If spriteSelected Then
+                btnFrameAddSprite.Enabled = True
+            End If
+        End If
+
+        If saveLocationSelected Then
+            btnSave.Enabled = True
+        End If
+    End Sub
 
 End Class

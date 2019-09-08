@@ -99,7 +99,7 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub btnLevelSaveAs_Click(sender As Object, e As EventArgs) Handles btnLevelSaveAs.Click
+    Private Sub BtnLevelSaveAs_Click(sender As Object, e As EventArgs) Handles btnLevelSaveAs.Click
         Dim fileName As String = InputBox("Enter file name for level")
 
         If fileName.Length >= 1 Then        'checks that the user actually entered something
@@ -109,7 +109,7 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub btnLevelSave_Click(sender As Object, e As EventArgs) Handles btnLevelSave.Click
+    Private Sub BtnLevelSave_Click(sender As Object, e As EventArgs) Handles btnLevelSave.Click
         SaveLevel(thisLevel, levelSaveLocation)
     End Sub
 
@@ -140,7 +140,7 @@ Public Class FrmLevelEditor
 
 
 
-    Private Sub btnRoomOpen_Click(sender As Object, e As EventArgs) Handles btnRoomOpen.Click
+    Private Sub BtnRoomOpen_Click(sender As Object, e As EventArgs) Handles btnRoomOpen.Click
         MsgBox("Should probably remove this button")
 
         'Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True, .InitialDirectory = renderer.roomFolderLocation}
@@ -779,7 +779,7 @@ Public Class FrmLevelEditor
         RefreshParameterList()
     End Sub
 
-    Private Function RemoveParameter(paramIndex As Integer, ByRef parameterList() As PRE2.Tag) As PRE2.Tag()
+    Private Sub RemoveParameter(paramIndex As Integer, ByRef parameterList() As PRE2.Tag)
         'removes the parameter at the given index
 
         For index As Integer = paramIndex To UBound(parameterList) - 1
@@ -793,7 +793,7 @@ Public Class FrmLevelEditor
         End If
 
         RefreshParameterList()
-    End Function
+    End Sub
 
     'level params
 
@@ -900,7 +900,7 @@ Public Class FrmLevelEditor
             Dim names(UBound(thisLevel.rooms)) As String
 
             For index As Integer = 0 To UBound(thisLevel.rooms)
-                names(index) = thisLevel.rooms(index).name
+                names(index) = thisLevel.rooms(index).Name
             Next
 
             RefreshList(lstRooms, names)
@@ -913,8 +913,8 @@ Public Class FrmLevelEditor
         'checks that name isn't already being used
         If IsNothing(thisLevel.rooms) = False Then
             For Each currentRoom As FrmGame.Room In thisLevel.rooms
-                If currentRoom.name = newRoom.name Then
-                    PRE2.DisplayError("Room name (" & newRoom.name & ") is in use, please use a different one")
+                If currentRoom.Name = newRoom.Name Then
+                    PRE2.DisplayError("Room name (" & newRoom.Name & ") is in use, please use a different one")
                     Exit Sub
                 End If
             Next
@@ -993,7 +993,7 @@ Public Class FrmLevelEditor
         Dim roomName As String = InputBox("Please enter a name for the new room")
 
         If roomName.Length > 0 Then
-            AddRoom(New FrmGame.Room With {.name = roomName})
+            AddRoom(New FrmGame.Room With {.Name = roomName})
         End If
     End Sub
 
@@ -1003,7 +1003,7 @@ Public Class FrmLevelEditor
         'checks that a room is selected
         If lstRooms.SelectedIndex > -1 Then
             'asks the user to confirm deleting the room
-            If MsgBox("Are you sure you wish to delete room " & SelectedRoom.name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+            If MsgBox("Are you sure you wish to delete room " & SelectedRoom.Name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
                 RemoveRoom(lstRooms.SelectedIndex)
             End If
         End If
@@ -1013,7 +1013,7 @@ Public Class FrmLevelEditor
         'prompts the user to enter new coords for the selected room
 
         If lstRooms.SelectedIndex > -1 Then
-            Dim userInput As String = InputBox("Please enter the new coordinates for " & thisLevel.rooms(lstRooms.SelectedIndex).name & vbCrLf & "Form x,y eg '2,1'")
+            Dim userInput As String = InputBox("Please enter the new coordinates for " & thisLevel.rooms(lstRooms.SelectedIndex).Name & vbCrLf & "Form x,y eg '2,1'")
 
             If userInput.Length > 0 Then
                 'checks that input is valid

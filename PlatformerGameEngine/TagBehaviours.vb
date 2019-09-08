@@ -63,11 +63,11 @@ Public Module TagBehaviours
 
 
     Private Sub TagSetTag(ByRef ent As PRE2.Entity, tagIndex As Integer)
-		'sets the tag with the given name to the given value
-		'0:new tag name, 1+:new tag arguments
-		
-		Dim newTagArgs() As Object
-		Dim newTag As New PRE2.Tag(ent.tags(tagIndex).args(0))
+        'sets the tag with the given name to the given value
+        '0:new tag name, 1+:new tag arguments
+
+        Dim newTagArgs() As Object = Nothing
+        Dim newTag As New PRE2.Tag(ent.tags(tagIndex).args(0))
 	End Sub
 	
     Private Function IsANumber(value As Object) As Boolean
