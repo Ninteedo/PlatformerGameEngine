@@ -194,7 +194,7 @@ Public Module JSONHandler
 
 #Region "Misc String Handling"
 
-    Public Function ArrayToString(input As Object())
+    Public Function ArrayToString(input As Object()) As String
         'turns an array into a string
 
         Dim result As String = "["
@@ -220,8 +220,12 @@ Public Module JSONHandler
         Return Mid(input, 1, 1) = """" And Mid(input, Len(input) - 1, 1) = """"
     End Function
 
-    Public Function AddQuotes(initial As String) As String
-        Return """" & initial & """"
+    Public Function AddQuotes(initial As String, Optional ignoreAlreadyQuoted As Boolean = False) As String
+        If ignoreAlreadyQuoted OrElse Not HasQuotes(initial) Then
+            Return """" & initial & """"
+        Else
+            Return initial
+        End If
     End Function
 
     Public Function RemoveQuotes(initial As String) As String

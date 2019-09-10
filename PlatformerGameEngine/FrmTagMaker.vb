@@ -10,12 +10,16 @@ Public Class FrmTagMaker
 
     Public dataTypes() As String = {"number", "text", "tag"}
     Private tagInCreation As New PRE2.Tag
-    Public arguments() As Object
+    Public arguments As Object
     Public userFinished As Boolean = False
 
     Public ReadOnly Property CreatedTag As PRE2.Tag
         Get
-            tagInCreation.SetArgument(ArrayToString(arguments))
+            If IsArray(arguments) Then
+                tagInCreation.SetArgument(ArrayToString(arguments))
+            Else
+                tagInCreation.SetArgument(arguments.ToString)
+            End If
             Return tagInCreation
         End Get
     End Property
@@ -39,16 +43,28 @@ Public Class FrmTagMaker
 
         tagInCreation = startTag
 
+        arguments = InterpretValue(tagInCreation.argument)
+
         'For argIndex As Integer = 0 To UBound(arguments)
         '    AddArgument(arguments(argIndex))
         'Next argIndex
 
         RefreshArgumentsList()
-        txtName.Text = tagInCreation.name
+        txtName.Text = RemoveQuotes(tagInCreation.name)
     End Sub
 
     Private Sub FrmTagMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         cmbDataType.Items.AddRange(dataTypes)
+
+        'uses basic tag maker instead since this one is a mess
+        Using basicTagMaker As New FrmTagMakerBasic With {.TagCreated = CreatedTag}
+            basicTagMaker.ShowDialog()
+            If basicTagMaker.userFinished Then
+                arguments = CreatedTag.argument
+                tagInCreation = CreatedTag
+            End If
+            Me.Close()
+        End Using
     End Sub
 
     Private Sub lstArguments_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstArguments.SelectedIndexChanged
@@ -78,7 +94,7 @@ Public Class FrmTagMaker
                 Dim userInput As String = InputBox("Please enter text", "Enter text")
 
                 If userInput.Length > 0 Then
-                    AddArgument(userInput)
+                    AddArgument(AddQuotes(userInput))
                 End If
             Case 2      'tag
                 Dim tagMaker As New FrmTagMaker
@@ -119,19 +135,23 @@ Public Class FrmTagMaker
     Private Sub RefreshArgumentsList()
         lstArguments.Items.Clear()
 
-        If IsNothing(tagInCreation.GetArgument()) = False Then
-            For Each arg As Object In tagInCreation.GetArgument()
-                Dim argString As String
+        If Not IsNothing(arguments) Then
+            If IsArray(arguments) Then
+                For Each arg As Object In arguments
+                    'Dim argString As String
 
-                If IsNumeric(arg) = True Then      'number
-                    argString = "num:" & Trim(Val(arg))
-                ElseIf Not IsNothing(New PRE2.Tag(arg.ToString)) Then       'another tag
-                    argString = arg.ToString
-                Else                'plain string
-                    argString = "text:" & arg
-                End If
-                lstArguments.Items.Add(argString)
-            Next arg
+                    'If IsNumeric(arg) = True Then      'number
+                    '    argString = "num:" & Trim(Val(arg))
+                    'ElseIf Not IsNothing(New PRE2.Tag(arg.ToString)) Then       'another tag
+                    '    argString = arg.ToString
+                    'Else                'plain string
+                    '    argString = "text:" & arg
+                    'End If
+                    lstArguments.Items.Add(arg.ToString)
+                Next arg
+            Else
+                lstArguments.Items.Add(arguments.ToString)
+            End If
         End If
     End Sub
 

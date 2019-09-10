@@ -29,9 +29,11 @@ Module EntityStringHandler
 
                 result = result.Remove(Len(result) - 1, 1) & ";"        'removes the last / and adds ;
             Next frameIndex
+
+            result = result.Remove(Len(result) - 1, 1) & Environment.NewLine        'removes the last ; and adds a line break
         End If
 
-        result = result.Remove(Len(result) - 1, 1) & Environment.NewLine        'removes the last ; and adds a line break
+
 
         'adds a line for tags
         If IsNothing(ent.tags) = False Then

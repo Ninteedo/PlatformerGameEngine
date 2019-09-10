@@ -372,10 +372,10 @@ Public Class FrmEntityMaker
         Dim newName As String = txtName.Text
 
         If Not IsNothing(newName) Then
-            ent.name = newName
+            ent.name = AddQuotes(newName)
             RefreshTagsList()
         Else    'no name provided so restores previous name
-            txtName.Text = ent.name
+            txtName.Text = RemoveQuotes(ent.name)
         End If
     End Sub
 
