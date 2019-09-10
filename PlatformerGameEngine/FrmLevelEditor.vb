@@ -225,7 +225,7 @@ Public Class FrmLevelEditor
                     newTemplate.name = FrmGame.MakeNameUnique(newTemplate.name, templateNames, True)
                 End If
 
-                newTemplate.AddTag(New PRE2.Tag("fileName", {fileLocation.Remove(0, Len(renderer.entityFolderLocation))}))
+                newTemplate.AddTag(New PRE2.Tag("fileName", fileLocation.Remove(0, Len(renderer.entityFolderLocation))))
 
                 If IsNothing(thisLevel.templates) = True Then
                     ReDim thisLevel.templates(0)
@@ -258,7 +258,7 @@ Public Class FrmLevelEditor
                             Do
                                 Dim currentInstance As PRE2.Entity = currentRoom.instances(instanceIndex)
 
-                                If currentInstance.FindTag("templateName").args(0) = templateName Then
+                                If currentInstance.FindTag("templateName").GetArgument = templateName Then
                                     'removes current instance if the templateName matches
                                     RemoveEntityInstance(instanceIndex)
 
@@ -306,7 +306,7 @@ Public Class FrmLevelEditor
 
         Dim newInstance As PRE2.Entity = template.Clone
         If Not newInstance.HasTag("templateName") Then      'doesn't add template name if template is an instance of a template
-            newInstance.AddTag(New PRE2.Tag("templateName", {template.name}))       'instance stores the name of its template so the instance can be created from the correct template when loading
+            newInstance.AddTag(New PRE2.Tag("templateName", template.name))       'instance stores the name of its template so the instance can be created from the correct template when loading
         End If
 
         'checks if there are any instances with the same name yet, and numbers the instance accordingly
@@ -615,10 +615,10 @@ Public Class FrmLevelEditor
 
         If tagMaker.userFinished = True Then
             If lstInstances.SelectedIndex > -1 Then
-                SelectedRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.createdTag)
+                SelectedRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.CreatedTag)
                 ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
             ElseIf lstTemplates.SelectedIndex > -1 Then
-                thisLevel.templates(lstTemplates.SelectedIndex).AddTag(tagMaker.createdTag)
+                thisLevel.templates(lstTemplates.SelectedIndex).AddTag(tagMaker.CreatedTag)
                 ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
             End If
         End If
@@ -640,10 +640,10 @@ Public Class FrmLevelEditor
 
             If tagMaker.userFinished = True Then
                 If lstInstances.SelectedIndex > -1 Then
-                    SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
+                    SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.CreatedTag
                     ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
                 ElseIf lstTemplates.SelectedIndex > -1 Then
-                    thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.createdTag
+                    thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.CreatedTag
                     ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
                 End If
             End If
@@ -816,7 +816,7 @@ Public Class FrmLevelEditor
         Dim tagMaker As New FrmTagMaker
         tagMaker.ShowDialog()
         If tagMaker.userFinished = True Then
-            AddParameter(tagMaker.createdTag, thisLevel.globalParameters)
+            AddParameter(tagMaker.CreatedTag, thisLevel.globalParameters)
         End If
     End Sub
 
@@ -828,7 +828,7 @@ Public Class FrmLevelEditor
             Dim tagMaker As New FrmTagMaker(thisLevel.globalParameters(lstLevelParams.SelectedIndex))
             tagMaker.ShowDialog()
             If tagMaker.userFinished = True Then
-                ReplaceParameter(lstLevelParams.SelectedIndex, tagMaker.createdTag, thisLevel.globalParameters)
+                ReplaceParameter(lstLevelParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.globalParameters)
             End If
         End If
     End Sub
@@ -864,7 +864,7 @@ Public Class FrmLevelEditor
         Dim tagMaker As New FrmTagMaker
         tagMaker.ShowDialog()
         If tagMaker.userFinished = True Then
-            AddParameter(tagMaker.createdTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
+            AddParameter(tagMaker.CreatedTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
         End If
     End Sub
 
@@ -886,7 +886,7 @@ Public Class FrmLevelEditor
             Dim tagMaker As New FrmTagMaker(SelectedRoom.parameters(lstRoomParams.SelectedIndex))
             tagMaker.ShowDialog()
             If tagMaker.userFinished = True Then
-                ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.createdTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
+                ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
             End If
         End If
     End Sub

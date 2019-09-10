@@ -309,7 +309,7 @@ Public Class FrmEntityMaker
                 ReDim Preserve ent.tags(UBound(ent.tags) + 1)
             End If
 
-            ent.tags(UBound(ent.tags)) = tagMaker.createdTag
+            ent.tags(UBound(ent.tags)) = tagMaker.CreatedTag
 
             'lstTags.Items.Add(tagMaker.createdTag.name)
             RefreshTagsList()
@@ -323,11 +323,11 @@ Public Class FrmEntityMaker
 
         If tagIndex > -1 Then
             Dim tagMaker As New FrmTagMaker(ent.tags(tagIndex))
-            
+
             tagMaker.ShowDialog()
 
             If tagMaker.userFinished = True Then
-                ent.tags(tagIndex) = tagMaker.createdTag
+                ent.tags(tagIndex) = tagMaker.CreatedTag
                 RefreshTagsList()
                 'lstTags.Items(tagIndex) = tagMaker.createdTag.name
             End If

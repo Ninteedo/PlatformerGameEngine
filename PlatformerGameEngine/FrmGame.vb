@@ -66,7 +66,7 @@ Public Class FrmGame
                     Dim templateOfInstance As PRE2.Entity = Nothing           'used so that tags can be compared and identical ones can be ignored
                     Dim templateName As String = Nothing
                     If instance.HasTag("templateName") Then
-                        templateName = instance.FindTag("templateName").args(0)
+                        templateName = instance.FindTag("templateName").GetArgument()
                         For Each template As PRE2.Entity In levelOfRoom.templates
                             If template.name = templateName Then
                                 templateOfInstance = template
@@ -157,28 +157,28 @@ Public Class FrmGame
         Public Property Name As String
             Get
                 If HasParam("name") Then
-                    Return FindParam("name").args(0)
+                    Return FindParam("name").GetArgument()
                 Else
                     Return "UnnamedRoom"
                 End If
             End Get
             Set(value As String)
                 RemoveParam("name")
-                AddParam(New PRE2.Tag("name", {value}))
+                AddParam(New PRE2.Tag("name", value))
             End Set
         End Property
 
         Public Property Coords As Point     'need to implement a proper coords system
             Get
                 If HasParam("coords") Then
-                    Return FindParam("coords").args(0)
+                    Return New Point(Val(FindParam("coords").GetArgument(0)), Val(FindParam("coords").GetArgument(1)))
                 Else
                     Return New Point(0, 0)
                 End If
             End Get
             Set(value As Point)
                 RemoveParam("coords")
-                AddParam(New PRE2.Tag("coords", {value}))
+                AddParam(New PRE2.Tag("coords", "[" & value.X & "," & value.Y & "]"))
             End Set
         End Property
     End Structure
@@ -209,7 +209,7 @@ Public Class FrmGame
             If Not IsNothing(templates) Then
                 For Each template As PRE2.Entity In templates
                     If template.HasTag("fileName") = True Then
-                        Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").args(0) & levelDelimiters(1) & template.name
+                        Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").GetArgument() & levelDelimiters(1) & template.name
 
                         'adds each tag
                         For Each thisTag As PRE2.Tag In template.tags
@@ -524,7 +524,7 @@ Public Class FrmGame
 
                 'finds the entity template with the name
                 For index As Integer = 0 To UBound(thisLevel.templates)
-                    If thisLevel.templates(index).FindTag("name").args(0) = attributes(0) Then
+                    If thisLevel.templates(index).FindTag("name").GetArgument() = attributes(0) Then
                         entityTemplate = thisLevel.templates(index)
                     End If
                 Next index
@@ -536,7 +536,7 @@ Public Class FrmGame
                     Dim newEnt As PRE2.Entity = entityTemplate
 
                     newEnt.RemoveTag("name")
-                    newEnt.AddTag(New PRE2.Tag("name", {newInstanceName}))
+                    newEnt.AddTag(New PRE2.Tag("name", newInstanceName))
 
                     'adds the rest of the tags to the entity
                     For index As Integer = 2 To UBound(attributes)
@@ -558,7 +558,7 @@ Public Class FrmGame
 
                 'finds the entity instance with the name
                 For index As Integer = 0 To UBound(thisRoom.instances)
-                    If thisRoom.instances(index).FindTag("name").args(0) = attributes(0) Then
+                    If thisRoom.instances(index).FindTag("name").GetArgument() = attributes(0) Then
                         entityInstance = thisRoom.instances(index)
                     End If
                 Next index
@@ -652,7 +652,7 @@ Public Class FrmGame
         'broadcasts the key held event for each key currently held
         For keyIndex As Integer = 0 To UBound(keysHeld)
             If Not IsNothing(keysHeld(keyIndex)) AndAlso keysHeld(keyIndex) > 0 Then
-                TagEvents.BroadcastEvent(New PRE2.Tag("event", {"key" & ChrW(keysHeld(keyIndex))}), currentRoom.instances)
+                TagEvents.BroadcastEvent(New PRE2.Tag("event", "key" & ChrW(keysHeld(keyIndex))), currentRoom.instances)
             End If
         Next keyIndex
 
@@ -673,70 +673,70 @@ Public Class FrmGame
         Loop Until tagIndex > UBound(ent.tags)
     End Sub
 
-    Public Sub EntityEvent(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional entTarget As PRE2.Entity = Nothing)
+    'Public Sub EntityEvent(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional entTarget As PRE2.Entity = Nothing)
 
-    End Sub
+    'End Sub
 
-    Public Sub EntityBehaviour(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional ent2 As PRE2.Entity = Nothing)
-        'does the behaviour for the entity, based on the tag given
+    ''Public Sub EntityBehaviour(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional ent2 As PRE2.Entity = Nothing)
+    ''    'does the behaviour for the entity, based on the tag given
 
-        Select Case behaviour.name
-            Case "xVel"         'args(0):float
-                Dim start As PointF = ent.location
+    ''    Select Case behaviour.name
+    ''        Case "xVel"         'args(0):float
+    ''            Dim start As PointF = ent.location
 
-                'ent.location.X += behaviour.args(0)
-            Case "yVel"         'args(0):float
-                'ent.location.Y += behaviour.args(0)
-            Case "xAcc"         'args(0):float
-                ent.FindTag("xVel").args(0) += behaviour.args(0)
-            Case "yAcc"         'args(0):float
-                ent.FindTag("yVel").args(0) += behaviour.args(0)
-            Case "layer"
+    ''            'ent.location.X += behaviour.args(0)
+    ''        Case "yVel"         'args(0):float
+    ''            'ent.location.Y += behaviour.args(0)
+    ''        Case "xAcc"         'args(0):float
+    ''            ent.FindTag("xVel").SetArgument(ent.FindTag("xVel").GetArgument() + behaviour.GetArgument())
+    ''        Case "yAcc"         'args(0):float
+    ''            ent.FindTag("yVel").SetArgument(ent.FindTag("yVel").GetArgument() + behaviour.GetArgument())
+    ''        Case "layer"
 
-            Case "setBackgroundColour"
+    ''        Case "setBackgroundColour"
 
-            Case "changeLevel"
+    ''        Case "changeLevel"
 
-            Case "gameOver"
+    ''        Case "gameOver"
 
-            Case "damage"       'args(0):int
-                If ent.FindTag("health").name <> Nothing Then
-                    ent.FindTag("health").args(0) -= behaviour.args(0)
-                ElseIf ent.FindTag("maxHealth").name <> Nothing Then
-                    ent.AddTag(New PRE2.Tag("health", {ent.FindTag("maxHealth").args(0) - behaviour.args(0)}))
-                End If
+    ''        Case "damage"       'args(0):int
+    ''            If ent.FindTag("health").name <> Nothing Then
+    ''                ent.FindTag("health").args(0) -= behaviour.args(0)
+    ''            ElseIf ent.FindTag("maxHealth").name <> Nothing Then
+    ''                ent.AddTag(New PRE2.Tag("health", {ent.FindTag("maxHealth").args(0) - behaviour.args(0)}))
+    ''            End If
 
-                ent.RemoveTag("damage")
-        End Select
-    End Sub
+    ''            ent.RemoveTag("damage")
+    ''    End Select
+    ''End Sub
 
-    Public Function EntityWithName(entityName As String, roomToCheck As Room) As PRE2.Entity
-        Dim result As PRE2.Entity = Nothing
+    'Public Function EntityWithName(entityName As String, roomToCheck As Room) As PRE2.Entity
+    '    Dim result As PRE2.Entity = Nothing
 
-        Select Case entityName
-            Case "other"
+    '    Select Case entityName
+    '        Case "other"
 
-            Case Else
-                For index As Integer = 0 To UBound(roomToCheck.instances)
-                    If roomToCheck.instances(index).name = entityName Then
-                        Return roomToCheck.instances(index)
-                    End If
-                Next index
-        End Select
+    '        Case Else
+    '            For index As Integer = 0 To UBound(roomToCheck.instances)
+    '                If roomToCheck.instances(index).name = entityName Then
+    '                    Return roomToCheck.instances(index)
+    '                End If
+    '            Next index
+    '    End Select
 
-        Return result
-    End Function
+    '    Return result
+    'End Function
 
     'higher level entity control
 
-    Public Function GetEntityArgument(tag As PRE2.Tag, argIndex As Integer, Optional ent As PRE2.Entity = Nothing,
+    Public Function GetEntityArgument(tag As PRE2.Tag, Optional ent As PRE2.Entity = Nothing,
                                       Optional room As Room = Nothing, Optional defaultResult As Object = Nothing) As Object
         'returns a processed entity argument
 
         Dim result As Object = defaultResult
 
-        If Not IsNothing(tag.args) AndAlso argIndex <= UBound(tag.args) Then
-            Dim rawArg As Object = tag.args(argIndex)
+        If Not IsNothing(tag.GetArgument) Then ' AndAlso argIndex <= UBound(tag.args) Then
+            Dim rawArg As Object = tag.GetArgument()
             Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
 
             If IsNothing(rawArg) Then           'is not anything

@@ -12,7 +12,7 @@ Public Module TagEvents
         For Each ent As PRE2.Entity In entityList
             If Not IsNothing(ent.tags) Then
                 For tagIndex As Integer = 0 To UBound(ent.tags)
-                    If LCase(ent.tags(tagIndex).name) = "listener" AndAlso ent.tags(tagIndex).args(0) = eventTag.args(0) Then
+                    If LCase(ent.tags(tagIndex).name) = "listener" AndAlso ent.tags(tagIndex).GetArgument = eventTag.GetArgument Then
                         ReceiveEvent(ent, ent.tags(tagIndex))
                     End If
                 Next
@@ -25,8 +25,8 @@ Public Module TagEvents
 
         For Each tag As PRE2.Tag In ent.tags
             'If tag.name = listenerTag.args(0) Then
-            For index As Integer = 1 To UBound(listenerTag.args)
-                TagBehaviours.ProcessTag(ent, listenerTag.args(index), room)
+            For index As Integer = 1 To UBound(listenerTag.GetArgument())
+                TagBehaviours.ProcessTag(ent, New PRE2.Tag(listenerTag.GetArgument()(index)), room)
             Next
             'End If
         Next

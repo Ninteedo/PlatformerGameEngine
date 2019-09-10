@@ -58,7 +58,7 @@ Public Class FrmMenu
                 Case "LoadGame"
                     LoadGame()
                 Case "OpenOptionsMenu"
-
+                    OpenOptionsMenu()
                 Case "OpenToolsMenu"
                     OpenToolsMenu()
                 Case "OpenSpriteMaker"
@@ -99,6 +99,9 @@ Public Class FrmMenu
         'SetMenu(currentMenuIndex)
 
         'open FrmOptions
+
+        Dim test As New PanelRenderEngine2.Tag(InputBox("Input Tag"))
+        MsgBox(test.ToString)
     End Sub
 
     Private Sub OpenToolsMenu()

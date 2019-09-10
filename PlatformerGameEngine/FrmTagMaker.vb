@@ -9,8 +9,16 @@ Public Class FrmTagMaker
     'TODO: clean this all up
 
     Public dataTypes() As String = {"number", "text", "tag"}
-    Public createdTag As New PRE2.Tag
+    Private tagInCreation As New PRE2.Tag
+    Public arguments() As Object
     Public userFinished As Boolean = False
+
+    Public ReadOnly Property CreatedTag As PRE2.Tag
+        Get
+            tagInCreation.SetArgument(ArrayToString(arguments))
+            Return tagInCreation
+        End Get
+    End Property
 
 
     Public Sub New()
@@ -29,14 +37,14 @@ Public Class FrmTagMaker
 
         ' Add any initialization after the InitializeComponent() call.
 
-        createdTag = startTag
+        tagInCreation = startTag
 
-        'For argIndex As Integer = 0 To UBound(createdTag.args)
-        '    AddArgument(createdTag.args(argIndex))
+        'For argIndex As Integer = 0 To UBound(arguments)
+        '    AddArgument(arguments(argIndex))
         'Next argIndex
 
         RefreshArgumentsList()
-        txtName.Text = createdTag.name
+        txtName.Text = tagInCreation.name
     End Sub
 
     Private Sub FrmTagMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -78,7 +86,7 @@ Public Class FrmTagMaker
                 tagMaker.ShowDialog()
 
                 If tagMaker.userFinished = True Then
-                    AddArgument(tagMaker.createdTag)
+                    AddArgument(tagMaker.tagInCreation)
                 End If
         End Select
     End Sub
@@ -100,9 +108,9 @@ Public Class FrmTagMaker
     Private Sub btnFinish_Click(sender As Object, e As EventArgs) Handles btnFinish.Click
         'pressed by the user when they are done creating the tag
 
-        createdTag.name = txtName.Text
+        tagInCreation.name = txtName.Text
 
-        If Len(createdTag.name) > 0 Then            'not a valid tag if it doesn't have a name
+        If Len(tagInCreation.name) > 0 Then            'not a valid tag if it doesn't have a name
             userFinished = True
         End If
         Me.Close()
@@ -111,8 +119,8 @@ Public Class FrmTagMaker
     Private Sub RefreshArgumentsList()
         lstArguments.Items.Clear()
 
-        If IsNothing(createdTag.args) = False Then
-            For Each arg As Object In createdTag.args
+        If IsNothing(tagInCreation.GetArgument()) = False Then
+            For Each arg As Object In tagInCreation.GetArgument()
                 Dim argString As String
 
                 If IsNumeric(arg) = True Then      'number
@@ -130,28 +138,28 @@ Public Class FrmTagMaker
     Public Sub AddArgument(argument As Object)
         'adds the given argument to the user's created tag's arguments
 
-        If IsNothing(createdTag.args) = False Then
-            ReDim Preserve createdTag.args(UBound(createdTag.args) + 1)
+        If IsNothing(tagInCreation.GetArgument()) = False Then
+            ReDim Preserve arguments(UBound(arguments) + 1)
         Else
-            ReDim createdTag.args(0)
+            ReDim arguments(0)
         End If
 
-        createdTag.args(UBound(createdTag.args)) = argument
+        tagInCreation.GetArgument()(UBound(arguments)) = argument
         RefreshArgumentsList()
     End Sub
 
     Private Sub RemoveArgument(argIndex As UInteger)
         'removes the argument at the given index from the created tag
 
-        For index As Integer = argIndex To UBound(createdTag.args) - 1
-            createdTag.args(index) = createdTag.args(index + 1)
+        For index As Integer = argIndex To UBound(arguments) - 1
+            arguments(index) = arguments(index + 1)
         Next index
 
         'used for reducing the length of the array of the arguments
-        If UBound(createdTag.args) > 0 Then
-            ReDim Preserve createdTag.args(UBound(createdTag.args) - 1)
+        If UBound(arguments) > 0 Then
+            ReDim Preserve arguments(UBound(arguments) - 1)
         Else        'if removing only argument, then array becomes nothing
-            createdTag.args = Nothing
+            arguments = Nothing
         End If
 
         RefreshArgumentsList()
@@ -160,13 +168,13 @@ Public Class FrmTagMaker
     Private Sub BtnBasicEditor_Click(sender As Object, e As EventArgs) Handles btnBasicEditor.Click
         'uses FrmTagMakerBasic
 
-        Using basicTagMaker As New FrmTagMakerBasic With {.TagCreated = createdTag}
+        Using basicTagMaker As New FrmTagMakerBasic With {.TagCreated = tagInCreation}
             basicTagMaker.ShowDialog()
 
             If basicTagMaker.userFinished Then
-                createdTag = basicTagMaker.TagCreated
+                tagInCreation = basicTagMaker.TagCreated
                 RefreshArgumentsList()
-                txtName.Text = createdTag.name
+                txtName.Text = tagInCreation.name
             End If
         End Using
     End Sub

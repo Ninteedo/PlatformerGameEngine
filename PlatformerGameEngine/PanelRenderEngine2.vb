@@ -20,11 +20,13 @@ Public Class PanelRenderEngine2
 
     Public Structure Tag
         Dim name As String
-        Dim args() As Object        'does this need to be object?
+        'Dim args() As Object        'does this need to be object?
+        'Dim args() As String
+        Dim argument As String
 
-        Public Sub New(tagName As String, Optional arguments() As Object = Nothing)
+        Public Sub New(tagName As String, Optional argument As String = Nothing)
             name = tagName
-            args = arguments
+            Me.argument = argument
         End Sub
 
         Public Sub New(ByVal tagString As String)
@@ -32,7 +34,7 @@ Public Class PanelRenderEngine2
 
             Dim newTag As Tag = JSONToTag(tagString)
             name = newTag.name
-            args = newTag.args
+            argument = newTag.argument
 
             'checks that string is actually a tag
             'If Len(tagString) > 4 Then
@@ -76,10 +78,69 @@ Public Class PanelRenderEngine2
             'Return result
         End Function
 
+        Public Function GetArgument() As Object
+
+            Return InterpretValue(argument)
+        End Function
+
+        Public Sub SetArgument(newValue As String)
+            argument = newValue
+        End Sub
+
+        'Public Function GetArgument(argIndex As Integer, Optional defaultVal As String = Nothing, _
+        '                            Optional text As Boolean = False, Optional numeric As Boolean = False, _
+        '                            Optional subTag As Boolean = False) As String
+        '    'returns a slightly interpreted value of the argument at the given index
+
+        '    'If numeric And text Or Not IsNothing(subTag) And numeric Or text And Not IsNothing(subTag) Then   'checks that multiple data types aren't being requested
+        '    '    DisplayError("Can only request argument as a single data type")
+        '    '    Return Nothing
+        '    'Else
+        '    If Not IsNothing(argument) Then ' AndAlso argIndex >= 0 And argIndex <= UBound(argument) Then
+        '        Dim result As String = argument(argIndex)
+
+        '        If Not IsNothing(result) Then
+        '            'checks if the argument is a string
+        '            If Len(result) >= 2 AndAlso Mid(result, 1, 1) = """" AndAlso Mid(result, Len(result), 1) = """" Then
+        '                result = Mid(result, 2, Len(result) - 2)
+        '            ElseIf False Then    'TODO: condition for tag
+
+        '            End If
+        '        End If
+
+        '        'If numeric Then
+        '        '    If IsNumeric(result) Then
+        '        '        result = result
+        '        '    Else
+        '        '        DisplayError(result.ToString & " is not a number")
+        '        '    End If
+        '        'ElseIf text Then
+        '        '    Dim stringVer As String = result.ToString
+        '        '    If stringVer(0) = """" And stringVer(Len(stringVer) - 1) = """" Then        'strings in arguments should have quotes in them
+        '        '        result = Mid(stringVer, 2, Len(stringVer) - 2)
+        '        '    Else
+        '        '        DisplayError("Argument " & result & " is meant to be a string but is missing quotations")
+        '        '    End If
+        '        'ElseIf Not IsNothing(subTag) Then
+        '        '    'TODO: add searching for sub tags in tags
+
+        '        '    result = New Tag(result)
+        '        'End If
+
+        '        Return result
+        '    Else
+        '        DisplayError("ArgIndex " & argIndex & " is not valid for tag " & Me.ToString)
+        '        Return Nothing
+        '    End If
+        '    'End If
+        'End Function
+
+
+
         Public Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
             'used for = and <> operators
 
-            If LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.args Is tag2.args Then
+            If LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.argument = tag2.argument Then
                 Return True
             Else
                 Return False
@@ -118,7 +179,6 @@ Public Class PanelRenderEngine2
             Dim newEnt As Entity = EntityStringHandler.ReadEntityString(entityString, renderEngine)
             frames = newEnt.frames
             tags = newEnt.tags
-
         End Sub
 
         Public Overrides Function ToString() As String
@@ -204,102 +264,106 @@ Public Class PanelRenderEngine2
         Property name As String
             Get
                 If HasTag("name") Then
-                    Return FindTag("name").args(0)
+                    Return FindTag("name").GetArgument()
                 Else
                     Return "unnamed"
                 End If
             End Get
             Set(value As String)
                 RemoveTag("name")
-                AddTag(New Tag("name", {value}))
+                AddTag(New Tag("name", value))
             End Set
         End Property
 
         Property location As PointF
             Get
                 If HasTag("location") Then
-                    Dim textForm As String = FindTag("location").args(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
-                    Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
-                                            Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
+                    'Dim textForm As String = FindTag("location").GetArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
+                    'Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
+                    '                        Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
+                    Return New Point(Val(FindTag("location").GetArgument()(0)), Val(FindTag("location").GetArgument()(1)))
                 Else
                     Return New PointF(0, 0)
                 End If
             End Get
             Set(value As PointF)
                 RemoveTag("location")
-                AddTag(New Tag("location", {value}))
+                AddTag(New Tag("location", "[" & value.X & "," & value.Y & "]"))
             End Set
         End Property
 
         Property layer As Integer
             Get
                 If HasTag("layer") Then
-                    Return FindTag("layer").args(0)
+                    Return FindTag("layer").GetArgument()
                 Else
                     Return 0
                 End If
             End Get
             Set(value As Integer)
                 RemoveTag("layer")
-                AddTag(New Tag("layer", {value}))
+                AddTag(New Tag("layer", value))
             End Set
         End Property
 
         Property scale As Single
             Get
                 If HasTag("scale") Then
-                    Return FindTag("scale").args(0)
+                    Return FindTag("scale").GetArgument()
                 Else
                     Return 1
                 End If
             End Get
             Set(value As Single)
                 RemoveTag("scale")
-                AddTag(New Tag("scale", {value}))
+                AddTag(New Tag("scale", value))
             End Set
         End Property
 
         Property rotation As Single
             Get
                 If HasTag("rotation") Then
-                    Return FindTag("rotation").args(0)
+                    Return FindTag("rotation").GetArgument()
                 Else
                     Return 0
                 End If
             End Get
             Set(value As Single)
                 RemoveTag("rotation")
-                AddTag(New Tag("rotation", {value}))
+                AddTag(New Tag("rotation", value))
             End Set
         End Property
 
         Property rotationAnchor As PointF
             Get
-                If HasTag("rotationAnchor") _
-                AndAlso Not IsNothing(FindTag("rotationAnchor").args(0)) AndAlso IsNumeric(FindTag("rotationAnchor").args(0)) AndAlso
-                Not IsNothing(FindTag("rotationAnchor").args(1)) AndAlso IsNumeric(FindTag("rotationAnchor").args(1)) Then
-                    Return New PointF(FindTag("rotationAnchor").args(0), FindTag("rotationAnchor").args(1))
-                Else
-                    Return New PointF(frames(currentFrame).Dimensions.Width / 2, frames(currentFrame).Dimensions.Height / 2)
+                If HasTag("rotationAnchor") Then
+                    Dim argStrings() As String = {FindTag("rotationAnchor").GetArgument()(0), FindTag("rotationAnchor").GetArgument()(1)}
+
+                    If Not IsNothing(argStrings(0)) AndAlso IsNumeric(argStrings(0)) AndAlso
+                    Not IsNothing(argStrings(1)) AndAlso IsNumeric(argStrings(1)) Then
+                        Return New PointF(Val(argStrings(0)), Val(argStrings(1)))
+                    Else
+                        Return New PointF(frames(currentFrame).Dimensions.Width / 2, frames(currentFrame).Dimensions.Height / 2)
+                    End If
                 End If
             End Get
             Set(value As PointF)
                 RemoveTag("rotationAnchor")
-                AddTag(New Tag("rotationAnchor", {value.X, value.Y}))
+                AddTag(New Tag("rotationAnchor", "[" & value.X & "," & value.Y & "]"))
             End Set
         End Property
 
         Property opacity As Single
             Get
                 If HasTag("opacity") Then
-                    Return FindTag("opacity").args(0)
+                    Return FindTag("opacity").GetArgument()
                 Else
                     Return 1.0
                 End If
             End Get
             Set(value As Single)
                 RemoveTag("opacity")
-                AddTag(New Tag("opacity", {value}))
+                AddTag(New Tag("opacity", value))
 
                 'resets all the bitmaps because they are wrong now
                 For Each currentFrame As Frame In frames
@@ -311,14 +375,14 @@ Public Class PanelRenderEngine2
         Property currentFrame As UInteger
             Get
                 If HasTag("currentFrame") Then
-                    Return FindTag("currentFrame").args(0)
+                    Return FindTag("currentFrame").GetArgument()
                 Else
                     Return 0
                 End If
             End Get
             Set(value As UInteger)
                 RemoveTag("currentFrame")
-                AddTag(New Tag("currentFrame", {value}))
+                AddTag(New Tag("currentFrame", value))
             End Set
         End Property
 
@@ -405,8 +469,9 @@ Public Class PanelRenderEngine2
         End Function
 
         Public Function ToBitmap(opacity As Single) As Bitmap
-            Dim pixels(,) As Color = ToColourArray()
+            'returns a bitmap version of this frame
 
+            Dim pixels(,) As Color = ToColourArray()
             Dim result As New Bitmap(pixels.GetUpperBound(0) + 1, pixels.GetUpperBound(1) + 1, Imaging.PixelFormat.Format32bppArgb)
             result.MakeTransparent()
 
@@ -414,7 +479,7 @@ Public Class PanelRenderEngine2
                 For pixelX As Integer = 0 To pixels.GetUpperBound(0)
                     'updates the alpha channel of the colour
                     Dim pixelColour As Color = pixels(pixelX, pixelY)
-                    If pixelColour.A > 0 Then
+                    If pixelColour.A > 0 Then       'doesn't change pixels that are already transparent
                         pixelColour = Color.FromArgb(opacity * 255, pixelColour)
                     End If
 

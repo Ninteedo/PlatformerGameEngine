@@ -18,27 +18,27 @@ Public Module TagBehaviours
             'basic movement
             Case LCase("xVel")
                 'TagXVel(ent, tagIndex)
-                ent.location = New PointF(ent.location.X + FrmGame.GetEntityArgument(tag, 0, ent, room, 0), ent.location.Y)
+                ent.location = New PointF(ent.location.X + FrmGame.GetEntityArgument(tag, ent, room, 0), ent.location.Y)
             Case LCase("yVel")
                 'TagYVel(ent, tagIndex)
-                ent.location = New PointF(ent.location.X, ent.location.Y + FrmGame.GetEntityArgument(tag, 0, ent, room, 0))
+                ent.location = New PointF(ent.location.X, ent.location.Y + FrmGame.GetEntityArgument(tag, ent, room, 0))
             Case LCase("gravity")
                 'TagGravity(ent, tagIndex)
-                ent.AddTag(New PRE2.Tag("yVel", FrmGame.GetEntityArgument(tag, 0, ent, room, 0) * -1 +
-                                        FrmGame.GetEntityArgument(ent.FindTag("yVel"), 0, ent, room, 0)))
+                ent.AddTag(New PRE2.Tag("yVel", FrmGame.GetEntityArgument(tag, ent, room, 0) * -1 +
+                                        FrmGame.GetEntityArgument(ent.FindTag("yVel"), ent, room, 0)))
 
 
             'meta
-            Case LCase("addTag")        '0: tagName, 1+: args
-                Dim newTag As New PRE2.Tag(FrmGame.GetEntityArgument(tag, 0, ent, room, "unnamedTag"))
-                If UBound(tag.args) > 0 Then
-                    ReDim newTag.args(UBound(tag.args) - 1)
-                    For argIndex As Integer = 1 To UBound(tag.args)
-                        newTag.args(argIndex - 1) = FrmGame.GetEntityArgument(tag, argIndex, ent, room)
-                    Next
-                End If
+            Case LCase("addTag")
+                Dim newTag As New PRE2.Tag(FrmGame.GetEntityArgument(tag, ent, room))
                 ent.RemoveTag(newTag.name)
                 ent.AddTag(newTag)
+                'If UBound(tag.args) > 0 Then
+                '    ReDim newTag.args(UBound(tag.args) - 1)
+                '    For argIndex As Integer = 1 To UBound(tag.GetArgument)
+                '        newTag.args(argIndex - 1) = FrmGame.GetEntityArgument(tag, ent, room)
+                '    Next
+                'End If
         End Select
         'End If
     End Sub
@@ -62,14 +62,14 @@ Public Module TagBehaviours
     'End Sub
 
 
-    Private Sub TagSetTag(ByRef ent As PRE2.Entity, tagIndex As Integer)
-        'sets the tag with the given name to the given value
-        '0:new tag name, 1+:new tag arguments
+    '   Private Sub TagSetTag(ByRef ent As PRE2.Entity, tagIndex As Integer)
+    '       'sets the tag with the given name to the given value
+    '       '0:new tag name, 1+:new tag arguments
 
-        Dim newTagArgs() As Object = Nothing
-        Dim newTag As New PRE2.Tag(ent.tags(tagIndex).args(0))
-	End Sub
-	
+    '       Dim newTagArgs() As Object = Nothing
+    '       Dim newTag As New PRE2.Tag(ent.tags(tagIndex).args(0))
+    'End Sub
+
     Private Function IsANumber(value As Object) As Boolean
         'used for validating tags
 
@@ -141,9 +141,9 @@ Public Module TagBehaviours
 
                     For Each part As String In {leftPart, rightPart}        'TODO: might need to expand on this part, eg referring to other instances
                         If ent.HasTag(part) Then
-                            part = ent.FindTag(part).args(0)
+                            part = ent.FindTag(part).GetArgument()
                         ElseIf room.HasParam(part) Then
-                            part = room.FindParam(part).args(0)
+                            part = room.FindParam(part).GetArgument()
                         End If
                     Next
 
