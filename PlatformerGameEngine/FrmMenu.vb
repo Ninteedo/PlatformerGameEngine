@@ -102,6 +102,7 @@ Public Class FrmMenu
 
         Dim test As New PanelRenderEngine2.Tag(InputBox("Input Tag"))
         MsgBox(test.ToString)
+        Dim argument As Object = InterpretValue(test.argument)
     End Sub
 
     Private Sub OpenToolsMenu()

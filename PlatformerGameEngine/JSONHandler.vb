@@ -14,24 +14,6 @@ Public Module JSONHandler
         If Not IsNothing(tag.name) Then
             result = "{" & AddQuotes(tag.name) &
                 If(Not IsNothing(tag.argument) AndAlso Len(tag.argument) > 0, ":" & tag.argument & "}", "}")
-            'result = "{" & tag.name & ":"   'initialiser of an object
-            'If Not IsNothing(tag.args) Then
-            '    If UBound(tag.args) = 0 Then
-            '        'single value
-            '        result += tag.args(0).ToString
-            '    Else
-            '        'array
-            '        result += "["
-            '        For argIndex As Integer = 0 To UBound(tag.args)     'adds each argument as a value
-            '            result += tag.args(argIndex).ToString
-            '            If argIndex < UBound(tag.args) Then
-            '                result += ","
-            '            End If
-            '        Next
-            '        result += "]"
-            '    End If
-            'End If
-            'result += "}"
         End If
         Return result
     End Function
@@ -41,8 +23,6 @@ Public Module JSONHandler
         'TODO: input validation and error handling
 
         Dim resultName As String = ""
-        Dim resultArg As String = Nothing
-        'Dim resultArgs() As String = {}
 
         Dim cIndex As Integer = 0
         Dim inString As Boolean = False
@@ -51,41 +31,48 @@ Public Module JSONHandler
         Dim inValue As Boolean = False
         Dim currentValue As String = ""
 
+        Dim subStructureLevel As Integer = 0    'tracks how many tags have been opened
+
         Do
             Dim c As String = jsonString(cIndex)
 
             If Not inValue Then
-                'part for reading strings in the JSON correctly
-                If Not inString Then
-                    If c = """" Then
-                        inString = True
-                    ElseIf c = ":" Or c = "}" Then 'marks end of name and beginning of value
-                        resultName = InterpretString(currentString).Trim
-                        currentString = ""
+                If Not inString AndAlso c = ":" Or c = "}" Then 'marks end of name and beginning of value
+                    resultName = InterpretString(currentString).Trim
+                    currentString = ""
 
-                        inValue = True
-                    End If
-                Else
-                    If c = """" And jsonString(cIndex - 1) <> "\" Then
-                        inString = False
-                    Else
-                        currentString += c
-                    End If
+                    inValue = True
                 End If
             Else
+                currentValue += c
                 If Not inString And c = "}" Then        'end of value
-                    'resultArgs = InterpretValue(currentValue)
-                    resultArg = currentValue
-                    Exit Do
-                Else
-                    currentValue += c
+                    subStructureLevel -= 1
+
+                    If subStructureLevel < 0 Then
+                        currentValue = currentValue.Remove(Len(currentValue) - 1)
+                        Exit Do
+                    End If
+                ElseIf Not inString And c = "{" Then     'sub tag opened
+                    subStructureLevel += 1
                 End If
+            End If
+
+            If Not inString And c = """" Then
+                inString = True
+            ElseIf inString AndAlso c = """" AndAlso jsonString(cIndex - 1) <> "\" Then
+                inString = False
+            ElseIf inString Then
+                currentString += c
             End If
 
             cIndex += 1
         Loop Until cIndex >= Len(jsonString)
 
-        Return New PRE2.Tag(resultName, resultArg)
+        If Len(currentValue) = 0 Then
+            currentValue = Nothing
+        End If
+
+        Return New PRE2.Tag(resultName, currentValue)
     End Function
 
     Public Function InterpretString(rawString As String) As String
@@ -142,31 +129,39 @@ Public Module JSONHandler
                     Case "{"        'object (another tag)
                         Return JSONToTag(valueString)
                     Case "["        'array
-                        Dim valueStrings() As String = {""""}
-                        Dim values() As String
+                        Dim valueStrings() As String = {""}
+                        Dim values() As Object
 
                         Dim inString As Boolean = False
+                        Dim subStrucureLevel As Integer = 0        'eg string, array or tag
                         Dim cIndex As Integer = 0
 
                         'splits by "," but only when the comma isn't in a string
                         Do
                             Dim c As String = valueString(cIndex)
-                            If Not inString Then
+
+                            If Not inString AndAlso c = """" Or c = "[" Or c = "{" Then
+                                subStrucureLevel += 1
                                 If c = """" Then
                                     inString = True
-                                ElseIf c = "," Then
-                                    ReDim Preserve valueStrings(UBound(valueStrings) + 1)
-                                    valueStrings(UBound(valueStrings)) = """"
-                                    'Else
-                                    '   valueStrings(UBound(valueStrings)) += c
                                 End If
-                            Else
-                                If c = """" And valueString(cIndex - 1) <> "\" Then
-                                    valueStrings(UBound(valueStrings)) += """"
-                                    inString = False
-                                Else
+                                If subStrucureLevel > 1 Then
                                     valueStrings(UBound(valueStrings)) += c
                                 End If
+                            ElseIf Not inString AndAlso c = "]" Or c = "}" Then
+                                subStrucureLevel -= 1
+                                If subStrucureLevel > 0 Then
+                                    valueStrings(UBound(valueStrings)) += c
+                                End If
+                            ElseIf inString And c = """" And valueString(cIndex - 1) <> "\" Then
+                                inString = False
+                                subStrucureLevel -= 1
+                                valueStrings(UBound(valueStrings)) += c
+                            ElseIf subStrucureLevel = 1 And c = "," Then
+                                ReDim Preserve valueStrings(UBound(valueStrings) + 1)
+                                valueStrings(UBound(valueStrings)) = ""
+                            Else
+                                valueStrings(UBound(valueStrings)) += c
                             End If
 
                             cIndex += 1
@@ -174,17 +169,13 @@ Public Module JSONHandler
 
                         ReDim values(UBound(valueStrings))
                         For index As Integer = 0 To UBound(valueStrings)
-                            'values(index) = InterpretValue(valueStrings(index).Trim)
+                            values(index) = InterpretValue(valueStrings(index).Trim)
                         Next
 
-                        Return valueStrings
-                        ''Return values
+                        Return values
                     Case Else
-                        If Decimal.TryParse(valueString, Globalization.NumberStyles.Float) Then
-                            Return Decimal.Parse(valueString, Globalization.NumberStyles.Float)
-                        Else
-                            PRE2.DisplayError("Couldn't evaluate: " & valueString)
-                            Return valueString
+                        If IsNumeric(valueString) Then
+                            Return Val(valueString)
                         End If
                 End Select
         End Select
