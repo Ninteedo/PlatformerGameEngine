@@ -28,6 +28,7 @@ Public Class FrmGame
         AddHandler frameTimer.Tick, AddressOf GameTick
     End Sub
 
+#Region "Data Structures"
 
     Public Structure Room
         'a room is a collection of entities which are all rendered at once
@@ -301,7 +302,10 @@ Public Class FrmGame
         End Sub
     End Structure
 
+#End Region
     'save load
+
+#Region "Loading"
 
     Public loaderFileLocation As String
     Public levelFiles(0) As String
@@ -607,6 +611,8 @@ Public Class FrmGame
         Return Nothing
     End Function
 
+#End Region
+
     Public Shared Function MakeNameUnique(name As String, otherNames() As String, removeUnnecessary As Boolean) As String
         'returns a name with a number appended to it so the name is unique
 
@@ -639,6 +645,7 @@ Public Class FrmGame
 
 
     'render control
+#Region "Render Control"
 
     Dim renderer As PRE2            'panel render engine 2
 
@@ -672,6 +679,8 @@ Public Class FrmGame
             tagIndex += 1
         Loop Until tagIndex > UBound(ent.tags)
     End Sub
+
+#End Region
 
     'Public Sub EntityEvent(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional entTarget As PRE2.Entity = Nothing)
 
@@ -752,6 +761,7 @@ Public Class FrmGame
     End Function
 
     'player control
+#Region "Player Input"
 
     Dim keysHeld(0) As Keys
 
@@ -785,4 +795,6 @@ Public Class FrmGame
             Next index
         End If
     End Sub
+
+#End Region
 End Class

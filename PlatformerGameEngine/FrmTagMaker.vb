@@ -17,7 +17,7 @@ Public Class FrmTagMaker
         Get
             If IsArray(arguments) Then
                 tagInCreation.SetArgument(ArrayToString(arguments))
-            Else
+            ElseIf Not IsNothing(arguments) Then
                 tagInCreation.SetArgument(arguments.ToString)
             End If
             Return tagInCreation
@@ -60,9 +60,10 @@ Public Class FrmTagMaker
         Using basicTagMaker As New FrmTagMakerBasic With {.TagCreated = CreatedTag}
             basicTagMaker.ShowDialog()
             If basicTagMaker.userFinished Then
-                arguments = CreatedTag.argument
-                tagInCreation = CreatedTag
+                arguments = basicTagMaker.TagCreated.argument
+                tagInCreation = basicTagMaker.TagCreated
             End If
+            userFinished = basicTagMaker.userFinished
             Me.Close()
         End Using
     End Sub

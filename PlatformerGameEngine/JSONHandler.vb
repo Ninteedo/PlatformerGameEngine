@@ -9,6 +9,8 @@ Public Module JSONHandler
     'uses standards shown at https://www.json.org/
     'may not be identical though
 
+#Region "JSON-Tag Conversions"
+
     Public Function TagToJSON(tag As PRE2.Tag) As String
         Dim result As String = ""
         If Not IsNothing(tag.name) Then
@@ -74,7 +76,9 @@ Public Module JSONHandler
 
         Return New PRE2.Tag(resultName, currentValue)
     End Function
+#End Region
 
+#Region "Value/String Interpreting"
     Public Function InterpretString(rawString As String) As String
         'handles breaked characters such as \n
 
@@ -134,10 +138,9 @@ Public Module JSONHandler
 
                         Dim inString As Boolean = False
                         Dim subStrucureLevel As Integer = 0        'eg string, array or tag
-                        Dim cIndex As Integer = 0
 
                         'splits by "," but only when the comma isn't in a string
-                        Do
+                        For cIndex As Integer = 0 To Len(valueString) - 1
                             Dim c As String = valueString(cIndex)
 
                             If Not inString AndAlso c = """" Or c = "[" Or c = "{" Then
@@ -164,8 +167,7 @@ Public Module JSONHandler
                                 valueStrings(UBound(valueStrings)) += c
                             End If
 
-                            cIndex += 1
-                        Loop Until cIndex >= Len(valueString)
+                        Next
 
                         ReDim values(UBound(valueStrings))
                         For index As Integer = 0 To UBound(valueStrings)
@@ -182,33 +184,44 @@ Public Module JSONHandler
 
         Return valueString
     End Function
+#End Region
 
 #Region "Misc String Handling"
 
-    Public Function ArrayToString(input As Object()) As String
+    Public Function ArrayToString(input As Object) As String
         'turns an array into a string
 
-        Dim result As String = "["
+        Dim result As String
+        If IsArray(input) Then
+            result = "["
 
-        If Not IsNothing(input) Then
-            For index As Integer = 0 To UBound(input)
-                If IsArray(input(index)) Then
-                    result = ArrayToString(input(index))        'recursive
-                Else
-                    result = input(index).ToString
-                End If
-                If index < UBound(input) Then
-                    result += ","
-                End If
-            Next
+            If Not IsNothing(input) Then
+                For index As Integer = 0 To UBound(input)
+                    If IsArray(input(index)) Then
+                        result += ArrayToString(input(index))        'recursive
+                    Else
+                        result += input(index).ToString
+                    End If
+
+                    If index < UBound(input) Then
+                        result += ","
+                    End If
+                Next
+            End If
+            result += "]"
+        Else
+            result = input.ToString
         End If
-        result += "]"
 
         Return result
     End Function
 
     Public Function HasQuotes(input As String) As Boolean
-        Return Mid(input, 1, 1) = """" And Mid(input, Len(input) - 1, 1) = """"
+        If Not IsNothing(input) AndAlso Len(input) > 1 Then
+            Return Mid(input, 1, 1) = """" And Mid(input, Len(input) - 1, 1) = """"
+        Else
+            Return False
+        End If
     End Function
 
     Public Function AddQuotes(initial As String, Optional ignoreAlreadyQuoted As Boolean = False) As String

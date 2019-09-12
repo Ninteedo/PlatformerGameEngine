@@ -32,7 +32,9 @@ Public Class FrmEntityMaker
     End Sub
 
     'save load
+#Region "Save/Load"
 
+    Dim ent As PRE2.Entity          'the user's created entity
     Dim saveLocation As String = ""
     'Dim gameLocation As String = ""
 
@@ -70,8 +72,7 @@ Public Class FrmEntityMaker
         Dim openDialog As New OpenFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .Multiselect = False, .CheckFileExists = True, .InitialDirectory = renderer.entityFolderLocation}
 
         If openDialog.ShowDialog = DialogResult.OK Then
-            saveLocation = openDialog.FileName
-            ReadEntityFromFile(saveLocation)
+            ReadEntityFromFile(openDialog.FileName)
         End If
     End Sub
 
@@ -105,28 +106,30 @@ Public Class FrmEntityMaker
             Dim fileText As String = PRE2.ReadFile(fileLocation)
             Dim successfulLoad As Boolean = False
 
+            renderer.loadedSprites = Nothing
             ent = EntityStringHandler.ReadEntityString(fileText, renderer, successfulLoad)
 
             If successfulLoad = True Then
                 txtName.Text = ent.name
-                RefreshFramesList()
-                RefreshTagsList()
-                RefreshSpritesList()
-                btnSave.Enabled = True
+                saveLocation = fileLocation
             Else
                 saveLocation = ""
-                btnSave.Enabled = False
             End If
+
+            RefreshFramesList()
+            RefreshTagsList()
+            RefreshSpritesList()
+            RefreshControlsEnabled()
         Else
             PRE2.DisplayError("Couldn't find file " & fileLocation)
         End If
     End Sub
 
-
-    Dim ent As PRE2.Entity          'the user's created entity
-
+#End Region
 
     'sprites
+
+#Region "Sprites"
 
     Private Sub RefreshSpritesList()
         'empties and refills the sprites list
@@ -277,10 +280,11 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
-
+#End Region
 
 
     'tags
+#Region "Tags"
 
     Private Sub RefreshTagsList()
         'empties and refills the tags list
@@ -290,7 +294,7 @@ Public Class FrmEntityMaker
         If IsNothing(ent.tags) = False Then
             For Each thisTag As PRE2.Tag In ent.tags
                 If IsNothing(thisTag.name) = False Then
-                    lstTags.Items.Add(thisTag.name)
+                    lstTags.Items.Add(thisTag.ToString)
                 End If
             Next
         End If
@@ -379,6 +383,7 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
+#End Region
 
     'other
 

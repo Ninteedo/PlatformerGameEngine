@@ -18,6 +18,8 @@ Public Class PanelRenderEngine2
     Public levelFolderLocation As String
     Public roomFolderLocation As String
 
+#Region "Data Structures"
+
     Public Structure Tag
         Dim name As String
         'Dim args() As Object        'does this need to be object?
@@ -83,8 +85,12 @@ Public Class PanelRenderEngine2
             Return InterpretValue(argument)
         End Function
 
-        Public Sub SetArgument(newValue As String)
-            argument = newValue
+        Public Sub SetArgument(newValue As Object)
+            If IsArray(newValue) Then
+                argument = ArrayToString(newValue)
+            Else
+                argument = newValue
+            End If
         End Sub
 
         'Public Function GetArgument(argIndex As Integer, Optional defaultVal As String = Nothing, _
@@ -683,6 +689,8 @@ Public Class PanelRenderEngine2
         End Function
     End Structure
 
+#End Region
+
     Public Sub LoadSprite(fileLocation As String)
         'loads a sprite from a given location
 
@@ -770,6 +778,7 @@ Public Class PanelRenderEngine2
 
 
     'actual rendering part of the program
+#Region "Rendering"
 
     Public Sub DoGameRender(ByRef entityList() As Entity)
         'renders everything
@@ -937,7 +946,7 @@ Public Class PanelRenderEngine2
         End Get
     End Property
 
-
+#End Region
 
     Public Shared Function ModArrayLength(arrayToMod() As Object, lengthChange As Integer) As Object()
         'changes the length of the given array by the given amount
