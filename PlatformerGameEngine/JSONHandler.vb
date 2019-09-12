@@ -24,11 +24,15 @@ Public Module JSONHandler
         'converts a JSON string into a tag
         'TODO: input validation and error handling
 
-        Dim resultName As String = ""
+        'Dim splits() As String = JSONSplit(jsonString, 0)
+        'Dim resultName As String = RemoveQuotes(Mid(splits(0), 1, splits(0).IndexOf(":")))
+        'Dim currentValue As String = Mid(splits(0), splits(0).IndexOf(":"))
 
         Dim cIndex As Integer = 0
         Dim inString As Boolean = False
         Dim currentString As String = ""
+
+        Dim resultName As String = ""
 
         Dim inValue As Boolean = False
         Dim currentValue As String = ""
@@ -83,106 +87,83 @@ Public Module JSONHandler
         'handles breaked characters such as \n
 
         Dim result As String = ""
-        Dim cIndex As Integer = 0
 
-        Do
-            Dim c As String = rawString(cIndex)
+        If Not IsNothing(rawString) AndAlso Len(rawString) > 0 Then
+            Dim cIndex As Integer = 0
 
-            If c = "\" Then     'used for special things such as \n for new line
+            Do
+                Dim c As String = rawString(cIndex)
+
+                If c = "\" Then     'used for special things such as \n for new line
+                    cIndex += 1
+                    c = rawString(cIndex)
+
+                    Select Case c
+                        Case "\"
+                            result += "\"
+                        Case """"
+                            result += """"
+                        Case "n"
+                            result += vbCrLf
+                        Case "t"
+                            result += vbTab
+                    End Select
+                    'ElseIf c = """" Then
+                    '    Return result
+                ElseIf c <> """" Then   'ignores quotes, may cause issues
+                    result += c
+                End If
+
                 cIndex += 1
-                c = rawString(cIndex)
-
-                Select Case c
-                    Case "\"
-                        result += "\"
-                    Case """"
-                        result += """"
-                    Case "n"
-                        result += vbCrLf
-                    Case "t"
-                        result += vbTab
-                End Select
-                'ElseIf c = """" Then
-                '    Return result
-            ElseIf c <> """" Then   'ignores quotes, may cause issues
-                result += c
-            End If
-
-            cIndex += 1
-        Loop Until cIndex > Len(rawString) - 1
+            Loop Until cIndex > Len(rawString) - 1
+        End If
 
         Return result
     End Function
 
     Public Function InterpretValue(valueString As String) As Object
-        valueString = valueString.Trim
-        Select Case LCase(valueString)
-            'specific values for boolean/nothing
-            Case "true"
-                Return True
-            Case "false"
-                Return False
-            Case "null"
-                Return Nothing
-            Case "nill"
-                Return Nothing
-            Case Else
-                Select Case valueString(0)
-                    Case """"       'string
-                        Return InterpretString(valueString)
-                    Case "{"        'object (another tag)
-                        Return JSONToTag(valueString)
-                    Case "["        'array
-                        Dim valueStrings() As String = {""}
-                        Dim values() As Object
+        Dim result As Object = Nothing
 
-                        Dim inString As Boolean = False
-                        Dim subStrucureLevel As Integer = 0        'eg string, array or tag
+        If Not IsNothing(valueString) AndAlso Len(valueString.Trim) > 0 Then
+            valueString = valueString.Trim
+            Select Case LCase(valueString)
+                'specific values for boolean/nothing
+                Case "true"
+                    result = True
+                Case "false"
+                    result = False
+                Case "null"
+                    result = Nothing
+                Case "nill"
+                    result = Nothing
+                Case Else
+                    Select Case valueString(0)
+                        Case """"       'string
+                            result = InterpretString(valueString)
+                        Case "{"        'object (another tag)
+                            result = JSONToTag(valueString)
+                        Case "["        'array
+                            Dim valueStrings() As String = JSONSplit(valueString, 0)   '{""}
+                            Dim values() As Object
+                            ReDim values(UBound(valueStrings))
+                            For index As Integer = 0 To UBound(valueStrings)
+                                values(index) = InterpretValue(valueStrings(index).Trim)  'Mid(valueStrings(index), 2, Len(valueStrings(index)) - 2).Trim)
+                            Next
 
-                        'splits by "," but only when the comma isn't in a string
-                        For cIndex As Integer = 0 To Len(valueString) - 1
-                            Dim c As String = valueString(cIndex)
-
-                            If Not inString AndAlso c = """" Or c = "[" Or c = "{" Then
-                                subStrucureLevel += 1
-                                If c = """" Then
-                                    inString = True
-                                End If
-                                If subStrucureLevel > 1 Then
-                                    valueStrings(UBound(valueStrings)) += c
-                                End If
-                            ElseIf Not inString AndAlso c = "]" Or c = "}" Then
-                                subStrucureLevel -= 1
-                                If subStrucureLevel > 0 Then
-                                    valueStrings(UBound(valueStrings)) += c
-                                End If
-                            ElseIf inString And c = """" And valueString(cIndex - 1) <> "\" Then
-                                inString = False
-                                subStrucureLevel -= 1
-                                valueStrings(UBound(valueStrings)) += c
-                            ElseIf subStrucureLevel = 1 And c = "," Then
-                                ReDim Preserve valueStrings(UBound(valueStrings) + 1)
-                                valueStrings(UBound(valueStrings)) = ""
-                            Else
-                                valueStrings(UBound(valueStrings)) += c
+                            result = values
+                        Case Else
+                            If IsNumeric(valueString) Then
+                                result = Val(valueString)
                             End If
+                    End Select
+            End Select
+        End If
 
-                        Next
-
-                        ReDim values(UBound(valueStrings))
-                        For index As Integer = 0 To UBound(valueStrings)
-                            values(index) = InterpretValue(valueStrings(index).Trim)
-                        Next
-
-                        Return values
-                    Case Else
-                        If IsNumeric(valueString) Then
-                            Return Val(valueString)
-                        End If
-                End Select
-        End Select
-
-        Return valueString
+        If Not IsNothing(result) Then
+            Return result
+        Else
+            Return valueString
+        End If
     End Function
 #End Region
 
@@ -238,6 +219,40 @@ Public Module JSONHandler
         Else
             Return initial
         End If
+    End Function
+
+    Public Function JSONSplit(input As String, subStructureLevelRequired As Integer) As String()
+        'splits a JSON string into its tags
+
+        Dim result() As String = {""}
+        input = Mid(input, 2, Len(input) - 2)
+        Dim inString As Boolean = False
+        Dim subStructureLevel As Integer = 0
+
+        For cIndex As Integer = 0 To Len(input) - 1
+            Dim c As String = input(cIndex)
+
+            If Not inString And subStructureLevel = subStructureLevelRequired And c = "," Then  'only splits when it is at the required sub-structure level
+                ReDim Preserve result(UBound(result) + 1)
+                result(UBound(result)) = ""
+            Else
+                result(UBound(result)) += c
+
+                If inString And c = """" AndAlso input(cIndex - 1) <> "\" Then
+                    inString = False
+                ElseIf Not inString And c = """" Then
+                    inString = True
+                ElseIf Not inString And c = "{" Then
+                    subStructureLevel += 1
+                ElseIf Not inString And c = "}" Then
+                    subStructureLevel -= 1
+                    'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
+                    '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)
+                End If
+            End If
+        Next
+
+        Return result
     End Function
 #End Region
 End Module

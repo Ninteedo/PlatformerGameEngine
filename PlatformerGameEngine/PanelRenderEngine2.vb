@@ -37,51 +37,15 @@ Public Class PanelRenderEngine2
             Dim newTag As Tag = JSONToTag(tagString)
             name = newTag.name
             argument = newTag.argument
-
-            'checks that string is actually a tag
-            'If Len(tagString) > 4 Then
-            '    If Mid(tagString, 1, 4) = "tag(" And Mid(tagString, Len(tagString), 1) = ")" Then
-
-            '        tagString = tagString.Remove(0, 4)      'removes "tag("
-            '        tagString = tagString.Remove(Len(tagString) - 1, 1)   'removes ")"
-
-            '        Dim values() As String = tagString.Split("\")
-
-            '        name = values(0)
-            '        ReDim args(UBound(values) - 1)
-            '        For argIndex As Integer = 1 To UBound(values)
-            '            If IsNumeric(values(argIndex)) = True Then      'number
-            '                args(argIndex - 1) = Val(values(argIndex))
-            '            ElseIf New Tag(values(argIndex)).name <> Nothing Then       'another tag
-            '                args(argIndex - 1) = New Tag(values(argIndex))
-            '            Else                'plain string
-            '                args(argIndex - 1) = values(argIndex)
-            '            End If
-            '        Next argIndex
-            '    End If
-            'End If
         End Sub
 
         Public Overrides Function ToString() As String
             'turns this tag into a string
 
             Return TagToJSON(Me)
-
-            'Dim result As String = "tag(" & name
-
-            'If IsNothing(args) = False Then
-            '    For Each argument As Object In args
-            '        result += "\" & argument.ToString
-            '    Next argument
-            'End If
-
-            'result += ")"
-
-            'Return result
         End Function
 
         Public Function GetArgument() As Object
-
             Return InterpretValue(argument)
         End Function
 
@@ -233,9 +197,13 @@ Public Class PanelRenderEngine2
             End If
         End Function
 
-        Public Sub AddTag(newTag As Tag)
+        Public Sub AddTag(newTag As Tag, Optional removeDuplicates As Boolean = False)
             'adds the given tag to this entity's list of tags
 
+			If removeDuplicates Then
+				RemoveTag(newTag.name)
+			End If
+			
             If IsNothing(tags) = True Then
                 ReDim tags(0)
             Else
@@ -276,8 +244,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As String)
-                RemoveTag("name")
-                AddTag(New Tag("name", value))
+                AddTag(New Tag("name", value), True)
             End Set
         End Property
 
@@ -293,8 +260,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As PointF)
-                RemoveTag("location")
-                AddTag(New Tag("location", "[" & value.X & "," & value.Y & "]"))
+                AddTag(New Tag("location", "[" & value.X & "," & value.Y & "]"), True)
             End Set
         End Property
 
@@ -307,8 +273,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As Integer)
-                RemoveTag("layer")
-                AddTag(New Tag("layer", value))
+                AddTag(New Tag("layer", value), True)
             End Set
         End Property
 
@@ -321,8 +286,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As Single)
-                RemoveTag("scale")
-                AddTag(New Tag("scale", value))
+                AddTag(New Tag("scale", value), True)
             End Set
         End Property
 
@@ -335,8 +299,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As Single)
-                RemoveTag("rotation")
-                AddTag(New Tag("rotation", value))
+                AddTag(New Tag("rotation", value), True)
             End Set
         End Property
 
@@ -354,8 +317,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As PointF)
-                RemoveTag("rotationAnchor")
-                AddTag(New Tag("rotationAnchor", "[" & value.X & "," & value.Y & "]"))
+                AddTag(New Tag("rotationAnchor", "[" & value.X & "," & value.Y & "]"), True)
             End Set
         End Property
 
@@ -368,8 +330,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As Single)
-                RemoveTag("opacity")
-                AddTag(New Tag("opacity", value))
+                AddTag(New Tag("opacity", value), True)
 
                 'resets all the bitmaps because they are wrong now
                 For Each currentFrame As Frame In frames
@@ -387,8 +348,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As UInteger)
-                RemoveTag("currentFrame")
-                AddTag(New Tag("currentFrame", value))
+                AddTag(New Tag("currentFrame", value), True)
             End Set
         End Property
 
@@ -416,36 +376,24 @@ Public Class PanelRenderEngine2
     Public Structure Frame
         'a frame of an entity is what is actually rendered, can be made up of multiple sprites with individual offsets
 
-        'Dim pixels(,) As Color
-        'Dim dimensions As Size
         Dim sprites() As Sprite
         Dim offsets() As Point
 
         Dim bitmapVersion As Bitmap
 
-        'Dim fileLocation As String
-
-        Public Sub New(frameString As String, spriteFolderLocation As String)
-            'creates a new frame from a string
-
-            Dim splits() As String = frameString.Split(";")
-
-            ReDim sprites(UBound(splits))
-            ReDim offsets(UBound(splits))
-
-            For index As Integer = 0 To UBound(splits)
-                Dim spriteFileName As String = splits(index).Split("/")(0)
-                Dim offsetX As String = splits(index).Split("/")(1).Split(",")(0)
-                Dim offsetY As String = splits(index).Split("/")(1).Split(",")(1)
-
-                If IsNumeric(offsetX) And IsNumeric(offsetY) Then
-                    sprites(index) = New Sprite(spriteFolderLocation & spriteFileName)
-                    offsets(index) = New Point(Int(offsetX), Int(offsetY))
-                Else
-                    DisplayError("Coordinates provided for an offset (" & splits(index).Split("/")(1) & ") are not numeric")
-                End If
-            Next
+        Public Sub New(frameTag As Tag, spriteFolderLocation As String)
+			'creates a new frame from a frame tag
+				
+			Dim spriteTagStrings() As Object = frameTag.GetArgument()
+            'ReDim sprites(UBound(spriteTagStrings))
+            'ReDim offsets(UBound(spriteTagStrings))
+            For index As Integer = 0 To UBound(spriteTagStrings)
+                Dim spriteTag As New Tag(spriteTagStrings(index).ToString)
+                Dim offsetArg As Object = spriteTag.GetArgument
+                AddSprite(New Sprite(spriteFolderLocation & spriteTag.name), New Point(Val(offsetArg(0)), Val(offsetArg(1))))
+            Next			
         End Sub
+
 
         Public Function ToColourArray() As Color(,)
             Dim pixels(Dimensions.Width - 1, Dimensions.Height - 1) As Color
@@ -617,7 +565,7 @@ Public Class PanelRenderEngine2
         Public Sub New(fileLocation As String)
             'creates a new sprite by reading it from a file
 
-            If IO.File.Exists(fileLocation) = True Then
+            If IO.File.Exists(fileLocation) Then
                 Dim reader As New IO.StreamReader(fileLocation)
                 Dim fileText As String = reader.ReadToEnd
 
@@ -718,8 +666,6 @@ Public Class PanelRenderEngine2
                     Return loadedSprites(index)
                 End If
             Next index
-        Else
-            Return Nothing
         End If
 
         Return Nothing
@@ -897,7 +843,7 @@ Public Class PanelRenderEngine2
                     renderLayers(Array.IndexOf(renderLayerNumbers, sortedRenderLayerNumbers(index))).Render()
                     'MsgBox("Artifical delay")
                 Next
-            ElseIf Not IsNothing(renderLayers) Then
+            ElseIf Not IsNothing(renderLayers) AndAlso UBound(renderlayers) >= 0 Then
                 renderLayers(0).Render()
             End If
         End If

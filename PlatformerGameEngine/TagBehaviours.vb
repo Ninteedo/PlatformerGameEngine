@@ -22,23 +22,24 @@ Public Module TagBehaviours
             Case LCase("yVel")
                 'TagYVel(ent, tagIndex)
                 ent.location = New PointF(ent.location.X, ent.location.Y + FrmGame.GetEntityArgument(tag, ent, room, 0))
-            Case LCase("gravity")
+            Case "xacc"
+				
+			
+			Case LCase("gravity")
                 'TagGravity(ent, tagIndex)
                 ent.AddTag(New PRE2.Tag("yVel", FrmGame.GetEntityArgument(tag, ent, room, 0) * -1 +
                                         FrmGame.GetEntityArgument(ent.FindTag("yVel"), ent, room, 0)))
 
 
+										
             'meta
             Case LCase("addTag")
                 Dim newTag As New PRE2.Tag(FrmGame.GetEntityArgument(tag, ent, room))
                 ent.RemoveTag(newTag.name)
-                ent.AddTag(newTag)
-                'If UBound(tag.args) > 0 Then
-                '    ReDim newTag.args(UBound(tag.args) - 1)
-                '    For argIndex As Integer = 1 To UBound(tag.GetArgument)
-                '        newTag.args(argIndex - 1) = FrmGame.GetEntityArgument(tag, ent, room)
-                '    Next
-                'End If
+                ent.AddTag(newTag)			
+			Case LCase("removeTag")
+				ent.RemoveTag(tag.GetArgument())
+			
         End Select
         'End If
     End Sub
