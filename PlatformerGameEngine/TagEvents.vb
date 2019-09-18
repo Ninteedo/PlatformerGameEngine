@@ -12,7 +12,7 @@ Public Module TagEvents
         For Each ent As PRE2.Entity In entityList
             If Not IsNothing(ent.tags) Then
                 For tagIndex As Integer = 0 To UBound(ent.tags)
-                    If LCase(ent.tags(tagIndex).name) = "listener" AndAlso ent.tags(tagIndex).GetArgument = eventTag.GetArgument Then
+                    If LCase(ent.tags(tagIndex).name) = "listener" AndAlso ent.tags(tagIndex).GetArgument = eventTag.GetArgument Then   'TODO: fix this condition
                         ReceiveEvent(ent, ent.tags(tagIndex))
                     End If
                 Next

@@ -175,7 +175,7 @@ Public Class FrmEntityMaker
 
         If IsNothing(frameToDraw.sprites) = False Then
             Dim previewTags() As PRE2.Tag = {New PRE2.Tag("name", "FramePreviewEntity")} '= {New PRE2.Tag("location", {frameToDraw.Centre.ToString})}
-            Dim previewEntity As New PRE2.Entity({frameToDraw}, previewTags, New PointF(0, 0)) With {
+            Dim previewEntity As New PRE2.Entity({frameToDraw}, previewTags, renderer.spriteFolderLocation, New PointF(0, 0)) With {
                 .location = New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
             } 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
 

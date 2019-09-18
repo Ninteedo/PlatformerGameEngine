@@ -69,8 +69,8 @@ Public Module SpriteStringHandler
 
 
         'creates two lists, once of colour indices and the other of how many times in a row that index is repeated
-        Dim indices() As Integer = {}
-        Dim repeats() As Integer = {}
+        Dim indices() As Integer = Nothing
+        Dim repeats() As Integer = Nothing
 
         For y As Integer = 0 To sprite.pixels.GetUpperBound(1)
             For x As Integer = 0 To sprite.pixels.GetUpperBound(0)

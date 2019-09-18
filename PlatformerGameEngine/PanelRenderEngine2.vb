@@ -57,8 +57,8 @@ Public Class PanelRenderEngine2
             End If
         End Sub
 
-        'Public Function GetArgument(argIndex As Integer, Optional defaultVal As String = Nothing, _
-        '                            Optional text As Boolean = False, Optional numeric As Boolean = False, _
+        'Public Function GetArgument(argIndex As Integer, Optional defaultVal As String = Nothing,
+        '                            Optional text As Boolean = False, Optional numeric As Boolean = False,
         '                            Optional subTag As Boolean = False) As String
         '    'returns a slightly interpreted value of the argument at the given index
 
@@ -78,24 +78,24 @@ Public Class PanelRenderEngine2
         '            End If
         '        End If
 
-        '        'If numeric Then
-        '        '    If IsNumeric(result) Then
-        '        '        result = result
-        '        '    Else
-        '        '        DisplayError(result.ToString & " is not a number")
-        '        '    End If
-        '        'ElseIf text Then
-        '        '    Dim stringVer As String = result.ToString
-        '        '    If stringVer(0) = """" And stringVer(Len(stringVer) - 1) = """" Then        'strings in arguments should have quotes in them
-        '        '        result = Mid(stringVer, 2, Len(stringVer) - 2)
-        '        '    Else
-        '        '        DisplayError("Argument " & result & " is meant to be a string but is missing quotations")
-        '        '    End If
-        '        'ElseIf Not IsNothing(subTag) Then
-        '        '    'TODO: add searching for sub tags in tags
+        '        '                If numeric Then
+        '        '                    If IsNumeric(result) Then
+        '        '                        result = result
+        '        '                    Else
+        '        '                        DisplayError(result.ToString & " is not a number")
+        '        '                    End If
+        '        '                ElseIf text Then
+        '        '                    Dim stringVer As String = result.ToString
+        '        '                    If stringVer(0) = """" And stringVer(Len(stringVer) - 1) = """" Then        'strings in arguments should have quotes in them
+        '        '                        result = Mid(stringVer, 2, Len(stringVer) - 2)
+        '        '                    Else
+        '        '                        DisplayError("Argument " & result & " is meant to be a string but is missing quotations")
+        '        '                    End If
+        '        '                ElseIf Not IsNothing(subTag) Then
+        '        'TODO:               add searching for sub tags in tags
 
-        '        '    result = New Tag(result)
-        '        'End If
+        '        '                    result = New Tag(result)
+        '        '                End If
 
         '        Return result
         '    Else
@@ -133,9 +133,13 @@ Public Class PanelRenderEngine2
         Dim frames() As Frame
         Dim tags() As Tag
 
-        Public Sub New(startFrames() As Frame, startTags() As Tag, startLocation As PointF, Optional startRotation As Single = 0.0, Optional startScale As Single = 1.0)
+        Dim spriteFolderLocation As String
+
+        Public Sub New(startFrames() As Frame, startTags() As Tag, spriteFolderLocation As String, startLocation As PointF, Optional startRotation As Single = 0.0,
+                       Optional startScale As Single = 1.0)
             frames = startFrames
             tags = startTags
+            Me.spriteFolderLocation = spriteFolderLocation
 
             currentFrame = 0
             location = startLocation
@@ -149,12 +153,24 @@ Public Class PanelRenderEngine2
             Dim newEnt As Entity = EntityStringHandler.ReadEntityString(entityString, renderEngine)
             frames = newEnt.frames
             tags = newEnt.tags
+
         End Sub
 
-        Public Overrides Function ToString() As String
-            'simple ToString function for seeing the name of entity quickly whilst debugging
+        'Public Overrides Function ToString() As String
+        '    'simple ToString function for seeing the name of entity quickly whilst debugging
 
-            Return name
+        '    Return name
+        'End Function
+
+        Public Overrides Function ToString() As String
+            'returns a string version of this entity making better use of tags
+
+            'Dim framesTag As New Tag("frames", ArrayToString(frames))
+            'Dim tagsTag As New Tag("tags", ArrayToString(tags))
+
+            'Return New Tag(name, ArrayToString({framesTag, tagsTag})).ToString
+
+            Return CreateEntityString(Me, spriteFolderLocation)
         End Function
 
         Public Overloads Function ToString(spriteFolderLocation As String) As String
@@ -164,10 +180,11 @@ Public Class PanelRenderEngine2
         Public Function Clone() As Entity
             'returns a clone of this entity
 
-            Dim newClone As Entity
+            Dim newClone As Entity = Nothing
 
             newClone.frames = frames
             newClone.tags = tags
+            newClone.spriteFolderLocation = spriteFolderLocation
 
             Return newClone
         End Function
@@ -380,6 +397,7 @@ Public Class PanelRenderEngine2
         Dim offsets() As Point
 
         Dim bitmapVersion As Bitmap
+        Private spriteFolderLocation As String
 
         Public Sub New(frameTag As Tag, spriteFolderLocation As String)
 			'creates a new frame from a frame tag
@@ -391,7 +409,9 @@ Public Class PanelRenderEngine2
                 Dim spriteTag As New Tag(spriteTagStrings(index).ToString)
                 Dim offsetArg As Object = spriteTag.GetArgument
                 AddSprite(New Sprite(spriteFolderLocation & spriteTag.name), New Point(Val(offsetArg(0)), Val(offsetArg(1))))
-            Next			
+            Next
+
+            Me.spriteFolderLocation = spriteFolderLocation
         End Sub
 
 
@@ -542,17 +562,27 @@ Public Class PanelRenderEngine2
         End Sub
 
         Public Overrides Function ToString() As String
-            Dim result As String = ""
 
+            Dim spriteTags(UBound(sprites)) As Tag
             For index As Integer = 0 To UBound(sprites)
-                If IsNothing(sprites(index)) = False And IsNothing(offsets) Then
-                    result += sprites(index).fileName & "/" & offsets(index).ToString & ";"
-                End If
+                spriteTags(index) = New Tag(sprites(index).fileName.Remove(0, Len(spriteFolderLocation)), ArrayToString({offsets(index).X, offsets(index).Y}))
             Next
 
-            result = result.Remove(Len(result) - 1)
+            Return New Tag("frame", ArrayToString(spriteTags)).ToString
 
-            Return result
+
+            'Dim result As String = ""
+
+            'For index As Integer = 0 To UBound(sprites)
+            '    If IsNothing(sprites(index)) = False And Not IsNothing(offsets(index)) Then
+            '        'this is wrong
+            '        result += sprites(index).fileName.Remove(0, Len(spriteFolderLocation)) & "/" & offsets(index).ToString & ";"
+            '    End If
+            'Next
+
+            'result = result.Remove(Len(result) - 1)
+
+            'Return result
         End Function
     End Structure
 
@@ -582,15 +612,15 @@ Public Class PanelRenderEngine2
             End If
         End Sub
 
-        Public Sub New(spriteString As String, fileLocation As String)
-            'creates a new sprite from a string
+        'Public Sub New(spriteString As String, fileLocation As String)
+        '    'creates a new sprite from a string
 
-            If SpriteHandler.ValidSpriteText(spriteString, fileLocation) Then
-                pixels = SpriteHandler.ReadPixelColours(spriteString)
-            End If
+        '    If SpriteHandler.ValidSpriteText(spriteString, fileLocation) Then
+        '        pixels = SpriteHandler.ReadPixelColours(spriteString)
+        '    End If
 
-            fileName = fileLocation
-        End Sub
+        '    fileName = fileLocation
+        'End Sub
 
         Public Sub New(colourIndices(,) As Integer, colours() As Color)
             'uses colours and colour indices to make a sprite

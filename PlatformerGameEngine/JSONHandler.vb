@@ -172,7 +172,8 @@ Public Module JSONHandler
     Public Function ArrayToString(input As Object) As String
         'turns an array into a string
 
-        Dim result As String
+        Dim result As String = Nothing
+
         If IsArray(input) Then
             result = "["
 
@@ -191,7 +192,9 @@ Public Module JSONHandler
             End If
             result += "]"
         Else
-            result = input.ToString
+            If Not IsNothing(input) Then
+                result = input.ToString
+            End If
         End If
 
         Return result
@@ -225,7 +228,7 @@ Public Module JSONHandler
         'splits a JSON string into its tags
 
         Dim result() As String = {""}
-        input = Mid(input, 2, Len(input) - 2)
+        input = Mid(input, 2, Len(input) - 2)   'removes outermost {} or []
         Dim inString As Boolean = False
         Dim subStructureLevel As Integer = 0
 

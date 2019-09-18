@@ -49,33 +49,34 @@ Module EntityStringHandler
     Public Function ReadEntityString(entityString As String, ByRef renderEngine As PRE2, Optional ByRef successfulLoad As Boolean = False) As PRE2.Entity
         'reads a string, as created in CreateEntityString, returning an entity
 
+        Try
+            Dim result As New PRE2.Entity
 
-        'Try
-        Dim result As New PRE2.Entity
+            'loads the tags
+            'Dim tagStrings() As String = JSONSplit(entityString, 0)
+            'Dim temp As Object = JSONToTag(tagStrings(0)).GetArgument()
+            Dim temp As Object = New PRE2.Tag(entityString).GetArgument()
+            ReDim result.tags(UBound(temp))
+            For index As Integer = 0 To UBound(temp)
+                result.tags(index) = New PRE2.Tag(temp(index).ToString)
+            Next
 
-        'loads the tags
-        'Dim tagStrings() As String = JSONSplit(entityString, 0)
-        'Dim temp As Object = JSONToTag(tagStrings(0)).GetArgument()
-        Dim temp As Object = JSONToTag(entityString).GetArgument()
-        ReDim result.tags(UBound(temp))
-        For index As Integer = 0 To UBound(temp)
-            result.tags(index) = New PRE2.Tag(temp(index).ToString)
-        Next
+            'loads the frames
+            Dim framesArgument() As Object = result.FindTag("frames").GetArgument()
+            ReDim result.frames(UBound(framesArgument))
+            For frameIndex As Integer = 0 To UBound(framesArgument)
+                Dim frameTag As New PRE2.Tag(framesArgument(frameIndex).ToString)
+                result.frames(frameIndex) = New PRE2.Frame(frameTag, renderEngine.spriteFolderLocation)
+            Next
 
-        'loads the frames
-        Dim framesArgument() As Object = result.FindTag("frames").GetArgument()
-        ReDim result.frames(UBound(framesArgument))
-        For frameIndex As Integer = 0 To UBound(framesArgument)
-            Dim frameTag As New PRE2.Tag(framesArgument(frameIndex).ToString)
-            result.frames(frameIndex) = New PRE2.Frame(frameTag, renderEngine.spriteFolderLocation)
-        Next
+            result.spriteFolderLocation = renderEngine.spriteFolderLocation
 
-        successfulLoad = True       'so that what calls this function knows the load was successful
-			Return result
-        'Catch ex As Exception
-        '    PRE2.DisplayError("An error occured whilst loading an entity" & vbCrLf & ex.ToString)
-        '    Return Nothing
-        'End Try
+            successfulLoad = True       'so that what calls this function knows the load was successful
+            Return result
+        Catch ex As Exception
+            PRE2.DisplayError("An error occured whilst loading an entity" & vbCrLf & ex.ToString)
+            Return Nothing
+        End Try
     End Function
 
 End Module

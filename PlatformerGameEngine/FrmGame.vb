@@ -34,9 +34,42 @@ Public Class FrmGame
         'a room is a collection of entities which are all rendered at once
 
         Dim instances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
-        'Dim name As String
-
         Dim parameters() As PRE2.Tag
+
+        Public Sub New(roomTag As PRE2.Tag, renderEngine As PRE2)
+            Dim tagStrings() As Object = roomTag.GetArgument
+            If Not IsNothing(tagStrings) Then
+                Dim tags(UBound(tagStrings)) As PRE2.Tag
+                For tagIndex As Integer = 0 To UBound(tags)
+                    tags(tagIndex) = New PRE2.Tag(tagStrings(tagIndex).ToString)
+                Next
+
+                For Each thisTag As PRE2.Tag In tags
+                    If Not IsNothing(thisTag) Then
+                        Select Case thisTag.name
+                            Case "instances"
+                                Dim temp() As Object = thisTag.GetArgument
+                                If Not IsNothing(temp) Then
+                                    ReDim instances(UBound(temp))
+                                    For index As Integer = 0 To UBound(temp)
+                                        instances(index) = New PRE2.Entity(temp(index).ToString, renderEngine)
+                                    Next
+                                End If
+                            Case "parameters"
+                                Dim temp() As Object = thisTag.GetArgument
+                                If Not IsNothing(temp) Then
+                                    ReDim parameters(UBound(temp))
+                                    For index As Integer = 0 To UBound(temp)
+                                        parameters(index) = temp(index)
+                                    Next
+                                End If
+                            Case Else
+                                PRE2.DisplayError("Unknown tag in room tag: " & thisTag.name)
+                        End Select
+                    End If
+                Next
+            End If
+        End Sub
 
         Public Overloads Function ToString(levelOfRoom As Level, roomDelimiters() As String) As String
             'returns a string to save the given room
@@ -99,6 +132,16 @@ Public Class FrmGame
             Return roomString
         End Function
 
+        Public Overrides Function ToString() As String
+            'updated version of room tostring which makes better use of tags
+
+            Dim parametersTag As New PRE2.Tag("parameters", ArrayToString(parameters))
+            Dim instancesTag As New PRE2.Tag("instances", ArrayToString(instances))
+
+            Return New PRE2.Tag(Name, ArrayToString({parametersTag, instancesTag})).ToString
+        End Function
+
+
         Public Function FindParam(paramName As String) As PRE2.Tag
             'returns the first parameter this room has with the given name
 
@@ -123,7 +166,7 @@ Public Class FrmGame
             End If
         End Function
 
-        Public Sub AddParam(newParam As PRE2.Tag)
+        Public Sub AddParam(newParam As PRE2.Tag, Optional removeDuplicates As Boolean = False)
             'adds the given parameter to this room's list of tags
 
             If IsNothing(parameters) = True Then
@@ -133,6 +176,10 @@ Public Class FrmGame
             End If
 
             parameters(UBound(parameters)) = newParam
+
+            If removeDuplicates Then
+                RemoveParam(newParam.name)
+            End If
         End Sub
 
         Public Sub RemoveParam(paramName As String)
@@ -190,9 +237,10 @@ Public Class FrmGame
         Dim templates() As PRE2.Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
         Dim globalParameters() As PRE2.Tag            'essentially global variables for the level
 
-        Dim rooms() As Room                     'stores each room in a 2D array, indexed from the uppermost
-        Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
-        Dim currentRoomCoords As Point          'stores the coordinates of which room is being used currently
+        Dim rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
+        'Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
+        'Dim currentRoomCoords As Point          'stores the coordinates of which room is being used currently
+
 
         Public Overloads Function ToString(levelDelimiters() As String, roomDelimiters() As String) As String
             'creates a string of a level so it can be saved and loaded
@@ -236,6 +284,16 @@ Public Class FrmGame
             Return levelString
         End Function
 
+        Public Overrides Function ToString() As String
+            'updated version of level tostring which uses tags better
+
+            Dim parametersTag As New PRE2.Tag("parameters", ArrayToString(globalParameters))
+            Dim templatesTag As New PRE2.Tag("templates", ArrayToString(templates))
+            Dim roomsTag As New PRE2.Tag("rooms", ArrayToString(rooms))
+
+            Return New PRE2.Tag(Name, ArrayToString({parametersTag, templatesTag, roomsTag})).ToString
+        End Function
+
 
         Public Function GetRoomParameters(roomIndex As Integer) As PRE2.Tag()
             'returns the level's global parameters combined with the room's parameters
@@ -259,8 +317,8 @@ Public Class FrmGame
         Public Function RoomWithCoords(coords As Point) As Room
             'returns the room with the coords provided
 
-            For index As Integer = 0 To UBound(roomCoords)
-                If coords = roomCoords(index) Then
+            For index As Integer = 0 To UBound(rooms)
+                If coords = rooms(index).Coords Then
                     Return rooms(index)
                 End If
             Next index
@@ -269,7 +327,32 @@ Public Class FrmGame
             Return Nothing
         End Function
 
-        Public Sub AddParam(newParam As PRE2.Tag)
+
+        Public Function FindParam(paramName As String) As PRE2.Tag
+            'returns the first parameter this room has with the given name
+
+            If IsNothing(globalParameters) = False Then
+                For index As Integer = 0 To UBound(globalParameters)
+                    If LCase(globalParameters(index).name) = LCase(paramName) Then
+                        Return globalParameters(index)
+                    End If
+                Next index
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function HasParam(paramName As String) As Boolean
+            'returns whether or not this room has a parameter with the given name
+
+            If FindParam(paramName).name <> Nothing Then
+                Return True
+            Else
+                Return False
+            End If
+        End Function
+
+        Public Sub AddParam(newParam As PRE2.Tag, Optional removeDuplicates As Boolean = False)
             'adds the given parameter to this level's list of tags
 
             If IsNothing(globalParameters) = True Then
@@ -279,6 +362,10 @@ Public Class FrmGame
             End If
 
             globalParameters(UBound(globalParameters)) = newParam
+
+            If removeDuplicates Then
+                RemoveParam(newParam.name)
+            End If
         End Sub
 
         Public Sub RemoveParam(paramName As String)
@@ -300,6 +387,21 @@ Public Class FrmGame
                 Loop
             End If
         End Sub
+
+
+        Public Property Name As String
+            Get
+                If HasParam("name") Then
+                    Return FindParam("name").GetArgument()
+                Else
+                    Return "UnnamedLevel"
+                End If
+            End Get
+            Set(value As String)
+                RemoveParam("name")
+                AddParam(New PRE2.Tag("name", value))
+            End Set
+        End Property
     End Structure
 
 #End Region
@@ -352,7 +454,8 @@ Public Class FrmGame
         If IsNothing(levelFiles(levelNumber - 1)) = True Then
             PRE2.DisplayError("No known level number " & levelNumber)
         Else
-            currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer, levelDelimiters, roomDelimiters)
+            'currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer, levelDelimiters, roomDelimiters)
+            currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer)
             currentRoom = currentLevel.rooms(0) 'currentLevel.RoomWithCoords(New Point(0, 0))      'sets the starting room to the one with coords 0,0
             Const frameRate As Single = 60
 
@@ -361,7 +464,7 @@ Public Class FrmGame
         End If
     End Sub
 
-    Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2,
+    Public Shared Function LoadLevelFileOld(fileLocation As String, renderEngine As PRE2,
                                          levelDelimiters() As String, roomDelimiters() As String) As Level
         If IO.File.Exists(fileLocation) = True Then
             Dim levelString As String = PRE2.ReadFile(fileLocation)
@@ -380,7 +483,62 @@ Public Class FrmGame
         End If
     End Function
 
+    Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2) As Level
+        'loads a level from a given file location
+        If IO.File.Exists(fileLocation) Then
+            Dim levelString As String = PRE2.ReadFile(fileLocation)
+            If Not IsNothing(levelString) Then
+                Dim tagStrings() As Object = New PRE2.Tag(levelString).GetArgument 'JSONSplit(levelString, 0)
+                If Not IsNothing(tagStrings) Then
+                    Dim tags(UBound(tagStrings)) As PRE2.Tag
+                    Dim thisLevel As New Level
 
+                    For tagIndex As Integer = 0 To UBound(tagStrings)
+                        tags(tagIndex) = New PRE2.Tag(tagStrings(tagIndex).ToString)
+                    Next
+
+                    For Each thisTag As PRE2.Tag In tags
+                        If Not IsNothing(thisTag) Then
+                            Select Case thisTag.name
+                                Case "parameters"
+                                    Dim temp() As Object = thisTag.GetArgument
+                                    If Not IsNothing(temp) Then
+                                        ReDim thisLevel.globalParameters(UBound(temp))
+                                        For index As Integer = 0 To UBound(temp)
+                                            thisLevel.globalParameters(index) = New PRE2.Tag(temp(index))
+                                        Next
+                                    End If
+                                Case "templates"
+                                    Dim temp() As Object = thisTag.GetArgument
+                                    If Not IsNothing(temp) Then
+                                        ReDim thisLevel.templates(UBound(temp))
+                                        For index As Integer = 0 To UBound(temp)
+                                            thisLevel.templates(index) = New PRE2.Entity(temp(index).ToString, renderEngine)
+                                        Next
+                                    End If
+                                Case "rooms"
+                                    Dim temp() As Object = thisTag.GetArgument
+                                    If Not IsNothing(temp) Then
+                                        ReDim thisLevel.rooms(UBound(temp))
+                                        For index As Integer = 0 To UBound(temp)
+                                            thisLevel.rooms(index) = New Room(temp(index), renderEngine)
+                                        Next
+                                    End If
+                                Case Else
+                                    PRE2.DisplayError("Unknown tag in level file: " & thisTag.name)
+                            End Select
+                        End If
+                    Next
+
+                    Return thisLevel
+                End If
+            End If
+        Else
+            PRE2.DisplayError("Could not find level file at " & fileLocation)
+        End If
+
+        Return Nothing
+    End Function
 
     Public Shared Sub ParseLevelLine(line As String, ByRef thisLevel As Level, renderEngine As PRE2,
                                      levelDelimiters() As String, roomDelimiters() As String)
@@ -441,10 +599,10 @@ Public Class FrmGame
 
                 If IsNothing(thisLevel.rooms) = True Then
                     ReDim thisLevel.rooms(0)
-                    ReDim thisLevel.roomCoords(0)
+                    'ReDim thisLevel.roomCoords(0)
                 Else
                     ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) + 1)
-                    ReDim Preserve thisLevel.roomCoords(UBound(thisLevel.rooms) + 1)
+                    'ReDim Preserve thisLevel.roomCoords(UBound(thisLevel.rooms) + 1)
                 End If
 
                 thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
@@ -750,8 +908,8 @@ Public Class FrmGame
 
             If IsNothing(rawArg) Then           'is not anything
                 result = Nothing
-            ElseIf rawArg(0) = """" Then        'is a string
-                result = Mid(rawArg, 2, Len(rawArg) - 1)
+            ElseIf HasQuotes(rawArg) Then        'is a string
+                result = RemoveQuotes(rawArg)
             ElseIf IsNumeric(argCalculated) Then    'is a calculation
                 result = argCalculated
             End If

@@ -74,7 +74,8 @@ Public Class FrmLevelEditor
 
         If IO.File.Exists(fileLocation) Then
             levelSaveLocation = fileLocation
-            thisLevel = FrmGame.LoadLevelFile(levelSaveLocation, renderer, FrmGame.levelDelimiters, FrmGame.roomDelimiters)
+            'thisLevel = FrmGame.LoadLevelFile(levelSaveLocation, renderer, FrmGame.levelDelimiters, FrmGame.roomDelimiters)
+            thisLevel = FrmGame.LoadLevelFile(levelSaveLocation, renderer)
 
             RefreshRoomsList()
             RefreshInstancesList()
@@ -88,7 +89,8 @@ Public Class FrmLevelEditor
     Private Sub SaveLevel(levelToSave As FrmGame.Level, saveLocation As String)
         'saves a level (not the rooms) to a file
 
-        PRE2.WriteFile(saveLocation, levelToSave.ToString(FrmGame.levelDelimiters, FrmGame.roomDelimiters))
+        'PRE2.WriteFile(saveLocation, levelToSave.ToString(FrmGame.levelDelimiters, FrmGame.roomDelimiters))
+        PRE2.WriteFile(saveLocation, levelToSave.ToString)
     End Sub
 
     Private Sub btnLevelOpen_Click(sender As Object, e As EventArgs) Handles btnLevelOpen.Click
@@ -190,7 +192,7 @@ Public Class FrmLevelEditor
 
     Private ReadOnly Property SelectedRoom As FrmGame.Room
         Get
-            If lstRooms.SelectedIndex > -1 AndAlso lstRooms.SelectedIndex <= UBound(thisLevel.rooms) Then
+            If lstRooms.SelectedIndex > -1 And Not IsNothing(thisLevel.rooms) AndAlso lstRooms.SelectedIndex <= UBound(thisLevel.rooms) Then
                 Return thisLevel.rooms(lstRooms.SelectedIndex)
             Else
                 Return Nothing
@@ -952,15 +954,15 @@ Public Class FrmLevelEditor
         If IsNothing(thisLevel.rooms) = False AndAlso roomIndex >= 0 And roomIndex <= UBound(thisLevel.rooms) Then
             'checks if the new coords are being used by another room
             Dim uniqueCoords As Boolean = True
-            For Each coords As Point In thisLevel.roomCoords
-                If coords = roomCoords Then
-                    uniqueCoords = False
-                    Exit For
-                End If
-            Next
+            'For Each coords As Point In thisLevel.roomCoords
+            '    If coords = roomCoords Then
+            '        uniqueCoords = False
+            '        Exit For
+            '    End If
+            'Next
 
             If uniqueCoords = True Then
-                thisLevel.roomCoords(roomIndex) = roomCoords
+                'thisLevel.roomCoords(roomIndex) = roomCoords
 
                 RefreshRoomsList()
             Else
