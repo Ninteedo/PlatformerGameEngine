@@ -174,9 +174,10 @@ Public Class FrmEntityMaker
         'NEED TO FIX THIS
 
         If IsNothing(frameToDraw.sprites) = False Then
-            Dim previewTags() As PRE2.Tag = {} '= {New PRE2.Tag("location", {frameToDraw.Centre.ToString})}
-            Dim previewEntity As New PRE2.Entity({frameToDraw}, previewTags, New PointF(0, 0)) 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
-            previewEntity.location = New PointF(frameToDraw.Centre.X + 0.5, frameToDraw.Centre.Y + 0.5)
+            Dim previewTags() As PRE2.Tag = {New PRE2.Tag("name", "FramePreviewEntity")} '= {New PRE2.Tag("location", {frameToDraw.Centre.ToString})}
+            Dim previewEntity As New PRE2.Entity({frameToDraw}, previewTags, New PointF(0, 0)) With {
+                .location = New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
+            } 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
 
             renderer.renderResolution = frameToDraw.Dimensions
             'renderer.renderResolution = New Size(frameToDraw.Dimensions.Width * renderer.renderScaleFactor, frameToDraw.Dimensions.Height * renderer.renderScaleFactor)
