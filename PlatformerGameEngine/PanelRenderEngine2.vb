@@ -153,7 +153,7 @@ Public Class PanelRenderEngine2
             Dim newEnt As Entity = EntityStringHandler.ReadEntityString(entityString, renderEngine)
             frames = newEnt.frames
             tags = newEnt.tags
-
+            spriteFolderLocation = newEnt.spriteFolderLocation
         End Sub
 
         'Public Overrides Function ToString() As String

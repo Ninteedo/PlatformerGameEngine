@@ -8,6 +8,7 @@ Module EntityStringHandler
 
     Public Function CreateEntityString(ent As PRE2.Entity, spriteFolderLocation As String) As String
         'creates a string which can be saved to a file
+        'TODO: creating an entity string from a previously loaded entity is wrong
 
         Dim result As String = "" '= If(Len(ent.name) > 0, ent.name, "unnamed") & Environment.NewLine
 

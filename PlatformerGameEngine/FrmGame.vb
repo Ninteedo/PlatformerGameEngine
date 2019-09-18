@@ -505,7 +505,7 @@ Public Class FrmGame
                                     If Not IsNothing(temp) Then
                                         ReDim thisLevel.globalParameters(UBound(temp))
                                         For index As Integer = 0 To UBound(temp)
-                                            thisLevel.globalParameters(index) = New PRE2.Tag(temp(index))
+                                            thisLevel.globalParameters(index) = New PRE2.Tag(temp(index).ToString)
                                         Next
                                     End If
                                 Case "templates"
