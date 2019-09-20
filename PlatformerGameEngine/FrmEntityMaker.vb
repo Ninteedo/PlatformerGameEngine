@@ -6,6 +6,8 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Class FrmEntityMaker
 
+#Region "Initialisation"
+
     Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
 
     Private Sub FrmEntityMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -20,6 +22,7 @@ Public Class FrmEntityMaker
 
         LayoutInitialisation()
         GetFolderLocations()
+        ent = New PRE2.Entity(Nothing, renderer)
     End Sub
 
     Private Sub LayoutInitialisation()
@@ -31,7 +34,8 @@ Public Class FrmEntityMaker
         RefreshControlsEnabled()
     End Sub
 
-    'save load
+#End Region
+
 #Region "Save/Load"
 
     Dim ent As PRE2.Entity          'the user's created entity
@@ -127,8 +131,6 @@ Public Class FrmEntityMaker
 
 #End Region
 
-    'sprites
-
 #Region "Sprites"
 
     Private Sub RefreshSpritesList()
@@ -146,15 +148,15 @@ Public Class FrmEntityMaker
     Private Sub btnSpriteLoad_Click(sender As Object, e As EventArgs) Handles btnSpriteLoad.Click
         'loads the user selected sprites
 
-        Dim openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
+        Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
+            If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
+                For index As Integer = 0 To UBound(openDialog.FileNames)
+                    renderer.LoadSprite(openDialog.FileNames(index))
+                Next index
 
-        If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
-            For index As Integer = 0 To UBound(openDialog.FileNames)
-                renderer.LoadSprite(openDialog.FileNames(index))
-            Next index
-
-            RefreshSpritesList()
-        End If
+                RefreshSpritesList()
+            End If
+        End Using
     End Sub
 
     Private Sub lstSprites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstSprites.SelectedIndexChanged
@@ -166,12 +168,13 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
+#End Region
 
+#Region "Render"
     Dim renderer As PRE2
 
     Private Sub DrawFramePreview(frameToDraw As PRE2.Frame)
         'draws the given frame in the preview box
-        'NEED TO FIX THIS
 
         If IsNothing(frameToDraw.sprites) = False Then
             Dim previewTags() As PRE2.Tag = {New PRE2.Tag("name", "FramePreviewEntity")} '= {New PRE2.Tag("location", {frameToDraw.Centre.ToString})}
@@ -183,10 +186,6 @@ Public Class FrmEntityMaker
             'renderer.renderResolution = New Size(frameToDraw.Dimensions.Width * renderer.renderScaleFactor, frameToDraw.Dimensions.Height * renderer.renderScaleFactor)
             renderer.renderPixelPerfect = False
             renderer.ResizeRenderWindow()
-
-            'pnlFramePreview.MaximumSize = newPanelDimensions
-            'pnlFramePreview.MinimumSize = newPanelDimensions
-            'pnlFramePreview.Size = newPanelDimensions
             LayoutInitialisation()
 
             renderer.DoGameRender({previewEntity})
@@ -195,28 +194,41 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
+#End Region
+
+#Region "Frames"
+
+    Dim frames() As PRE2.Frame
+
+    Private Sub FramesModified()
+        ent.AddTag(New PRE2.Tag("frames", ArrayToString(frames)), True)
+        RefreshTagsList()
+    End Sub
+
     Private Sub RefreshFramesList()
         'resets frame list and adds them all back
 
         lstFrames.Items.Clear()
 
-        If IsNothing(ent.frames) = False Then
-            For frameIndex As Integer = 0 To UBound(ent.frames)
+        If IsNothing(frames) = False Then
+            For frameIndex As Integer = 0 To UBound(frames)
                 lstFrames.Items.Add("Frame " & Trim(Str(frameIndex + 1)))
             Next frameIndex
         End If
+
+        FramesModified()
     End Sub
 
     Private Sub btnFrameNew_Click(sender As Object, e As EventArgs) Handles btnFrameNew.Click
         'adds a new, empty frame
 
-        If IsNothing(ent.frames) = True Then
-            ReDim ent.frames(0)
+        If IsNothing(frames) = True Then
+            ReDim frames(0)
         Else
-            ReDim Preserve ent.frames(UBound(ent.frames) + 1)
+            ReDim Preserve frames(UBound(frames) + 1)
         End If
 
-        ent.frames(UBound(ent.frames)) = New PRE2.Frame
+        frames(UBound(frames)) = New PRE2.Frame(Nothing, renderer.spriteFolderLocation)
         RefreshFramesList()
     End Sub
 
@@ -225,15 +237,15 @@ Public Class FrmEntityMaker
 
         Dim removeIndex As Integer = lstFrames.SelectedIndex
 
-        For index As Integer = removeIndex + 1 To UBound(ent.frames)
-            ent.frames(index - 1) = ent.frames(index)
+        For index As Integer = removeIndex + 1 To UBound(frames)
+            frames(index - 1) = frames(index)
         Next index
 
-        'reduces the ent.frames array length by 1
-        If UBound(ent.frames) > 0 Then
-            ReDim Preserve ent.frames(UBound(ent.frames) - 1)
+        'reduces the frames array length by 1
+        If UBound(frames) > 0 Then
+            ReDim Preserve frames(UBound(frames) - 1)
         Else
-            ent.frames = Nothing
+            frames = Nothing
         End If
 
         RefreshFramesList()
@@ -244,7 +256,7 @@ Public Class FrmEntityMaker
 
         If lstFrames.SelectedIndex > -1 Then
             btnFrameRemove.Enabled = True
-            DrawFramePreview(ent.frames(lstFrames.SelectedIndex))
+            DrawFramePreview(frames(lstFrames.SelectedIndex))
             'RefreshFramesList()
 
             If lstSprites.SelectedIndex > -1 Then
@@ -271,21 +283,41 @@ Public Class FrmEntityMaker
             If userInput <> "" Then
                 If inputSplit.Length = 2 AndAlso IsNumeric(Trim(inputSplit(0))) = True And IsNumeric(Trim(inputSplit(1))) = True Then
                     offset = New Point(Int(Trim(inputSplit(0))), Int(Trim(inputSplit(1))))
-                    ent.frames(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
+                    frames(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
 
-                    DrawFramePreview(ent.frames(frameIndex))
+                    DrawFramePreview(frames(frameIndex))
                 Else
                     PRE2.DisplayError("Offsets need to be provided in the form x,y e.g. 10,5")
                 End If
             End If
         End If
+
+        RefreshFramesList()
     End Sub
 
 #End Region
 
-
-    'tags
 #Region "Tags"
+
+    Private Sub ReloadFrames()
+        'reloads the frames from the frames tag incase the user modified it
+
+        Dim framesTag As PRE2.Tag = ent.FindTag("frames")
+
+        If Not IsNothing(framesTag) Then
+            Dim temp As Object = framesTag.GetArgument
+            If IsArray(temp) Then
+                ReDim frames(UBound(temp))
+                For frameIndex As Integer = 0 To UBound(temp)
+                    frames(frameIndex) = New PRE2.Frame(temp(frameIndex), renderer.spriteFolderLocation)
+                Next
+            ElseIf Not IsNothing(temp) Then
+                frames = {New PRE2.Frame(temp, renderer.spriteFolderLocation)}
+            Else
+                frames = Nothing
+            End If
+        End If
+    End Sub
 
     Private Sub RefreshTagsList()
         'empties and refills the tags list
@@ -299,6 +331,8 @@ Public Class FrmEntityMaker
                 End If
             Next
         End If
+
+        ReloadFrames()
     End Sub
 
     Private Sub btnTagsNew_Click(sender As Object, e As EventArgs) Handles btnTagsNew.Click
@@ -386,7 +420,7 @@ Public Class FrmEntityMaker
 
 #End Region
 
-    'other
+#Region "Other Controls"
 
     Private Sub btnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
         If IsNothing(ent.frames) = False Then
@@ -398,8 +432,9 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
+#End Region
 
-    'general procedures
+#Region "General Procedures"
 
     Private Sub AnySelectionChanged(sender As Object, e As EventArgs) Handles _
         lstTags.SelectedIndexChanged, lstFrames.SelectedIndexChanged, lstSprites.SelectedIndexChanged
@@ -442,4 +477,5 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
+#End Region
 End Class

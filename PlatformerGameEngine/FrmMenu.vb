@@ -5,7 +5,7 @@
 Public Class FrmMenu
 
     Public menuButtons() As Button
-    Dim menuLayouts(0) As MenuOptions
+    Dim menuLayouts() As MenuOptions
     Dim currentMenuIndex As Integer = 0
     Dim delayTimer As New Timer With {.Interval = 1, .Enabled = False}
 
@@ -30,11 +30,11 @@ Public Class FrmMenu
         delayTimer.Stop()
 
         menuButtons = {btnMenu1, btnMenu2, btnMenu3}
-        menuLayouts(0) = New MenuOptions With {
+        menuLayouts = {New MenuOptions With {
             .buttonText = {"Load Game", "Options", "Tools"},
             .behaviours = {"LoadGame", "OpenOptionsMenu", "OpenToolsMenu"},
             .previousMenuIndex = -1
-        }
+        }}
         SetMenu(0)
         For index As Integer = 0 To UBound(menuButtons)
             AddHandler menuButtons(index).Click, AddressOf MenuButtonClicked
@@ -79,9 +79,9 @@ Public Class FrmMenu
         Dim openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Multiselect = False}
         MsgBox("Please select the game loader file")
         If openDialog.ShowDialog() = Windows.Forms.DialogResult.OK Then
-            Dim game As New FrmGame With {.loaderFileLocation = openDialog.FileName}
-
-            game.ShowDialog()
+            Using game As New FrmGame With {.loaderFileLocation = openDialog.FileName}
+                game.ShowDialog()
+            End Using
         End If
     End Sub
 
@@ -156,21 +156,24 @@ Public Class FrmMenu
     Private Sub OpenSpriteMaker()
         'opens the sprite maker tool
 
-        Dim spriteMaker As New FrmSpriteMaker
-        spriteMaker.ShowDialog()
+        Using spriteMaker As New FrmSpriteMaker
+            spriteMaker.ShowDialog()
+        End Using
     End Sub
 
     Private Sub OpenLevelEditor()
         'opens the level editor tool
 
-        Dim levelEditor As New FrmLevelEditor
-        levelEditor.ShowDialog()
+        Using levelEditor As New FrmLevelEditor
+            levelEditor.ShowDialog()
+        End Using
     End Sub
 
     Private Sub OpenEntityMaker()
         'opens the entity maker tool
 
-        Dim entityMaker As New FrmEntityMaker
-        entityMaker.ShowDialog()
+        Using entityMaker As New FrmEntityMaker
+            entityMaker.ShowDialog()
+        End Using
     End Sub
 End Class

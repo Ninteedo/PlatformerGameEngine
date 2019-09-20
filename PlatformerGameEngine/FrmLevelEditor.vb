@@ -5,10 +5,10 @@
 Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Class FrmLevelEditor
-	
-	
-	'initialisation
-	
+
+#Region "Initialisation"
+    'initialisation
+
     Dim delayTimer As New Timer With {.Interval = 1, .Enabled = False}
 
     Private Sub FrmLevelEditor_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -22,7 +22,7 @@ Public Class FrmLevelEditor
         renderer = New PRE2 With {.renderPanel = pnlRender}
 
         LayoutInitialisation()
-        ControlInitialisation()
+        'ControlInitialisation()
         LoadInitialisation()
         RefreshControlsEnabled()
     End Sub
@@ -39,8 +39,9 @@ Public Class FrmLevelEditor
         'tblTagsDetailed.Location = New Point(tblTagsSummary.Left, tblTagsSummary.Bottom + 5)
     End Sub
 
+#End Region
 
-
+#Region "Save/Load"
     'save load
 
     Dim levelSaveLocation As String = Nothing
@@ -182,8 +183,9 @@ Public Class FrmLevelEditor
         'End If
     End Sub
 
+#End Region
 
-
+#Region "Render"
     'render
 
     Dim renderer As New PRE2
@@ -206,8 +208,9 @@ Public Class FrmLevelEditor
         renderer.DoGameRender(SelectedRoom.instances)
     End Sub
 
+#End Region
 
-
+#Region "Entities"
     'entities
 
     Private Sub LoadEntityTemplate(fileLocation As String)
@@ -448,11 +451,11 @@ Public Class FrmLevelEditor
         If lstTemplates.SelectedIndex > -1 Then     'checks that this isn't being unselected
             lstInstances.SelectedIndex = -1
 
-            ToggleTagControls(True)
+            'ToggleTagControls(True)
             ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
         Else
             If lstInstances.SelectedIndex = -1 Then
-                ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
+                'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
                 ShowEntityTags(Nothing, False)
             End If
         End If
@@ -464,33 +467,35 @@ Public Class FrmLevelEditor
         If lstInstances.SelectedIndex > -1 Then     'checks that this isn't being unselected
             lstTemplates.SelectedIndex = -1
 
-            ToggleTagControls(True)     'enables tag controls as an instance has been selected
+            'ToggleTagControls(True)     'enables tag controls as an instance has been selected
             ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
 
             RenderCurrentRoom()
         Else
             If lstTemplates.SelectedIndex = -1 Then
-                ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
+                'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
                 ShowEntityTags(Nothing, False)
             End If
         End If
     End Sub
 
+#End Region
 
-
+#Region "Tags"
     'tags
 
-    Dim tagControls() As Control
     Dim disableTagChangedEvent As Boolean = False
 
-    Private Sub ControlInitialisation()
-        tagControls = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
+    'Private Sub ControlInitialisation()
+    '    tagControls = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
 
-        ToggleTagControls(False)
-    End Sub
+    '    ToggleTagControls(False)
+    'End Sub
 
     Private Sub ToggleTagControls(enabled As Boolean)
         'enables or disables all controls for tags, depending on whether provided True or False
+
+        Dim tagControls() As Control = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
 
         For Each ctrl As Object In tagControls
             ctrl.Enabled = enabled
@@ -504,7 +509,7 @@ Public Class FrmLevelEditor
 
         If IsNothing(ent) Then      'if no entity provided then uses an empty entity
             ent = New PRE2.Entity With {.name = "No Entity Selected"}       'this doesn't work as entities have some default properties
-            ToggleTagControls(False)
+            'ToggleTagControls(False)
         End If
 
         txtTagName.Text = ent.name
@@ -569,46 +574,6 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    'Private Sub numTagLocX_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged
-    '    'x position of instance changed
-
-    '    If lstInstances.SelectedIndex > -1 Then
-    '        SelectedRoom.instances(lstInstances.SelectedIndex).location = New PointF(numTagLocX.Value, SelectedRoom.instances(lstInstances.SelectedIndex).location.Y)
-    '        RenderCurrentRoom()
-    '        ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-    '    End If
-    'End Sub
-
-    'Private Sub numTagLocY_ValueChanged(sender As Object, e As EventArgs) Handles numTagLocY.ValueChanged
-    '    'y position of instance changed
-
-    '    If lstInstances.SelectedIndex > -1 Then
-    '        SelectedRoom.instances(lstInstances.SelectedIndex).location = New PointF(SelectedRoom.instances(lstInstances.SelectedIndex).location.X, numTagLocY.Value)
-    '        RenderCurrentRoom()
-    '        ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-    '    End If
-    'End Sub
-
-    'Private Sub numTagLayer_ValueChanged(sender As Object, e As EventArgs) Handles numTagLayer.ValueChanged
-    '    'z position (layer) of instance changed
-
-    '    If lstInstances.SelectedIndex > -1 Then
-    '        SelectedRoom.instances(lstInstances.SelectedIndex).layer = numTagLayer.Value
-    '        RenderCurrentRoom()
-    '        ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-    '    End If
-    'End Sub
-
-    'Private Sub numTagScale_ValueChanged(sender As Object, e As EventArgs) Handles numTagScale.ValueChanged
-    '    'scale of instance changed
-
-    '    If lstInstances.SelectedIndex > -1 Then
-    '        SelectedRoom.instances(lstInstances.SelectedIndex).scale = numTagScale.Value
-    '        RenderCurrentRoom()
-    '        ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-    '    End If
-    'End Sub
-
     Private Sub btnTagAdd_Click(sender As Object, e As EventArgs) Handles btnTagAdd.Click
         'adds a tag created by the user using FrmTagMaker
 
@@ -629,27 +594,32 @@ Public Class FrmLevelEditor
     Private Sub btnTagEdit_Click(sender As Object, e As EventArgs) Handles btnTagEdit.Click
         'allows the user to edit a tag using FrmTagMaker
 
-        Dim tagMaker As FrmTagMaker
-        If lstTags.SelectedIndex > -1 Then
-            If lstInstances.SelectedIndex > -1 Then
-                tagMaker = New FrmTagMaker(SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex))
-            ElseIf lstTemplates.SelectedIndex > -1 Then
-                tagMaker = New FrmTagMaker(thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex))
+        Dim tagIndex As Integer = lstTags.SelectedIndex
+        Dim instanceIndex As Integer = lstInstances.SelectedIndex
+        Dim templateIndex As Integer = lstTemplates.SelectedIndex
+
+        Dim tagMaker As FrmTagMaker = Nothing
+        If tagIndex > -1 Then
+            If instanceIndex > -1 Then
+                tagMaker = New FrmTagMaker(SelectedRoom.instances(instanceIndex).tags(tagIndex))
+            ElseIf templateIndex > -1 Then
+                tagMaker = New FrmTagMaker(thisLevel.templates(templateIndex).tags(tagIndex))
             Else
                 Exit Sub
             End If
             tagMaker.ShowDialog()
 
             If tagMaker.userFinished = True Then
-                If lstInstances.SelectedIndex > -1 Then
-                    SelectedRoom.instances(lstInstances.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.CreatedTag
-                    ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-                ElseIf lstTemplates.SelectedIndex > -1 Then
-                    thisLevel.templates(lstTemplates.SelectedIndex).tags(lstTags.SelectedIndex) = tagMaker.CreatedTag
-                    ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+                If instanceIndex > -1 Then
+                    SelectedRoom.instances(instanceIndex).SetTag(tagIndex, tagMaker.CreatedTag)
+                    ShowEntityTags(SelectedRoom.instances(instanceIndex), False)
+                ElseIf templateIndex > -1 Then
+                    thisLevel.templates(templateIndex).SetTag(tagIndex, tagMaker.CreatedTag)
+                    ShowEntityTags(thisLevel.templates(templateIndex), True)
                 End If
             End If
         End If
+        tagMaker.Dispose()
     End Sub
 
     Private Sub btnTagRemove_Click(sender As Object, e As EventArgs) Handles btnTagRemove.Click
@@ -685,6 +655,7 @@ Public Class FrmLevelEditor
 
     Private Sub txtTagName_Leave(sender As Object, e As EventArgs) Handles txtTagName.Leave
         'changes the name of an instance or template
+        'TODO: this is skipped if the tag is directly edited
 
         Dim templateMode As Boolean
         'Dim index As Integer
@@ -701,7 +672,6 @@ Public Class FrmLevelEditor
             Exit Sub
         End If
         Dim oldName As String = entityToUpdate.name
-
 
         If newName = "" Then        'resets the name if nothing was entered
             txtTagName.Text = oldName
@@ -733,8 +703,9 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
+#End Region
 
-
+#Region "Parameters"
     'parameters
 
     Private Sub RefreshParameterList()
@@ -893,8 +864,9 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
+#End Region
 
-
+#Region "Rooms"
     'rooms 
 
     Private Sub RefreshRoomsList()
@@ -1029,12 +1001,13 @@ Public Class FrmLevelEditor
             End If
         End If
     End Sub
-	
-	
-	
-	'general procedures
-	
-	Private Sub RefreshList(list As ListBox, values() As String)
+
+#End Region
+
+#Region "General Procedures"
+    'general procedures
+
+    Private Sub RefreshList(list As ListBox, values() As String)
         'empties a list and fills it with given values
 
         Dim startSelectedIndex As Integer = list.SelectedIndex
@@ -1090,6 +1063,7 @@ Public Class FrmLevelEditor
         For Each ctrl As Control In controlsDefaultEnabled
             ctrl.Enabled = True
         Next
+        ToggleTagControls(False)
 
         If roomSelected Then
             btnLevelRoomRemove.Enabled = True
@@ -1099,9 +1073,11 @@ Public Class FrmLevelEditor
 
             If templateSelected Then
                 btnInstanceCreate.Enabled = True
+                ToggleTagControls(True)
             End If
 
             If instanceSelected Then
+                ToggleTagControls(True)
                 btnInstanceDuplicate.Enabled = True
                 btnInstanceDelete.Enabled = True
 
@@ -1134,5 +1110,6 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
+#End Region
 
 End Class

@@ -16,7 +16,7 @@ Public Class PanelRenderEngine2
     Public spriteFolderLocation As String
     Public entityFolderLocation As String
     Public levelFolderLocation As String
-    Public roomFolderLocation As String
+    'Public roomFolderLocation As String
 
 #Region "Data Structures"
 
@@ -150,17 +150,13 @@ Public Class PanelRenderEngine2
         Public Sub New(entityString As String, renderEngine As PanelRenderEngine2)
             'creates a new entity from an entity string
 
-            Dim newEnt As Entity = EntityStringHandler.ReadEntityString(entityString, renderEngine)
-            frames = newEnt.frames
-            tags = newEnt.tags
-            spriteFolderLocation = newEnt.spriteFolderLocation
+            If Not IsNothing(entityString) Then
+                Dim newEnt As Entity = EntityStringHandler.ReadEntityString(entityString, renderEngine)
+                frames = newEnt.frames
+                tags = newEnt.tags
+            End If
+            spriteFolderLocation = renderEngine.spriteFolderLocation
         End Sub
-
-        'Public Overrides Function ToString() As String
-        '    'simple ToString function for seeing the name of entity quickly whilst debugging
-
-        '    Return name
-        'End Function
 
         Public Overrides Function ToString() As String
             'returns a string version of this entity making better use of tags
@@ -188,6 +184,22 @@ Public Class PanelRenderEngine2
 
             Return newClone
         End Function
+
+
+        Public Sub RefreshFrames()
+            'changes what is stored in frames() using the "frames" tag
+
+            Dim framesArgument() As Object = FindTag("frames").GetArgument()
+            If Not IsNothing(framesArgument) Then
+                ReDim frames(UBound(framesArgument))
+                For frameIndex As Integer = 0 To UBound(framesArgument)
+                    Dim frameTag As New Tag(framesArgument(frameIndex).ToString)
+                    frames(frameIndex) = New Frame(frameTag, spriteFolderLocation)
+                Next
+            Else
+                frames = Nothing
+            End If
+        End Sub
 
 
         Public Function FindTag(tagName As String) As Tag
@@ -228,6 +240,10 @@ Public Class PanelRenderEngine2
             End If
 
             tags(UBound(tags)) = newTag
+
+            If newTag.name = "frames" Then
+                RefreshFrames()
+            End If
         End Sub
 
         Public Sub RemoveTag(tagName As String)
@@ -248,8 +264,25 @@ Public Class PanelRenderEngine2
                     End If
                 Loop
             End If
+
+            If tagName = "frames" Then
+                RefreshFrames()
+            End If
         End Sub
 
+        Public Sub SetTag(tagIndex As Integer, newTag As Tag)
+            'changes the tag at the given index to the new tag
+
+            If Not IsNothing(tags) And tagIndex >= 0 AndAlso tagIndex <= UBound(tags) Then
+                tags(tagIndex) = newTag
+
+                If newTag.name = "frames" Then
+                    RefreshFrames()
+                End If
+            Else
+                DisplayError("Tried to change tag for entity " & name & " but index (" & tagIndex & ") was out of bounds")
+            End If
+        End Sub
 
 
         Property name As String
@@ -370,7 +403,6 @@ Public Class PanelRenderEngine2
         End Property
 
 
-
         Public Shared Operator =(ent1 As Entity, ent2 As Entity)
             Return AreEntitiesEqual(ent1, ent2)
         End Operator
@@ -405,11 +437,13 @@ Public Class PanelRenderEngine2
 			Dim spriteTagStrings() As Object = frameTag.GetArgument()
             'ReDim sprites(UBound(spriteTagStrings))
             'ReDim offsets(UBound(spriteTagStrings))
-            For index As Integer = 0 To UBound(spriteTagStrings)
-                Dim spriteTag As New Tag(spriteTagStrings(index).ToString)
-                Dim offsetArg As Object = spriteTag.GetArgument
-                AddSprite(New Sprite(spriteFolderLocation & spriteTag.name), New Point(Val(offsetArg(0)), Val(offsetArg(1))))
-            Next
+            If Not IsNothing(spriteTagStrings) Then
+                For index As Integer = 0 To UBound(spriteTagStrings)
+                    Dim spriteTag As New Tag(spriteTagStrings(index).ToString)
+                    Dim offsetArg As Object = spriteTag.GetArgument
+                    AddSprite(New Sprite(spriteFolderLocation & spriteTag.name), New Point(Val(offsetArg(0)), Val(offsetArg(1))))
+                Next
+            End If
 
             Me.spriteFolderLocation = spriteFolderLocation
         End Sub
@@ -562,13 +596,17 @@ Public Class PanelRenderEngine2
         End Sub
 
         Public Overrides Function ToString() As String
+            If Not IsNothing(sprites) Then
+                Dim spriteTags(UBound(sprites)) As Tag
+                For index As Integer = 0 To UBound(sprites)
+                    spriteTags(index) = New Tag(sprites(index).fileName.Remove(0, Len(spriteFolderLocation)),
+                                                ArrayToString({offsets(index).X, offsets(index).Y}))
+                Next
 
-            Dim spriteTags(UBound(sprites)) As Tag
-            For index As Integer = 0 To UBound(sprites)
-                spriteTags(index) = New Tag(sprites(index).fileName.Remove(0, Len(spriteFolderLocation)), ArrayToString({offsets(index).X, offsets(index).Y}))
-            Next
-
-            Return New Tag("frame", ArrayToString(spriteTags)).ToString
+                Return New Tag("frame", ArrayToString(spriteTags)).ToString
+            Else
+                Return New Tag("frame").ToString
+            End If
 
 
             'Dim result As String = ""
@@ -669,91 +707,6 @@ Public Class PanelRenderEngine2
 
 #End Region
 
-    Public Sub LoadSprite(fileLocation As String)
-        'loads a sprite from a given location
-
-        If IO.File.Exists(fileLocation) Then
-            Dim newSprite As New Sprite(fileLocation)
-            'Dim fileName As String = newSprite.fileName
-
-            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) Then      'checks that the same sprite isn't already loaded
-                If IsNothing(loadedSprites) = True Then
-                    ReDim loadedSprites(0)
-                Else
-                    ReDim Preserve loadedSprites(UBound(loadedSprites) + 1)
-                End If
-                loadedSprites(UBound(loadedSprites)) = newSprite
-            End If
-        End If
-    End Sub
-
-    Public Function FindLoadedSprite(fileLocation As String) As Sprite
-        'returns a loaded sprite with the given file name if it is already loaded
-
-        If IsNothing(loadedSprites) = False Then
-            For index As Integer = 0 To UBound(loadedSprites)
-                If loadedSprites(index).fileName = fileLocation Then
-                    Return loadedSprites(index)
-                End If
-            Next index
-        End If
-
-        Return Nothing
-    End Function
-
-    Shared Sub DisplayError(message As String)
-        'displays a given error message to the user
-
-        MsgBox(message, MsgBoxStyle.Exclamation)
-    End Sub
-
-    Public Sub Log(message As String, warnLevel As Integer)
-        'logs something noteworthy, eg an error or a warning or a debug
-        'warn levels are 0:info, 1:warn, 2:error, 3:fatal
-    End Sub
-
-    Public Shared Function FindFolderPath(path As String, folderName As String) As String
-        'returns the location of the folder with the given name in the string
-
-        Dim folders() As String = path.Split("\")
-        Dim result As String = ""
-
-        If folders.Contains(folderName) = True Then
-            Dim foundFolder As Boolean = False
-
-            For index As Integer = UBound(folders) To 0 Step -1
-                If foundFolder = True Then
-                    result = result.Insert(1, folders(index) & "\")
-                End If
-
-                If folders(index) = folderName Then
-                    foundFolder = True
-                End If
-            Next index
-        End If
-
-        Return result
-    End Function
-
-    Public Function FindProperty(fileText As String, propertyName As String) As String     'returns the property in a file with a given name, property: value
-        Dim lines() As String = fileText.Split(Environment.NewLine)
-        Dim result As String = ""
-
-        For Each line As String In lines
-            Dim currentProperty As String = line.Split(":")(0).Replace(vbLf, "")
-
-            If currentProperty = propertyName Then
-                Return Trim(line.Split(":")(1))         'issue: cant have colons anywhere else in the line
-            End If
-        Next line
-
-        Log("Couldn't find property " & propertyName, 1)
-
-        Return Nothing
-    End Function
-
-
-    'actual rendering part of the program
 #Region "Rendering"
 
     Public Sub DoGameRender(ByRef entityList() As Entity)
@@ -873,7 +826,7 @@ Public Class PanelRenderEngine2
                     renderLayers(Array.IndexOf(renderLayerNumbers, sortedRenderLayerNumbers(index))).Render()
                     'MsgBox("Artifical delay")
                 Next
-            ElseIf Not IsNothing(renderLayers) AndAlso UBound(renderlayers) >= 0 Then
+            ElseIf Not IsNothing(renderLayers) AndAlso UBound(renderLayers) >= 0 Then
                 renderLayers(0).Render()
             End If
         End If
@@ -924,6 +877,59 @@ Public Class PanelRenderEngine2
 
 #End Region
 
+#Region "Sprite Loading"
+
+    Public Sub LoadSprite(fileLocation As String)
+        'loads a sprite from a given location
+
+        If IO.File.Exists(fileLocation) Then
+            Dim newSprite As New Sprite(fileLocation)
+            'Dim fileName As String = newSprite.fileName
+
+            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) Then      'checks that the same sprite isn't already loaded
+                If IsNothing(loadedSprites) = True Then
+                    ReDim loadedSprites(0)
+                Else
+                    ReDim Preserve loadedSprites(UBound(loadedSprites) + 1)
+                End If
+                loadedSprites(UBound(loadedSprites)) = newSprite
+            End If
+        End If
+    End Sub
+
+    Public Function FindLoadedSprite(fileLocation As String) As Sprite
+        'returns a loaded sprite with the given file name if it is already loaded
+
+        If IsNothing(loadedSprites) = False Then
+            For index As Integer = 0 To UBound(loadedSprites)
+                If loadedSprites(index).fileName = fileLocation Then
+                    Return loadedSprites(index)
+                End If
+            Next index
+        End If
+
+        Return Nothing
+    End Function
+
+#End Region
+
+#Region "Error Handling"
+
+    Shared Sub DisplayError(message As String)
+        'displays a given error message to the user
+
+        MsgBox(message, MsgBoxStyle.Exclamation)
+    End Sub
+
+    Public Sub Log(message As String, warnLevel As Integer)
+        'logs something noteworthy, eg an error or a warning or a debug
+        'warn levels are 0:info, 1:warn, 2:error, 3:fatal
+    End Sub
+
+#End Region
+
+#Region "Array Modding"
+
     Public Shared Function ModArrayLength(arrayToMod() As Object, lengthChange As Integer) As Object()
         'changes the length of the given array by the given amount
 
@@ -964,6 +970,10 @@ Public Class PanelRenderEngine2
         End If
     End Function
 
+#End Region
+
+#Region "File Handling"
+
     Public Shared Function ReadFile(fileLocation As String) As String
         'returns the contents of a text file at a given location
 
@@ -988,4 +998,44 @@ Public Class PanelRenderEngine2
 
         writer.Close()
     End Sub
+
+    'Public Shared Function FindFolderPath(path As String, folderName As String) As String
+    '    'returns the location of the folder with the given name in the string
+
+    '    Dim folders() As String = path.Split("\")
+    '    Dim result As String = ""
+
+    '    If folders.Contains(folderName) = True Then
+    '        Dim foundFolder As Boolean = False
+
+    '        For index As Integer = UBound(folders) To 0 Step -1
+    '            If foundFolder = True Then
+    '                result = result.Insert(1, folders(index) & "\")
+    '            End If
+
+    '            If folders(index) = folderName Then
+    '                foundFolder = True
+    '            End If
+    '        Next index
+    '    End If
+
+    '    Return result
+    'End Function
+
+    Public Function FindProperty(fileText As String, propertyName As String) As String     'returns the property in a file with a given name, property: value
+        Dim lines() As String = fileText.Split(Environment.NewLine)
+
+        For Each line As String In lines
+            Dim currentProperty As String = line.Split(":")(0).Replace(vbLf, "")
+
+            If currentProperty = propertyName Then
+                Return Trim(line.Split(":")(1))         'issue: cant have colons anywhere else in the line
+            End If
+        Next line
+
+        DisplayError("Couldn't find property " & propertyName)
+
+        Return Nothing
+    End Function
+#End Region
 End Class

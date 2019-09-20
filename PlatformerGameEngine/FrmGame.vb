@@ -6,6 +6,8 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Class FrmGame
 
+#Region "Initialisation"
+
     Dim delayTimer As New Timer With {.Interval = 1, .Enabled = False}
 
     Private Sub FrmGame_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -27,6 +29,8 @@ Public Class FrmGame
 
         AddHandler frameTimer.Tick, AddressOf GameTick
     End Sub
+
+#End Region
 
 #Region "Data Structures"
 
@@ -405,7 +409,6 @@ Public Class FrmGame
     End Structure
 
 #End Region
-    'save load
 
 #Region "Loading"
 
@@ -563,8 +566,8 @@ Public Class FrmGame
         End If
 
         Select Case LCase(lineType.Trim)
-            Case "roomfolder"   'sets the folder for this levels rooms (folder location (excluding everything up to and including the level folder))
-                renderEngine.roomFolderLocation = renderEngine.levelFolderLocation & attributes(0)
+            'Case "roomfolder"   'sets the folder for this levels rooms (folder location (excluding everything up to and including the level folder))
+            '    renderEngine.roomFolderLocation = renderEngine.levelFolderLocation & attributes(0)
 
             Case "loadent"      'loads an entity from a file (file location)
                 Dim newEntity As PRE2.Entity
@@ -771,38 +774,6 @@ Public Class FrmGame
 
 #End Region
 
-    Public Shared Function MakeNameUnique(name As String, otherNames() As String, removeUnnecessary As Boolean) As String
-        'returns a name with a number appended to it so the name is unique
-
-        If Not IsNothing(otherNames) Then
-            Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
-            Dim nameUnique As Boolean = False
-            Dim generatedName As String = name
-
-            Do
-                copyNumber += 1
-                If Not removeUnnecessary Or copyNumber > 1 Then
-                    generatedName = name & "-" & Trim(Str(copyNumber))
-                End If
-                nameUnique = True
-
-                'checks if name is unique
-                For Each otherName As String In otherNames
-                    If otherName = generatedName Then
-                        nameUnique = False
-                        Exit For
-                    End If
-                Next
-            Loop Until nameUnique = True
-
-            Return generatedName
-        Else
-            Return name & If(Not removeUnnecessary, "-1", "")
-        End If
-    End Function
-
-
-    'render control
 #Region "Render Control"
 
     Dim renderer As PRE2            'panel render engine 2
@@ -840,61 +811,7 @@ Public Class FrmGame
 
 #End Region
 
-    'Public Sub EntityEvent(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional entTarget As PRE2.Entity = Nothing)
-
-    'End Sub
-
-    ''Public Sub EntityBehaviour(ent As PRE2.Entity, behaviour As PRE2.Tag, Optional ent2 As PRE2.Entity = Nothing)
-    ''    'does the behaviour for the entity, based on the tag given
-
-    ''    Select Case behaviour.name
-    ''        Case "xVel"         'args(0):float
-    ''            Dim start As PointF = ent.location
-
-    ''            'ent.location.X += behaviour.args(0)
-    ''        Case "yVel"         'args(0):float
-    ''            'ent.location.Y += behaviour.args(0)
-    ''        Case "xAcc"         'args(0):float
-    ''            ent.FindTag("xVel").SetArgument(ent.FindTag("xVel").GetArgument() + behaviour.GetArgument())
-    ''        Case "yAcc"         'args(0):float
-    ''            ent.FindTag("yVel").SetArgument(ent.FindTag("yVel").GetArgument() + behaviour.GetArgument())
-    ''        Case "layer"
-
-    ''        Case "setBackgroundColour"
-
-    ''        Case "changeLevel"
-
-    ''        Case "gameOver"
-
-    ''        Case "damage"       'args(0):int
-    ''            If ent.FindTag("health").name <> Nothing Then
-    ''                ent.FindTag("health").args(0) -= behaviour.args(0)
-    ''            ElseIf ent.FindTag("maxHealth").name <> Nothing Then
-    ''                ent.AddTag(New PRE2.Tag("health", {ent.FindTag("maxHealth").args(0) - behaviour.args(0)}))
-    ''            End If
-
-    ''            ent.RemoveTag("damage")
-    ''    End Select
-    ''End Sub
-
-    'Public Function EntityWithName(entityName As String, roomToCheck As Room) As PRE2.Entity
-    '    Dim result As PRE2.Entity = Nothing
-
-    '    Select Case entityName
-    '        Case "other"
-
-    '        Case Else
-    '            For index As Integer = 0 To UBound(roomToCheck.instances)
-    '                If roomToCheck.instances(index).name = entityName Then
-    '                    Return roomToCheck.instances(index)
-    '                End If
-    '            Next index
-    '    End Select
-
-    '    Return result
-    'End Function
-
-    'higher level entity control
+#Region "Higher Level Entity Control"
 
     Public Function GetEntityArgument(tag As PRE2.Tag, Optional ent As PRE2.Entity = Nothing,
                                       Optional room As Room = Nothing, Optional defaultResult As Object = Nothing) As Object
@@ -918,7 +835,8 @@ Public Class FrmGame
         Return result
     End Function
 
-    'player control
+#End Region
+
 #Region "Player Input"
 
     Dim keysHeld(0) As Keys
@@ -955,4 +873,39 @@ Public Class FrmGame
     End Sub
 
 #End Region
+
+#Region "General Procedures"
+
+    Public Shared Function MakeNameUnique(name As String, otherNames() As String, removeUnnecessary As Boolean) As String
+        'returns a name with a number appended to it so the name is unique
+
+        If Not IsNothing(otherNames) Then
+            Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
+            Dim nameUnique As Boolean = False
+            Dim generatedName As String = name
+
+            Do
+                copyNumber += 1
+                If Not removeUnnecessary Or copyNumber > 1 Then
+                    generatedName = name & "-" & Trim(Str(copyNumber))
+                End If
+                nameUnique = True
+
+                'checks if name is unique
+                For Each otherName As String In otherNames
+                    If otherName = generatedName Then
+                        nameUnique = False
+                        Exit For
+                    End If
+                Next
+            Loop Until nameUnique = True
+
+            Return generatedName
+        Else
+            Return name & If(Not removeUnnecessary, "-1", "")
+        End If
+    End Function
+
+#End Region
+
 End Class

@@ -14,30 +14,32 @@ Module EntityStringHandler
 
         'adds a tag for frames
 
-        If Not IsNothing(ent.frames) Then
-            Dim frameTags(UBound(ent.frames)) As PRE2.Tag
+        If False Then
+            If Not IsNothing(ent.frames) Then
+                Dim frameTags(UBound(ent.frames)) As PRE2.Tag
 
-            For frameIndex As Integer = 0 To UBound(ent.frames)
-                If Not IsNothing(ent.frames(frameIndex).sprites) Then
-                    Dim frameTag As New PRE2.Tag("frame" & frameIndex, "")
-                    Dim spriteTags(UBound(ent.frames(frameIndex).sprites)) As String
+                For frameIndex As Integer = 0 To UBound(ent.frames)
+                    If Not IsNothing(ent.frames(frameIndex).sprites) Then
+                        Dim frameTag As New PRE2.Tag("frame" & frameIndex, "")
+                        Dim spriteTags(UBound(ent.frames(frameIndex).sprites)) As String
 
-                    For spriteIndex As Integer = 0 To UBound(ent.frames(frameIndex).sprites)
-                        Dim sprite As PRE2.Sprite = ent.frames(frameIndex).sprites(spriteIndex)
-                        Dim offset As Point = ent.frames(frameIndex).offsets(spriteIndex)
+                        For spriteIndex As Integer = 0 To UBound(ent.frames(frameIndex).sprites)
+                            Dim sprite As PRE2.Sprite = ent.frames(frameIndex).sprites(spriteIndex)
+                            Dim offset As Point = ent.frames(frameIndex).offsets(spriteIndex)
 
-                        '{"spriteLocation.sprt":[x,y]}
-                        spriteTags(spriteIndex) = New PRE2.Tag(sprite.fileName.Remove(0, Len(spriteFolderLocation)),
+                            '{"spriteLocation.sprt":[x,y]}
+                            spriteTags(spriteIndex) = New PRE2.Tag(sprite.fileName.Remove(0, Len(spriteFolderLocation)),
                                                                          ArrayToString({offset.X, offset.Y})).ToString
-                    Next
+                        Next
 
-                    frameTag.argument = ArrayToString(spriteTags)
-                    frameTags(frameIndex) = frameTag
-                End If
-            Next
+                        frameTag.argument = ArrayToString(spriteTags)
+                        frameTags(frameIndex) = frameTag
+                    End If
+                Next
 
-            ent.RemoveTag("frames")
-            ent.AddTag(New PRE2.Tag("frames", ArrayToString(frameTags)))
+                ent.RemoveTag("frames")
+                ent.AddTag(New PRE2.Tag("frames", ArrayToString(frameTags)))
+            End If
         End If
 
         'adds each tag to the main tag
@@ -51,26 +53,15 @@ Module EntityStringHandler
         'reads a string, as created in CreateEntityString, returning an entity
 
         Try
-            Dim result As New PRE2.Entity
+            Dim result As New PRE2.Entity With {.spriteFolderLocation = renderEngine.spriteFolderLocation}
 
             'loads the tags
             'Dim tagStrings() As String = JSONSplit(entityString, 0)
             'Dim temp As Object = JSONToTag(tagStrings(0)).GetArgument()
             Dim temp As Object = New PRE2.Tag(entityString).GetArgument()
-            ReDim result.tags(UBound(temp))
             For index As Integer = 0 To UBound(temp)
-                result.tags(index) = New PRE2.Tag(temp(index).ToString)
+                result.AddTag(New PRE2.Tag(temp(index).ToString))
             Next
-
-            'loads the frames
-            Dim framesArgument() As Object = result.FindTag("frames").GetArgument()
-            ReDim result.frames(UBound(framesArgument))
-            For frameIndex As Integer = 0 To UBound(framesArgument)
-                Dim frameTag As New PRE2.Tag(framesArgument(frameIndex).ToString)
-                result.frames(frameIndex) = New PRE2.Frame(frameTag, renderEngine.spriteFolderLocation)
-            Next
-
-            result.spriteFolderLocation = renderEngine.spriteFolderLocation
 
             successfulLoad = True       'so that what calls this function knows the load was successful
             Return result

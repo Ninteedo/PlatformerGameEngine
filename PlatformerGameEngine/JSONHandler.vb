@@ -44,7 +44,8 @@ Public Module JSONHandler
 
             If Not inValue Then
                 If Not inString AndAlso c = ":" Or c = "}" Then 'marks end of name and beginning of value
-                    resultName = InterpretString(currentString).Trim
+                    'resultName = InterpretString(currentString).Trim
+                    resultName = currentString.Trim
                     currentString = ""
 
                     inValue = True
