@@ -32,6 +32,16 @@ Public Class FrmGame
 
 #End Region
 
+#Region "Disposing"
+
+    Protected Overrides Sub OnFormClosed(ByVal e As FormClosedEventArgs)
+        frameTimer.Stop()
+        renderer = Nothing
+        MyBase.OnFormClosed(e)
+    End Sub
+
+#End Region
+
 #Region "Data Structures"
 
     Public Structure Room
@@ -244,6 +254,54 @@ Public Class FrmGame
         Dim rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
         'Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
         'Dim currentRoomCoords As Point          'stores the coordinates of which room is being used currently
+
+        Public Sub New(levelString As String, renderEngine As PRE2)
+            templates = Nothing
+            globalParameters = Nothing
+            rooms = Nothing
+
+            Dim tagStrings() As Object = New PRE2.Tag(levelString).GetArgument 'JSONSplit(levelString, 0)
+            If Not IsNothing(tagStrings) Then
+                Dim tags(UBound(tagStrings)) As PRE2.Tag
+
+                For tagIndex As Integer = 0 To UBound(tagStrings)
+                    tags(tagIndex) = New PRE2.Tag(tagStrings(tagIndex).ToString)
+                Next
+
+                For Each thisTag As PRE2.Tag In tags
+                    If Not IsNothing(thisTag) Then
+                        Select Case thisTag.name
+                            Case "parameters"
+                                Dim temp() As Object = thisTag.GetArgument
+                                If Not IsNothing(temp) Then
+                                    ReDim globalParameters(UBound(temp))
+                                    For index As Integer = 0 To UBound(temp)
+                                        globalParameters(index) = New PRE2.Tag(temp(index).ToString)
+                                    Next
+                                End If
+                            Case "templates"
+                                Dim temp() As Object = thisTag.GetArgument
+                                If Not IsNothing(temp) Then
+                                    ReDim templates(UBound(temp))
+                                    For index As Integer = 0 To UBound(temp)
+                                        templates(index) = New PRE2.Entity(temp(index).ToString, renderEngine)
+                                    Next
+                                End If
+                            Case "rooms"
+                                Dim temp() As Object = thisTag.GetArgument
+                                If Not IsNothing(temp) Then
+                                    ReDim rooms(UBound(temp))
+                                    For index As Integer = 0 To UBound(temp)
+                                        rooms(index) = New Room(temp(index), renderEngine)
+                                    Next
+                                End If
+                            Case Else
+                                PRE2.DisplayError("Unknown tag in level file: " & thisTag.name)
+                        End Select
+                    End If
+                Next
+            End If
+        End Sub
 
 
         Public Overloads Function ToString(levelDelimiters() As String, roomDelimiters() As String) As String
@@ -467,74 +525,31 @@ Public Class FrmGame
         End If
     End Sub
 
-    Public Shared Function LoadLevelFileOld(fileLocation As String, renderEngine As PRE2,
-                                         levelDelimiters() As String, roomDelimiters() As String) As Level
-        If IO.File.Exists(fileLocation) = True Then
-            Dim levelString As String = PRE2.ReadFile(fileLocation)
-            Dim thisLevel As Level = New Level
-            Dim lines() As String = Strings.Split(levelString.Trim, levelDelimiters(2))
+    'Public Shared Function LoadLevelFileOld(fileLocation As String, renderEngine As PRE2,
+    '                                     levelDelimiters() As String, roomDelimiters() As String) As Level
+    '    If IO.File.Exists(fileLocation) = True Then
+    '        Dim levelString As String = PRE2.ReadFile(fileLocation)
+    '        Dim thisLevel As Level = New Level
+    '        Dim lines() As String = Strings.Split(levelString.Trim, levelDelimiters(2))
 
-            For lineIndex As Integer = 0 To UBound(lines)
-                ParseLevelLine(lines(lineIndex), thisLevel, renderEngine, levelDelimiters, roomDelimiters)
-            Next lineIndex
+    '        For lineIndex As Integer = 0 To UBound(lines)
+    '            ParseLevelLine(lines(lineIndex), thisLevel, renderEngine, levelDelimiters, roomDelimiters)
+    '        Next lineIndex
 
-            Return thisLevel
-        Else
-            PRE2.DisplayError("Could not find level file at " & fileLocation)
+    '        Return thisLevel
+    '    Else
+    '        PRE2.DisplayError("Could not find level file at " & fileLocation)
 
-            Return Nothing
-        End If
-    End Function
+    '        Return Nothing
+    '    End If
+    'End Function
 
     Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2) As Level
         'loads a level from a given file location
         If IO.File.Exists(fileLocation) Then
             Dim levelString As String = PRE2.ReadFile(fileLocation)
             If Not IsNothing(levelString) Then
-                Dim tagStrings() As Object = New PRE2.Tag(levelString).GetArgument 'JSONSplit(levelString, 0)
-                If Not IsNothing(tagStrings) Then
-                    Dim tags(UBound(tagStrings)) As PRE2.Tag
-                    Dim thisLevel As New Level
-
-                    For tagIndex As Integer = 0 To UBound(tagStrings)
-                        tags(tagIndex) = New PRE2.Tag(tagStrings(tagIndex).ToString)
-                    Next
-
-                    For Each thisTag As PRE2.Tag In tags
-                        If Not IsNothing(thisTag) Then
-                            Select Case thisTag.name
-                                Case "parameters"
-                                    Dim temp() As Object = thisTag.GetArgument
-                                    If Not IsNothing(temp) Then
-                                        ReDim thisLevel.globalParameters(UBound(temp))
-                                        For index As Integer = 0 To UBound(temp)
-                                            thisLevel.globalParameters(index) = New PRE2.Tag(temp(index).ToString)
-                                        Next
-                                    End If
-                                Case "templates"
-                                    Dim temp() As Object = thisTag.GetArgument
-                                    If Not IsNothing(temp) Then
-                                        ReDim thisLevel.templates(UBound(temp))
-                                        For index As Integer = 0 To UBound(temp)
-                                            thisLevel.templates(index) = New PRE2.Entity(temp(index).ToString, renderEngine)
-                                        Next
-                                    End If
-                                Case "rooms"
-                                    Dim temp() As Object = thisTag.GetArgument
-                                    If Not IsNothing(temp) Then
-                                        ReDim thisLevel.rooms(UBound(temp))
-                                        For index As Integer = 0 To UBound(temp)
-                                            thisLevel.rooms(index) = New Room(temp(index), renderEngine)
-                                        Next
-                                    End If
-                                Case Else
-                                    PRE2.DisplayError("Unknown tag in level file: " & thisTag.name)
-                            End Select
-                        End If
-                    Next
-
-                    Return thisLevel
-                End If
+                Return New Level(levelString, renderEngine)
             End If
         Else
             PRE2.DisplayError("Could not find level file at " & fileLocation)
@@ -543,234 +558,16 @@ Public Class FrmGame
         Return Nothing
     End Function
 
-    Public Shared Sub ParseLevelLine(line As String, ByRef thisLevel As Level, renderEngine As PRE2,
-                                     levelDelimiters() As String, roomDelimiters() As String)
-        'reads a line and loads/adds to/changes the level accordingly
-
-        Try     'maybe clean this up
-            Dim lineTypeTest As String = line.Split(levelDelimiters(0))(0)
-            Dim attributesTest() As String = line.Split(levelDelimiters(0))(1).Split(levelDelimiters(1))
-        Catch ex As IndexOutOfRangeException        'failsafe for bad lines
-            PRE2.DisplayError("Could not parse line: " & line)
-            Exit Sub
-        End Try
-
-        Dim lineType As String = line.Split(levelDelimiters(0))(0)          'line type decides what the current line does, eg loadEnt
-        Dim attributes() As String = Strings.Split(Strings.Split(line, levelDelimiters(0))(1), levelDelimiters(1))   'the specifics of what the line does, the order matters
-
-        'removes any whitespace in the attributes
-        If Not IsNothing(attributes) Then
-            For index As Integer = 0 To UBound(attributes)
-                attributes(index) = attributes(index).Trim()
-            Next index
-        End If
-
-        Select Case LCase(lineType.Trim)
-            'Case "roomfolder"   'sets the folder for this levels rooms (folder location (excluding everything up to and including the level folder))
-            '    renderEngine.roomFolderLocation = renderEngine.levelFolderLocation & attributes(0)
-
-            Case "loadent"      'loads an entity from a file (file location)
-                Dim newEntity As PRE2.Entity
-
-                newEntity = LoadEntity(renderEngine.entityFolderLocation & attributes(0), renderEngine)
-                'newEntity.AddTag(New PRE2.Tag("name", {attributes(1)}))
-
-                Dim templateNames() As String = Nothing
-                If Not IsNothing(thisLevel.templates) Then
-                    ReDim templateNames(UBound(thisLevel.templates))
-                    For index As Integer = 0 To UBound(thisLevel.templates)
-                        templateNames(index) = thisLevel.templates(index).name
-                    Next index
-                End If
-                newEntity.name = MakeNameUnique(newEntity.name, templateNames, True)
-
-                If IsNothing(thisLevel.templates) = True Then
-                    ReDim thisLevel.templates(0)
-                Else
-                    ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) + 1)
-                End If
-                thisLevel.templates(UBound(thisLevel.templates)) = newEntity
-
-            Case "loadroom"     'loads a room from a file (room name, room string) or (room string)?
-                Dim newRoom As Room = LoadRoom(attributes(0).Trim, thisLevel, roomDelimiters) 'LoadRoomFile(renderEngine.roomFolderLocation & attributes(0), thisLevel, renderEngine.roomFolderLocation)        
-                'Dim coords As Point
-                'If UBound(attributes) >= 1 Then
-                '    coords = New Point(Int(attributes(1).Split(levelDelimiters(2))(0)), Int(attributes(1).Split(levelDelimiters(2))(1)))
-                'Else        'safeguard for if room has no coords
-                '    coords = New Point
-                'End If
-
-                If IsNothing(thisLevel.rooms) = True Then
-                    ReDim thisLevel.rooms(0)
-                    'ReDim thisLevel.roomCoords(0)
-                Else
-                    ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) + 1)
-                    'ReDim Preserve thisLevel.roomCoords(UBound(thisLevel.rooms) + 1)
-                End If
-
-                thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
-                'thisLevel.roomCoords(UBound(thisLevel.rooms)) = coords
-
-            Case "addparam"     'adds a parameter and deletes any duplicates (tag)
-                Dim newTag As New PRE2.Tag(attributes(0))
-
-                thisLevel.RemoveParam(newTag.name)
-                thisLevel.AddParam(newTag)
-
-            Case Else           'unknown line type
-                PRE2.DisplayError("Unknown line type: " & lineType)
-        End Select
-    End Sub
-
-    'Public Shared Function LoadRoomFile(fileLocation As String, ByRef thisLevel As Level, roomFolderLocation As String) As Room
+    'Public Shared Function LoadEntity(fileLocation As String, renderEngine As PRE2) As PRE2.Entity
     '    If IO.File.Exists(fileLocation) = True Then
-    '        Dim roomString As String = PRE2.ReadFile(fileLocation)
-    '        Dim thisRoom As New Room With {
-    '            .name = fileLocation.Remove(Len(fileLocation) - 5, 5).Remove(1, roomFolderLocation),
-    '            .parameters = thisLevel.globalParameters
-    '        }           'initial parameters are inherited from the level
-    '        Dim lines() As String = roomString.Trim.Split(Environment.NewLine)
-
-    '        For lineIndex As Integer = 0 To UBound(lines)
-    '            ParseRoomLine(lines(lineIndex), thisRoom, thisLevel)
-    '        Next lineIndex
-
-    '        Return thisRoom
+    '        Dim fileText As String = PRE2.ReadFile(fileLocation)
+    '        Return EntityStringHandler.ReadEntityString(fileText, renderEngine)
     '    Else
-    '        PRE2.DisplayError("Couldn't find room file at " & fileLocation)
-    '        Return Nothing
+    '        PRE2.DisplayError("Couldn't find entity file " & fileLocation)
     '    End If
+
+    '    Return Nothing
     'End Function
-
-    Public Shared Function LoadRoom(roomString As String, ByRef thisLevel As Level, roomDelimiters() As String) As Room
-        If Not IsNothing(thisLevel) Then
-            Dim newRoom As New Room 'With {.parameters = thisLevel.globalParameters}
-            Dim lines() As String = roomString.Trim.Split(roomDelimiters(2))
-
-            For Each line As String In lines
-                If Len(line) > 0 Then
-                    ParseRoomLine(line, newRoom, thisLevel, roomDelimiters)
-                End If
-            Next line
-
-            Return newRoom
-        Else
-            PRE2.DisplayError("Attempted to load a room but there was no level")
-            Return Nothing
-        End If
-    End Function
-
-    Public Shared Sub ParseRoomLine(line As String, ByRef thisRoom As Room, ByRef thisLevel As Level, roomDelimiters() As String)
-
-        Dim lineType As String = line.Split(roomDelimiters(0))(0)          'line type decides what the current line does, eg loadEnt
-        Dim attributes() As String = line.Split(roomDelimiters(0))(1).Split(roomDelimiters(1))     'the specifics of what the line does, the order matters
-
-        'removes any whitespace from attributes
-        If Not IsNothing(attributes) Then
-            For index As Integer = 0 To UBound(attributes)
-                attributes(index) = attributes(index).Trim
-            Next index
-        End If
-
-        Select Case LCase(lineType.Trim)
-            Case "addent"       'creates a new instance of a loaded entity (template name, instance name, tags...)
-                Dim entityTemplate As New PRE2.Entity
-
-                'modifies the name of the instance if necessary
-                'checks that there isn't another instance with the same name as the new instance
-                Dim instanceNames() As String = Nothing
-                If Not IsNothing(thisRoom.instances) Then
-                    ReDim instanceNames(UBound(thisRoom.instances))
-                    For index As Integer = 0 To UBound(thisRoom.instances)
-                        instanceNames(index) = thisRoom.instances(index).name
-                    Next index
-                End If
-                Dim newInstanceName As String = MakeNameUnique(entityTemplate.name, instanceNames, False)
-
-                'finds the entity template with the name
-                For index As Integer = 0 To UBound(thisLevel.templates)
-                    If thisLevel.templates(index).FindTag("name").GetArgument() = attributes(0) Then
-                        entityTemplate = thisLevel.templates(index)
-                    End If
-                Next index
-
-                'checks if an entity was found with the name
-                If IsNothing(entityTemplate) = True Then
-                    PRE2.DisplayError("Could not find loaded entity with name " & attributes(0))
-                Else
-                    Dim newEnt As PRE2.Entity = entityTemplate
-
-                    newEnt.RemoveTag("name")
-                    newEnt.AddTag(New PRE2.Tag("name", newInstanceName))
-
-                    'adds the rest of the tags to the entity
-                    For index As Integer = 2 To UBound(attributes)
-                        Dim currentTag As New PRE2.Tag(attributes(index))
-                        newEnt.RemoveTag(currentTag.name)
-                        newEnt.AddTag(currentTag)
-                    Next index
-
-                    If IsNothing(thisRoom.instances) = True Then
-                        ReDim thisRoom.instances(0)
-                    Else
-                        ReDim Preserve thisRoom.instances(UBound(thisRoom.instances) + 1)
-                    End If
-                    thisRoom.instances(UBound(thisRoom.instances)) = newEnt
-                End If
-
-            Case "editent"      'modifies an instance of an entity (instance name, tags)
-                Dim entityInstance As PRE2.Entity = Nothing
-
-                'finds the entity instance with the name
-                For index As Integer = 0 To UBound(thisRoom.instances)
-                    If thisRoom.instances(index).FindTag("name").GetArgument() = attributes(0) Then
-                        entityInstance = thisRoom.instances(index)
-                    End If
-                Next index
-
-                'checks if an entity was found with the name
-                If IsNothing(entityInstance) = True Then
-                    PRE2.DisplayError("Couldn't find any instance of an entity called " & attributes(0))
-                Else
-                    'adds the tags to the entity
-                    For index As Integer = 1 To UBound(attributes)
-                        Dim currentTag As New PRE2.Tag(attributes(index))
-
-                        'if the entity already has the tag then removes the previous copy of it
-                        If entityInstance.HasTag(currentTag.name) Then
-                            entityInstance.RemoveTag(currentTag.name)
-                        End If
-
-                        entityInstance.AddTag(currentTag)
-                    Next index
-                End If
-
-            Case "addparam"     'adds a parameter to this level (parameter aka tag) and removes any duplicates
-                Dim newTag As New PRE2.Tag(attributes(0))
-
-                thisRoom.RemoveParam(newTag.name)
-                thisRoom.AddParam(newTag)
-
-            Case Else
-                PRE2.DisplayError("Unknown line type: " & lineType)
-        End Select
-
-    End Sub
-
-    'Private Sub LoadLevel(fileLocation As String)       'loads the level from the given file location
-
-    'End Sub
-
-    Public Shared Function LoadEntity(fileLocation As String, renderEngine As PRE2) As PRE2.Entity
-        If IO.File.Exists(fileLocation) = True Then
-            Dim fileText As String = PRE2.ReadFile(fileLocation)
-            Return EntityStringHandler.ReadEntityString(fileText, renderEngine)
-        Else
-            PRE2.DisplayError("Couldn't find entity file " & fileLocation)
-        End If
-
-        Return Nothing
-    End Function
 
 #End Region
 
@@ -784,7 +581,6 @@ Public Class FrmGame
     Dim frameTimer As New Timer
 
     Private Sub GameTick()
-
         'broadcasts the key held event for each key currently held
         For keyIndex As Integer = 0 To UBound(keysHeld)
             If Not IsNothing(keysHeld(keyIndex)) AndAlso keysHeld(keyIndex) > 0 Then

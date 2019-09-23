@@ -150,22 +150,15 @@ Public Class PanelRenderEngine2
         Public Sub New(entityString As String, renderEngine As PanelRenderEngine2)
             'creates a new entity from an entity string
 
+            spriteFolderLocation = renderEngine.spriteFolderLocation
             If Not IsNothing(entityString) Then
                 Dim newEnt As Entity = EntityStringHandler.ReadEntityString(entityString, renderEngine)
-                frames = newEnt.frames
+                Frames = newEnt.Frames
                 tags = newEnt.tags
             End If
-            spriteFolderLocation = renderEngine.spriteFolderLocation
         End Sub
 
         Public Overrides Function ToString() As String
-            'returns a string version of this entity making better use of tags
-
-            'Dim framesTag As New Tag("frames", ArrayToString(frames))
-            'Dim tagsTag As New Tag("tags", ArrayToString(tags))
-
-            'Return New Tag(name, ArrayToString({framesTag, tagsTag})).ToString
-
             Return CreateEntityString(Me, spriteFolderLocation)
         End Function
 
@@ -179,7 +172,7 @@ Public Class PanelRenderEngine2
             Dim newClone As Entity = Nothing
 
             newClone.spriteFolderLocation = spriteFolderLocation
-            newClone.frames = frames
+            newClone.Frames = Frames
             newClone.tags = tags
 
             Return newClone
@@ -260,9 +253,9 @@ Public Class PanelRenderEngine2
         Public Sub AddTag(newTag As Tag, Optional removeDuplicates As Boolean = False)
             'adds the given tag to this entity's list of tags
 
-			If removeDuplicates Then
-				RemoveTag(newTag.name)
-			End If
+            If removeDuplicates Then
+                RemoveTag(newTag.name)
+            End If
 
             If IsNothing(tags) Then
                 ReDim tags(0)
@@ -397,7 +390,7 @@ Public Class PanelRenderEngine2
                     End If
                 End If
 
-                Return New PointF(frames(currentFrame).Dimensions.Width / 2, frames(currentFrame).Dimensions.Height / 2)
+                Return New PointF(Frames(currentFrame).Dimensions.Width / 2, Frames(currentFrame).Dimensions.Height / 2)
             End Get
             Set(value As PointF)
                 AddTag(New Tag("rotationAnchor", "[" & value.X & "," & value.Y & "]"), True)
@@ -416,7 +409,7 @@ Public Class PanelRenderEngine2
                 AddTag(New Tag("opacity", value), True)
 
                 'resets all the bitmaps because they are wrong now
-                For Each currentFrame As Frame In frames
+                For Each currentFrame As Frame In Frames
                     currentFrame.bitmapVersion = Nothing
                 Next
             End Set
@@ -447,7 +440,7 @@ Public Class PanelRenderEngine2
         Public Shared Function AreEntitiesEqual(ent1 As Entity, ent2 As Entity) As Boolean
             'returns whether 2 provided frames are identical
 
-            If ent1.tags IsNot ent2.tags OrElse ent1.frames IsNot ent2.frames Then
+            If ent1.tags IsNot ent2.tags OrElse ent1.Frames IsNot ent2.Frames Then
                 Return False
             Else
                 Return True
@@ -465,9 +458,9 @@ Public Class PanelRenderEngine2
         Private spriteFolderLocation As String
 
         Public Sub New(frameTag As Tag, spriteFolderLocation As String)
-			'creates a new frame from a frame tag
-				
-			Dim spriteTagStrings() As Object = frameTag.GetArgument()
+            'creates a new frame from a frame tag
+
+            Dim spriteTagStrings() As Object = frameTag.GetArgument()
             'ReDim sprites(UBound(spriteTagStrings))
             'ReDim offsets(UBound(spriteTagStrings))
             If Not IsNothing(spriteTagStrings) Then
@@ -768,8 +761,8 @@ Public Class PanelRenderEngine2
         If IsNothing(entityList) = False Then
             For entityIndex As Integer = 0 To UBound(entityList)
                 Dim currentEntity As Entity = entityList(entityIndex)
-                If IsNothing(currentEntity.frames) = False AndAlso currentEntity.currentFrame <= UBound(currentEntity.frames) And currentEntity.currentFrame >= 0 Then
-                    Dim renderFrame As Frame = currentEntity.frames(currentEntity.currentFrame)
+                If IsNothing(currentEntity.Frames) = False AndAlso currentEntity.currentFrame <= UBound(currentEntity.Frames) And currentEntity.currentFrame >= 0 Then
+                    Dim renderFrame As Frame = currentEntity.Frames(currentEntity.currentFrame)
                     Dim renderPixels(,) As Color = renderFrame.ToColourArray
 
                     Dim renderLayer As BufferedGraphics
@@ -818,7 +811,7 @@ Public Class PanelRenderEngine2
                     If bitmapMode Then
                         If IsNothing(renderFrame.bitmapVersion) Then
                             renderFrame.bitmapVersion = renderFrame.ToBitmap(currentEntity.opacity)
-                            entityList(entityIndex).frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
+                            entityList(entityIndex).Frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
                         End If
 
                         Dim renderSize As SizeF = New SizeF(

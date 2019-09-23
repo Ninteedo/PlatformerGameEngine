@@ -76,13 +76,14 @@ Public Class FrmMenu
     Private Sub LoadGame()
         'loads the game selected by the user
 
-        Dim openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Multiselect = False}
-        MsgBox("Please select the game loader file")
-        If openDialog.ShowDialog() = Windows.Forms.DialogResult.OK Then
-            Using game As New FrmGame With {.loaderFileLocation = openDialog.FileName}
-                game.ShowDialog()
-            End Using
-        End If
+        Using openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Multiselect = False}
+            MsgBox("Please select the game loader file")
+            If openDialog.ShowDialog() = Windows.Forms.DialogResult.OK Then
+                Using game As New FrmGame With {.loaderFileLocation = openDialog.FileName}
+                    game.ShowDialog()
+                End Using
+            End If
+        End Using
     End Sub
 
     Private Sub OpenOptionsMenu()
