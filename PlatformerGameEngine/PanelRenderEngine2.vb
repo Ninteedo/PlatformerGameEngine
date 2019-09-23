@@ -130,16 +130,16 @@ Public Class PanelRenderEngine2
         'most things are entities, even if they don't move
         'each entity has at least 1 frame and can have lots of tags
 
-        Dim frames() As Frame
+        Private framesList() As Frame
         Dim tags() As Tag
 
         Dim spriteFolderLocation As String
 
-        Public Sub New(startFrames() As Frame, startTags() As Tag, spriteFolderLocation As String, startLocation As PointF, Optional startRotation As Single = 0.0,
+        Public Sub New(startFrames() As Frame, startTags() As Tag, spriteFolder As String, startLocation As PointF, Optional startRotation As Single = 0.0,
                        Optional startScale As Single = 1.0)
-            frames = startFrames
+            spriteFolderLocation = spriteFolder
+            Frames = startFrames
             tags = startTags
-            Me.spriteFolderLocation = spriteFolderLocation
 
             currentFrame = 0
             location = startLocation
@@ -178,28 +178,59 @@ Public Class PanelRenderEngine2
 
             Dim newClone As Entity = Nothing
 
+            newClone.spriteFolderLocation = spriteFolderLocation
             newClone.frames = frames
             newClone.tags = tags
-            newClone.spriteFolderLocation = spriteFolderLocation
 
             Return newClone
         End Function
 
 
-        Public Sub RefreshFrames()
-            'changes what is stored in frames() using the "frames" tag
+        Public Sub RefreshFramesList()
+            'changes what is stored in framesList() using the "frames" tag
 
             Dim framesArgument() As Object = FindTag("frames").GetArgument()
+
             If Not IsNothing(framesArgument) Then
-                ReDim frames(UBound(framesArgument))
+                Dim newFrames(UBound(framesArgument)) As Frame
                 For frameIndex As Integer = 0 To UBound(framesArgument)
                     Dim frameTag As New Tag(framesArgument(frameIndex).ToString)
-                    frames(frameIndex) = New Frame(frameTag, spriteFolderLocation)
+                    newFrames(frameIndex) = New Frame(frameTag, spriteFolderLocation)
                 Next
+
+                If newFrames IsNot Frames Then
+                    framesList = newFrames
+                End If
             Else
-                frames = Nothing
+                If Not IsNothing(Frames) Then
+                    framesList = Nothing
+                End If
             End If
         End Sub
+
+        Public Sub RefreshFramesTag()
+            'changes the "frames" tag to match what is in framesList()
+
+            AddTag(New Tag("frames", ArrayToString(framesList)), True)
+        End Sub
+
+        'Public Function GetFrames() As Frame()
+        '    Return frames
+        'End Function
+
+        'Public Sub SetFrames(newFrames As Frame())
+        '    frames = 
+        'End Sub
+
+        Public Property Frames As Frame()
+            Get
+                Return framesList
+            End Get
+            Set(value As Frame())
+                framesList = value
+                RefreshFramesTag()
+            End Set
+        End Property
 
 
         Public Function FindTag(tagName As String) As Tag
@@ -232,18 +263,15 @@ Public Class PanelRenderEngine2
 			If removeDuplicates Then
 				RemoveTag(newTag.name)
 			End If
-			
-            If IsNothing(tags) = True Then
+
+            If IsNothing(tags) Then
                 ReDim tags(0)
             Else
                 ReDim Preserve tags(UBound(tags) + 1)
             End If
-
             tags(UBound(tags)) = newTag
 
-            If newTag.name = "frames" Then
-                RefreshFrames()
-            End If
+            CheckSpecialTagModified(newTag)
         End Sub
 
         Public Sub RemoveTag(tagName As String)
@@ -265,9 +293,7 @@ Public Class PanelRenderEngine2
                 Loop
             End If
 
-            If tagName = "frames" Then
-                RefreshFrames()
-            End If
+            CheckSpecialTagModified(New Tag(tagName, Nothing))
         End Sub
 
         Public Sub SetTag(tagIndex As Integer, newTag As Tag)
@@ -276,12 +302,19 @@ Public Class PanelRenderEngine2
             If Not IsNothing(tags) And tagIndex >= 0 AndAlso tagIndex <= UBound(tags) Then
                 tags(tagIndex) = newTag
 
-                If newTag.name = "frames" Then
-                    RefreshFrames()
-                End If
+                CheckSpecialTagModified(newTag)
             Else
                 DisplayError("Tried to change tag for entity " & name & " but index (" & tagIndex & ") was out of bounds")
             End If
+        End Sub
+
+        Private Sub CheckSpecialTagModified(modifiedTag As Tag)
+            'used for if something special needs to be done when a specific tag is changed
+
+            Select Case modifiedTag.name
+                Case "frames"
+                    RefreshFramesList()
+            End Select
         End Sub
 
 
@@ -503,13 +536,15 @@ Public Class PanelRenderEngine2
 
             Dim result As New Size(0, 0)
             For index As Integer = 0 To UBound(sprites)
-                Dim maxSize As New Size(sprites(index).pixels.GetLength(0) + offsets(index).X, sprites(index).pixels.GetLength(1) + offsets(index).Y)
+                If Not IsNothing(sprites(index).pixels) Then
+                    Dim maxSize As New Size(sprites(index).pixels.GetLength(0) + offsets(index).X, sprites(index).pixels.GetLength(1) + offsets(index).Y)
 
-                If maxSize.Width > result.Width Then
-                    result.Width = maxSize.Width
-                End If
-                If maxSize.Height > result.Height Then
-                    result.Height = maxSize.Height
+                    If maxSize.Width > result.Width Then
+                        result.Width = maxSize.Width
+                    End If
+                    If maxSize.Height > result.Height Then
+                        result.Height = maxSize.Height
+                    End If
                 End If
             Next index
 
@@ -725,7 +760,7 @@ Public Class PanelRenderEngine2
         context.MaximumBuffer = renderPanel.Size
 
         Dim renderLayers() As BufferedGraphics = Nothing      'each render layer
-        Dim renderLayerNumbers() As Integer = {}         'the z coordinate of each render layer, parallel to above array
+        Dim renderLayerNumbers() As Integer = Nothing         'the z coordinate of each render layer, parallel to above array
 
         Dim overallRender As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
 
@@ -789,8 +824,8 @@ Public Class PanelRenderEngine2
                         Dim renderSize As SizeF = New SizeF(
                                     currentEntity.scale * RenderScale.Width * (renderFrame.Dimensions.Width + 0.5),
                                     currentEntity.scale * RenderScale.Height * (renderFrame.Dimensions.Height + 0.5))
-                        Dim renderArea As New RectangleF(New PointF((currentEntity.location.X - currentEntity.rotationAnchor.X + 0.5) * RenderScale.Width,
-                                                                    (currentEntity.location.Y - currentEntity.rotationAnchor.Y + 0.5) * RenderScale.Height), renderSize)
+                        Dim renderArea As New RectangleF(New PointF((currentEntity.location.X - currentEntity.rotationAnchor.X - 0.5) * RenderScale.Width,
+                                                                    (currentEntity.location.Y - currentEntity.rotationAnchor.Y - 0.5) * RenderScale.Height), renderSize)
                         Dim imageToRender As Image = renderFrame.bitmapVersion
 
                         renderLayer.Graphics.DrawImage(imageToRender, renderArea)

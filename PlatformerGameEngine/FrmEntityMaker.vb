@@ -181,6 +181,7 @@ Public Class FrmEntityMaker
             Dim previewEntity As New PRE2.Entity({frameToDraw}, previewTags, renderer.spriteFolderLocation, New PointF(0, 0)) With {
                 .location = New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
             } 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
+            'New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
 
             renderer.renderResolution = frameToDraw.Dimensions
             'renderer.renderResolution = New Size(frameToDraw.Dimensions.Width * renderer.renderScaleFactor, frameToDraw.Dimensions.Height * renderer.renderScaleFactor)
@@ -198,37 +199,30 @@ Public Class FrmEntityMaker
 
 #Region "Frames"
 
-    Dim frames() As PRE2.Frame
-
-    Private Sub FramesModified()
-        ent.AddTag(New PRE2.Tag("frames", ArrayToString(frames)), True)
-        RefreshTagsList()
-    End Sub
-
     Private Sub RefreshFramesList()
         'resets frame list and adds them all back
 
         lstFrames.Items.Clear()
 
-        If IsNothing(frames) = False Then
-            For frameIndex As Integer = 0 To UBound(frames)
+        If IsNothing(ent.Frames) = False Then
+            For frameIndex As Integer = 0 To UBound(ent.Frames)
                 lstFrames.Items.Add("Frame " & Trim(Str(frameIndex + 1)))
             Next frameIndex
         End If
 
-        FramesModified()
+        RefreshTagsList()
     End Sub
 
     Private Sub btnFrameNew_Click(sender As Object, e As EventArgs) Handles btnFrameNew.Click
         'adds a new, empty frame
 
-        If IsNothing(frames) = True Then
-            ReDim frames(0)
+        If IsNothing(ent.Frames) = True Then
+            ReDim ent.Frames(0)
         Else
-            ReDim Preserve frames(UBound(frames) + 1)
+            ReDim Preserve ent.Frames(UBound(ent.Frames) + 1)
         End If
 
-        frames(UBound(frames)) = New PRE2.Frame(Nothing, renderer.spriteFolderLocation)
+        ent.Frames(UBound(ent.Frames)) = New PRE2.Frame(Nothing, renderer.spriteFolderLocation)
         RefreshFramesList()
     End Sub
 
@@ -237,15 +231,15 @@ Public Class FrmEntityMaker
 
         Dim removeIndex As Integer = lstFrames.SelectedIndex
 
-        For index As Integer = removeIndex + 1 To UBound(frames)
-            frames(index - 1) = frames(index)
+        For index As Integer = removeIndex + 1 To UBound(ent.Frames)
+            ent.Frames(index - 1) = ent.Frames(index)
         Next index
 
-        'reduces the frames array length by 1
-        If UBound(frames) > 0 Then
-            ReDim Preserve frames(UBound(frames) - 1)
+        'reduces the ent.Frames array length by 1
+        If UBound(ent.Frames) > 0 Then
+            ReDim Preserve ent.Frames(UBound(ent.Frames) - 1)
         Else
-            frames = Nothing
+            ent.Frames = Nothing
         End If
 
         RefreshFramesList()
@@ -256,7 +250,7 @@ Public Class FrmEntityMaker
 
         If lstFrames.SelectedIndex > -1 Then
             btnFrameRemove.Enabled = True
-            DrawFramePreview(frames(lstFrames.SelectedIndex))
+            DrawFramePreview(ent.Frames(lstFrames.SelectedIndex))
             'RefreshFramesList()
 
             If lstSprites.SelectedIndex > -1 Then
@@ -283,9 +277,10 @@ Public Class FrmEntityMaker
             If userInput <> "" Then
                 If inputSplit.Length = 2 AndAlso IsNumeric(Trim(inputSplit(0))) = True And IsNumeric(Trim(inputSplit(1))) = True Then
                     offset = New Point(Int(Trim(inputSplit(0))), Int(Trim(inputSplit(1))))
-                    frames(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
+                    ent.Frames(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
+                    ent.RefreshFramesTag()
 
-                    DrawFramePreview(frames(frameIndex))
+                    DrawFramePreview(ent.Frames(frameIndex))
                 Else
                     PRE2.DisplayError("Offsets need to be provided in the form x,y e.g. 10,5")
                 End If
@@ -298,26 +293,6 @@ Public Class FrmEntityMaker
 #End Region
 
 #Region "Tags"
-
-    Private Sub ReloadFrames()
-        'reloads the frames from the frames tag incase the user modified it
-
-        Dim framesTag As PRE2.Tag = ent.FindTag("frames")
-
-        If Not IsNothing(framesTag) Then
-            Dim temp As Object = framesTag.GetArgument
-            If IsArray(temp) Then
-                ReDim frames(UBound(temp))
-                For frameIndex As Integer = 0 To UBound(temp)
-                    frames(frameIndex) = New PRE2.Frame(temp(frameIndex), renderer.spriteFolderLocation)
-                Next
-            ElseIf Not IsNothing(temp) Then
-                frames = {New PRE2.Frame(temp, renderer.spriteFolderLocation)}
-            Else
-                frames = Nothing
-            End If
-        End If
-    End Sub
 
     Private Sub RefreshTagsList()
         'empties and refills the tags list
@@ -332,7 +307,7 @@ Public Class FrmEntityMaker
             Next
         End If
 
-        ReloadFrames()
+        'ReloadFrames()
     End Sub
 
     Private Sub btnTagsNew_Click(sender As Object, e As EventArgs) Handles btnTagsNew.Click
@@ -366,7 +341,7 @@ Public Class FrmEntityMaker
             tagMaker.ShowDialog()
 
             If tagMaker.userFinished = True Then
-                ent.tags(tagIndex) = tagMaker.CreatedTag
+                ent.SetTag(tagIndex, tagMaker.CreatedTag)
                 RefreshTagsList()
                 'lstTags.Items(tagIndex) = tagMaker.createdTag.name
             End If

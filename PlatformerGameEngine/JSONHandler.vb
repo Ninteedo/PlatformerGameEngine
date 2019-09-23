@@ -140,7 +140,8 @@ Public Module JSONHandler
                 Case Else
                     Select Case valueString(0)
                         Case """"       'string
-                            result = InterpretString(valueString)
+                            'result = InterpretString(valueString)
+                            result = valueString
                         Case "{"        'object (another tag)
                             result = JSONToTag(valueString)
                         Case "["        'array
