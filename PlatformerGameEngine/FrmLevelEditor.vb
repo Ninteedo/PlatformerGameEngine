@@ -49,21 +49,22 @@ Public Class FrmLevelEditor
     Private Sub LoadInitialisation()
         'gets the folder locations from the loader file
 
-        Dim openDialog As New OpenFileDialog With {.Filter = "Loader file (*.ldr)|*.ldr", .Multiselect = False}
-        MsgBox("Please select the loader file for the game")
+        Using openDialog As New OpenFileDialog With {.Filter = "Loader file (*.ldr)|*.ldr", .Multiselect = False}
+            MsgBox("Please select the loader file for the game")
 
-        If openDialog.ShowDialog() = DialogResult.OK Then
-            Dim loaderFileText As String = PRE2.ReadFile(openDialog.FileName)
+            If openDialog.ShowDialog() = DialogResult.OK Then
+                Dim loaderFileText As String = PRE2.ReadFile(openDialog.FileName)
 
-            'loads locations of each folder
-            Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
-            renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
-            renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "entityFolder")
-            renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
-            'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
-        Else
-            Me.Close()     'might need to change this
-        End If
+                'loads locations of each folder
+                Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
+                renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
+                renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "entityFolder")
+                renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
+                'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
+            Else
+                Me.Close()     'might need to change this
+            End If
+        End Using
     End Sub
 
 
@@ -230,7 +231,7 @@ Public Class FrmLevelEditor
                     newTemplate.name = FrmGame.MakeNameUnique(newTemplate.name, templateNames, True)
                 End If
 
-                newTemplate.AddTag(New PRE2.Tag("fileName", fileLocation.Remove(0, Len(renderer.entityFolderLocation))))
+                newTemplate.AddTag(New PRE2.Tag("fileName", AddQuotes(fileLocation.Remove(0, Len(renderer.entityFolderLocation)))))
 
                 If IsNothing(thisLevel.templates) = True Then
                     ReDim thisLevel.templates(0)
@@ -316,7 +317,7 @@ Public Class FrmLevelEditor
 
         'checks if there are any instances with the same name yet, and numbers the instance accordingly
         If IsNothing(SelectedRoom.instances) = True Then
-            newInstance.name = template.name & "-1"
+            newInstance.name = RemoveQuotes(template.name) & "-1"
 
             ReDim thisLevel.rooms(lstRooms.SelectedIndex).instances(0)
             SelectedRoom.instances(0) = newInstance
@@ -512,7 +513,7 @@ Public Class FrmLevelEditor
             'ToggleTagControls(False)
         End If
 
-        txtTagName.Text = ent.name
+        txtTagName.Text = RemoveQuotes(ent.name)
         If Not isTemplate Then      'templates dont have x and y values
             numTagLocX.Value = ent.location.X
             numTagLocY.Value = ent.location.Y
@@ -655,51 +656,11 @@ Public Class FrmLevelEditor
 
     Private Sub txtTagName_Leave(sender As Object, e As EventArgs) Handles txtTagName.Leave
         'changes the name of an instance or template
-        'TODO: this is skipped if the tag is directly edited
 
-        Dim templateMode As Boolean
-        'Dim index As Integer
-        Dim newName As String = txtTagName.Text
-        Dim entityToUpdate As PRE2.Entity
         If lstTemplates.SelectedIndex > -1 Then
-            templateMode = True
-            entityToUpdate = thisLevel.templates(lstTemplates.SelectedIndex)
+            thisLevel.templates(lstTemplates.SelectedIndex).name = txtTagName.Text
         ElseIf lstInstances.SelectedIndex > -1 Then
-            templateMode = False
-            entityToUpdate = SelectedRoom.instances(lstInstances.SelectedIndex)
-        Else
-            'no instance or template is selected
-            Exit Sub
-        End If
-        Dim oldName As String = entityToUpdate.name
-
-        If newName = "" Then        'resets the name if nothing was entered
-            txtTagName.Text = oldName
-        Else
-            'checks that the name is unique
-            Dim nameUnique As Boolean = True
-            For Each entity As PRE2.Entity In If(templateMode, thisLevel.templates, SelectedRoom.instances)
-                If newName = entity.name AndAlso entity <> entityToUpdate Then
-                    nameUnique = False
-                    Exit For
-                End If
-            Next entity
-
-            If nameUnique Then
-                entityToUpdate.name = newName
-            Else
-                PRE2.DisplayError("This name is already being used")
-                txtTagName.Text = oldName
-            End If
-            ShowEntityTags(entityToUpdate, templateMode)
-
-            If templateMode Then
-                thisLevel.templates(lstTemplates.SelectedIndex) = entityToUpdate
-            Else
-                thisLevel.rooms(lstRooms.SelectedIndex).instances(lstInstances.SelectedIndex) = entityToUpdate
-            End If
-            RefreshTemplatesList()
-            RefreshInstancesList()
+            SelectedRoom.instances(lstInstances.SelectedIndex).name = txtTagName.Text
         End If
     End Sub
 
@@ -885,10 +846,10 @@ Public Class FrmLevelEditor
         'adds a new room to the level
 
         'checks that name isn't already being used
-        If IsNothing(thisLevel.rooms) = False Then
+        If Not IsNothing(thisLevel.rooms) Then
             For Each currentRoom As FrmGame.Room In thisLevel.rooms
-                If currentRoom.Name = newRoom.Name Then
-                    PRE2.DisplayError("Room name (" & newRoom.Name & ") is in use, please use a different one")
+                If currentRoom.Name = AddQuotes(newRoom.Name) Then
+                    PRE2.DisplayError("Room name " & AddQuotes(newRoom.Name, True) & " is in use, please use a different one")
                     Exit Sub
                 End If
             Next

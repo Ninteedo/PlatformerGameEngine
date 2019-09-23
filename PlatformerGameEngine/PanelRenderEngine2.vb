@@ -320,7 +320,7 @@ Public Class PanelRenderEngine2
                 End If
             End Get
             Set(value As String)
-                AddTag(New Tag("name", value), True)
+                AddTag(New Tag("name", AddQuotes(value)), True)
             End Set
         End Property
 

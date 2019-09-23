@@ -183,6 +183,10 @@ Public Class FrmGame
         Public Sub AddParam(newParam As PRE2.Tag, Optional removeDuplicates As Boolean = False)
             'adds the given parameter to this room's list of tags
 
+            If removeDuplicates Then
+                RemoveParam(newParam.name)
+            End If
+
             If IsNothing(parameters) = True Then
                 ReDim parameters(0)
             Else
@@ -190,10 +194,6 @@ Public Class FrmGame
             End If
 
             parameters(UBound(parameters)) = newParam
-
-            If removeDuplicates Then
-                RemoveParam(newParam.name)
-            End If
         End Sub
 
         Public Sub RemoveParam(paramName As String)
@@ -225,8 +225,7 @@ Public Class FrmGame
                 End If
             End Get
             Set(value As String)
-                RemoveParam("name")
-                AddParam(New PRE2.Tag("name", value))
+                AddParam(New PRE2.Tag("name", AddQuotes(value)), True)
             End Set
         End Property
 
@@ -672,8 +671,10 @@ Public Class FrmGame
 
 #Region "General Procedures"
 
-    Public Shared Function MakeNameUnique(name As String, otherNames() As String, removeUnnecessary As Boolean) As String
+    Public Shared Function MakeNameUnique(ByVal name As String, otherNames() As String, removeUnnecessary As Boolean) As String
         'returns a name with a number appended to it so the name is unique
+
+        name = RemoveQuotes(name)
 
         If Not IsNothing(otherNames) Then
             Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
@@ -683,7 +684,7 @@ Public Class FrmGame
             Do
                 copyNumber += 1
                 If Not removeUnnecessary Or copyNumber > 1 Then
-                    generatedName = name & "-" & Trim(Str(copyNumber))
+                    generatedName = AddQuotes(name & "-" & Trim(Str(copyNumber)))
                 End If
                 nameUnique = True
 
