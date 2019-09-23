@@ -583,7 +583,7 @@ Public Class FrmGame
         'broadcasts the key held event for each key currently held
         For keyIndex As Integer = 0 To UBound(keysHeld)
             If Not IsNothing(keysHeld(keyIndex)) AndAlso keysHeld(keyIndex) > 0 Then
-                TagEvents.BroadcastEvent(New PRE2.Tag("event", "key" & ChrW(keysHeld(keyIndex))), currentRoom.instances)
+                TagEvents.BroadcastEvent(New PRE2.Tag("event", ArrayToString(New PRE2.Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom.instances)
             End If
         Next keyIndex
 
@@ -598,7 +598,7 @@ Public Class FrmGame
         'processes the entity's actions for this tick
         Dim tagIndex As Integer = 0
         Do
-            TagBehaviours.ProcessTag(ent, ent.tags(tagIndex), currentRoom)
+            TagBehaviours.ProcessTag(ent.tags(tagIndex), ent, currentRoom)
 
             tagIndex += 1
         Loop Until tagIndex > UBound(ent.tags)
@@ -615,15 +615,17 @@ Public Class FrmGame
         Dim result As Object = defaultResult
 
         If Not IsNothing(tag.GetArgument) Then ' AndAlso argIndex <= UBound(tag.args) Then
-            Dim rawArg As Object = tag.GetArgument()
+            Dim rawArg As Object = tag.GetArgument().ToString
             Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
 
             If IsNothing(rawArg) Then           'is not anything
                 result = Nothing
-            ElseIf HasQuotes(rawArg) Then        'is a string
-                result = RemoveQuotes(rawArg)
+                'ElseIf HasQuotes(rawArg) Then        'is a string
+                '    result = RemoveQuotes(rawArg)
             ElseIf IsNumeric(argCalculated) Then    'is a calculation
                 result = argCalculated
+            Else
+                result = rawArg
             End If
         End If
 

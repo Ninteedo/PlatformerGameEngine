@@ -45,8 +45,26 @@ Public Class PanelRenderEngine2
             Return TagToJSON(Me)
         End Function
 
-        Public Function GetArgument() As Object
-            Return InterpretValue(argument)
+        Public Function GetArgument(Optional subTagName As String = Nothing) As Object
+            Dim temp As Object = InterpretValue(argument)
+
+            'if subTagName is provided then searches the argument for a tag with the same name
+            If Not IsNothing(subTagName) Then
+                If IsArray(temp) Then
+                    For index As Integer = 0 To UBound(temp)
+                        If Not IsNothing(temp(index)) AndAlso temp(index).name = subTagName Then
+                            Return temp(index)
+                        End If
+                    Next
+                ElseIf Not IsNothing(temp) And temp.name = subTagName Then
+                    Return temp
+                End If
+
+                'couldn't find a matching sub tag
+                Return Nothing
+            End If
+
+            Return temp
         End Function
 
         Public Sub SetArgument(newValue As Object)

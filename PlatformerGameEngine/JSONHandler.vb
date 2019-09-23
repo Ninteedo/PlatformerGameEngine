@@ -39,44 +39,46 @@ Public Module JSONHandler
 
         Dim subStructureLevel As Integer = 0    'tracks how many tags have been opened
 
-        Do
-            Dim c As String = jsonString(cIndex)
+        If Not IsNothing(jsonString) Then
+            Do
+                Dim c As String = jsonString(cIndex)
 
-            If Not inValue Then
-                If Not inString AndAlso c = ":" Or c = "}" Then 'marks end of name and beginning of value
-                    'resultName = InterpretString(currentString).Trim
-                    resultName = currentString.Trim
-                    currentString = ""
+                If Not inValue Then
+                    If Not inString AndAlso c = ":" Or c = "}" Then 'marks end of name and beginning of value
+                        'resultName = InterpretString(currentString).Trim
+                        resultName = currentString.Trim
+                        currentString = ""
 
-                    inValue = True
-                End If
-            Else
-                currentValue += c
-                If Not inString And c = "}" Then        'end of value
-                    subStructureLevel -= 1
-
-                    If subStructureLevel < 0 Then
-                        currentValue = currentValue.Remove(Len(currentValue) - 1)
-                        Exit Do
+                        inValue = True
                     End If
-                ElseIf Not inString And c = "{" Then     'sub tag opened
-                    subStructureLevel += 1
+                Else
+                    currentValue += c
+                    If Not inString And c = "}" Then        'end of value
+                        subStructureLevel -= 1
+
+                        If subStructureLevel < 0 Then
+                            currentValue = currentValue.Remove(Len(currentValue) - 1)
+                            Exit Do
+                        End If
+                    ElseIf Not inString And c = "{" Then     'sub tag opened
+                        subStructureLevel += 1
+                    End If
                 End If
+
+                If Not inString And c = """" Then
+                    inString = True
+                ElseIf inString AndAlso c = """" AndAlso jsonString(cIndex - 1) <> "\" Then
+                    inString = False
+                ElseIf inString Then
+                    currentString += c
+                End If
+
+                cIndex += 1
+            Loop Until cIndex >= Len(jsonString)
+
+            If Len(currentValue) = 0 Then
+                currentValue = Nothing
             End If
-
-            If Not inString And c = """" Then
-                inString = True
-            ElseIf inString AndAlso c = """" AndAlso jsonString(cIndex - 1) <> "\" Then
-                inString = False
-            ElseIf inString Then
-                currentString += c
-            End If
-
-            cIndex += 1
-        Loop Until cIndex >= Len(jsonString)
-
-        If Len(currentValue) = 0 Then
-            currentValue = Nothing
         End If
 
         Return New PRE2.Tag(resultName, currentValue)

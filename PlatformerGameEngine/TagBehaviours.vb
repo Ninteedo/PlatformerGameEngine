@@ -8,7 +8,7 @@ Public Module TagBehaviours
 
     Dim errorMessageArgumentInvalid As String = " has an invalid argument"
 
-    Public Sub ProcessTag(ByRef ent As PRE2.Entity, tag As PRE2.Tag, room As FrmGame.Room)
+    Public Sub ProcessTag(tag As PRE2.Tag, ByRef ent As PRE2.Entity, ByRef room As FrmGame.Room)
         'processes a single tag and modifies the entity accordingly
 
         'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
@@ -23,23 +23,22 @@ Public Module TagBehaviours
                 'TagYVel(ent, tagIndex)
                 ent.location = New PointF(ent.location.X, ent.location.Y + FrmGame.GetEntityArgument(tag, ent, room, 0))
             Case "xacc"
-				
-			
-			Case LCase("gravity")
+
+
+            Case LCase("gravity")
                 'TagGravity(ent, tagIndex)
                 ent.AddTag(New PRE2.Tag("yVel", FrmGame.GetEntityArgument(tag, ent, room, 0) * -1 +
                                         FrmGame.GetEntityArgument(ent.FindTag("yVel"), ent, room, 0)))
 
 
-										
+
             'meta
             Case LCase("addTag")
                 Dim newTag As New PRE2.Tag(FrmGame.GetEntityArgument(tag, ent, room))
-                ent.RemoveTag(newTag.name)
-                ent.AddTag(newTag)			
-			Case LCase("removeTag")
-				ent.RemoveTag(tag.GetArgument())
-			
+                ent.AddTag(newTag, True)
+            Case LCase("removeTag")
+                ent.RemoveTag(tag.GetArgument())
+
         End Select
         'End If
     End Sub
@@ -83,6 +82,7 @@ Public Module TagBehaviours
 
     Public Function ProcessCalculation(calc As String, Optional ent As PRE2.Entity = Nothing, Optional room As FrmGame.Room = Nothing) As String
         'takes in a calculation as a string and returns the result
+        'TODO: negatives not working
 
         Dim operatorSymbols() As String = {"^", "/", "*", "+", "-"}
         Dim parts(0) As String
