@@ -913,7 +913,7 @@ Public Class PanelRenderEngine2
         End If
     End Sub
 
-    Private ReadOnly Property RenderScale As SizeF   'the render scaling used by the renderer
+    Public ReadOnly Property RenderScale As SizeF   'the render scaling used by the renderer
         Get
             Const useScaleFactor As Boolean = False
             Return New SizeF((renderPanel.Size.Width / renderResolution.Width) * renderScaleFactor ^ If(useScaleFactor, 1, 0),

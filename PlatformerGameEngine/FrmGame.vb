@@ -583,7 +583,7 @@ Public Class FrmGame
         'broadcasts the key held event for each key currently held
         For keyIndex As Integer = 0 To UBound(keysHeld)
             If Not IsNothing(keysHeld(keyIndex)) AndAlso keysHeld(keyIndex) > 0 Then
-                TagEvents.BroadcastEvent(New PRE2.Tag("event", ArrayToString(New PRE2.Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom.instances)
+                TagEvents.BroadcastEvent(New PRE2.Tag("event", ArrayToString(New PRE2.Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom.instances, renderer)
             End If
         Next keyIndex
 
@@ -598,7 +598,7 @@ Public Class FrmGame
         'processes the entity's actions for this tick
         Dim tagIndex As Integer = 0
         Do
-            TagBehaviours.ProcessTag(ent.tags(tagIndex), ent, currentRoom)
+            TagBehaviours.ProcessTag(ent.tags(tagIndex), ent, currentRoom, renderer)
 
             tagIndex += 1
         Loop Until tagIndex > UBound(ent.tags)
@@ -611,6 +611,7 @@ Public Class FrmGame
     Public Function GetEntityArgument(tag As PRE2.Tag, Optional ent As PRE2.Entity = Nothing,
                                       Optional room As Room = Nothing, Optional defaultResult As Object = Nothing) As Object
         'returns a processed entity argument
+        'TODO: this doesnt work with arrays
 
         Dim result As Object = defaultResult
 
@@ -641,12 +642,13 @@ Public Class FrmGame
     Private Sub FrmGame_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
         'if the key is pressed down then it is added to the list of held keys
 
-        If keysHeld.Contains(e.KeyCode) = False Then
+        If Not keysHeld.Contains(e.KeyCode) Then
             Dim addedToList As Boolean = False
             For index As Integer = 0 To UBound(keysHeld)
-                If IsNothing(keysHeld(index)) = True Then
+                If keysHeld(index) = Keys.None Then
                     keysHeld(index) = e.KeyCode
                     addedToList = True
+                    Exit For
                 End If
             Next index
 
@@ -663,7 +665,7 @@ Public Class FrmGame
         If keysHeld.Contains(e.KeyCode) Then
             For index As Integer = 0 To UBound(keysHeld)
                 If keysHeld(index) = e.KeyCode Then
-                    keysHeld(index) = Nothing
+                    keysHeld(index) = Keys.None
                 End If
             Next index
         End If
