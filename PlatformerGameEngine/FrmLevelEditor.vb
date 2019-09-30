@@ -599,7 +599,7 @@ Public Class FrmLevelEditor
         Dim instanceIndex As Integer = lstInstances.SelectedIndex
         Dim templateIndex As Integer = lstTemplates.SelectedIndex
 
-        Dim tagMaker As FrmTagMaker = Nothing
+        Dim tagMaker As FrmTagMaker = New FrmTagMaker
         If tagIndex > -1 Then
             If instanceIndex > -1 Then
                 tagMaker = New FrmTagMaker(SelectedRoom.instances(instanceIndex).tags(tagIndex))

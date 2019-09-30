@@ -613,6 +613,8 @@ Public Class FrmGame
         'returns a processed entity argument
         'TODO: this doesnt work with arrays
 
+        '{"velocity":[velocity(0)+1,velocity(1)]}
+
         Dim result As Object = defaultResult
 
         If Not IsNothing(tag.GetArgument) Then ' AndAlso argIndex <= UBound(tag.args) Then
@@ -628,6 +630,62 @@ Public Class FrmGame
             Else
                 result = rawArg
             End If
+        End If
+
+        Return result
+    End Function
+
+    'Public Shared Function FindInstanceByName(name As String, room As Room, Optional thisEntity As PRE2.Entity = Nothing) As PRE2.Entity
+    '    'returns an entity in a room when referred to by name
+
+    '    Select Case LCase(name)
+    '        Case "me"
+    '            Return thisEntity
+    '        Case Else
+    '            For index As Integer = 0 To UBound(room.instances)
+    '                If room.instances(index).name = name Then
+    '                    Return room.instances(index)
+    '                End If
+    '            Next
+    '    End Select
+
+    '    Return Nothing
+    'End Function
+
+    Public Shared Function FindReference(ent As PRE2.Entity, refString As String, currentRoom As Room)
+        'finds what a reference is referring to
+        'ExampleEntity.velocity(0)
+
+        Dim parts() As String = JSONSplit(refString, 0, ".")
+        Dim result As Object = Nothing
+
+        'find object (entity or room) which the reference is coming from
+        Select Case LCase(parts(0))
+            Case "me"
+                result = ent
+
+                If UBound(parts) >= 1 Then
+                    result = ent.FindTag(parts(1))
+                End If
+            Case "room"
+                result = currentRoom.FindParam(parts(1))
+            Case Else
+                For index As Integer = 0 To UBound(currentRoom.instances)
+                    If currentRoom.instances(index).name = parts(0) Then
+                        result = currentRoom.instances(index)
+                    End If
+                Next
+        End Select
+
+        If UBound(parts) >= 2 Then
+            For index As Integer = 1 To UBound(parts)
+                If parts(index).Contains("(") Then
+                    Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf("(") + 1, parts(index).IndexOf(")") - parts(index).IndexOf(")")), ent, currentRoom)
+                    result = result.GetArgument(parts(index).Remove(parts(index).IndexOf("(")))(arrayIndex)
+                Else
+                    result = result.GetArgument(parts(index))
+                End If
+            Next
         End If
 
         Return result

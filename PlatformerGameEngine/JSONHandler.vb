@@ -229,7 +229,7 @@ Public Module JSONHandler
         End If
     End Function
 
-    Public Function JSONSplit(input As String, subStructureLevelRequired As Integer) As String()
+    Public Function JSONSplit(input As String, subStructureLevelRequired As Integer, Optional delimiter As Char = ",") As String()
         'splits a JSON string into its tags
 
         Dim result() As String = {""}
@@ -240,7 +240,7 @@ Public Module JSONHandler
         For cIndex As Integer = 0 To Len(input) - 1
             Dim c As String = input(cIndex)
 
-            If Not inString And subStructureLevel = subStructureLevelRequired And c = "," Then  'only splits when it is at the required sub-structure level
+            If Not inString And subStructureLevel = subStructureLevelRequired And c = delimiter Then  'only splits when it is at the required sub-structure level
                 ReDim Preserve result(UBound(result) + 1)
                 result(UBound(result)) = ""
             Else

@@ -56,7 +56,7 @@ Public Class PanelRenderEngine2
                             Return temp(index)
                         End If
                     Next
-                ElseIf Not IsNothing(temp) And temp.name = subTagName Then
+                ElseIf Not IsNothing(temp) AndAlso temp.name = subTagName Then
                     Return temp
                 End If
 

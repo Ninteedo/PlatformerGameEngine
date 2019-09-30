@@ -7,6 +7,11 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 Public Module TagBehaviours
 
     Dim errorMessageArgumentInvalid As String = " has an invalid argument"
+    Const collisionTagName As String = "collision"
+    Const collisionTypeTagName As String = "collisionType"
+    Const vulnerableTagName As String = "vulnerable"
+    Const effectTagName As String = "effect"
+    Const solidTagName As String = "solid"
 
     Public Sub ProcessTag(tag As PRE2.Tag, ByRef ent As PRE2.Entity, ByRef room As FrmGame.Room, renderEngine As PRE2)
         'processes a single tag and modifies the entity accordingly
@@ -20,25 +25,70 @@ Public Module TagBehaviours
                 Dim velocity1Temp As Object = tag.GetArgument
                 Dim velocity1 As New Vector(velocity1Temp(0), velocity1Temp(1))
 
-                For Each otherEnt As PRE2.Entity In room.instances
-                    If ent.name <> otherEnt.name Then
-                        'Dim velocity2Temp As Object = otherEnt.FindTag("velocity").GetArgument
-                        'Dim velocity2 As New Vector(0, 0)
-                        'If Not IsNothing(velocity2Temp) Then
-                        '    velocity2 = New Vector(velocity2Temp(0), velocity2Temp(1))
-                        'End If
+                If ent.HasTag(collisionTagName) Then
+                    For Each otherEnt As PRE2.Entity In room.instances
+                        If ent.name <> otherEnt.name Then
+                            'Dim velocity2Temp As Object = otherEnt.FindTag("velocity").GetArgument
+                            'Dim velocity2 As New Vector(0, 0)
+                            'If Not IsNothing(velocity2Temp) Then
+                            '    velocity2 = New Vector(velocity2Temp(0), velocity2Temp(1))
+                            'End If
 
-                        Dim collisionResult As PolygonCollisionResult = CheckPolygons(ent, otherEnt, velocity1) ' + velocity2)
+                            If otherEnt.HasTag(collisionTagName) Then
+                                Dim collisionResult As PolygonCollisionResult = CheckPolygons(ent, otherEnt, velocity1) ' + velocity2)
 
-                        If collisionResult.willIntersect Then
-                            'move but with the min translation vector
-                            velocity1 += collisionResult.minTranslationVect
-                        Else
-                            'move normally
-                            'poly1Translation = velocity
+                                Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).GetArgument(collisionTypeTagName).GetArgument()
+                                Dim entVulnerable As Boolean = False        'stores whether the entity is vulnerable
+                                If Not IsNothing(entCollisionTypesTemp) Then
+                                    If IsArray(entCollisionTypesTemp) Then
+                                        For index As Integer = 0 To UBound(entCollisionTypesTemp)
+                                            If entCollisionTypesTemp(index).name = vulnerableTagName Then
+                                                entVulnerable = True
+                                                Exit For
+                                            End If
+                                        Next
+                                    Else
+                                        entVulnerable = entCollisionTypesTemp.name = vulnerableTagName   'compares the collision type to the stored vulnerable name
+                                    End If
+                                End If
+
+                                Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).GetArgument(collisionTypeTagName).GetArgument()
+                                Dim otherEntEffect As PRE2.Tag = Nothing
+                                Dim otherEntSolid As Boolean = False
+                                If Not IsNothing(otherEntCollisionTypesTemp) Then
+                                    If IsArray(otherEntCollisionTypesTemp) Then
+                                        For index As Integer = 0 To UBound(otherEntCollisionTypesTemp)
+                                            If otherEntCollisionTypesTemp(index).name = effectTagName Then
+                                                otherEntEffect = otherEntCollisionTypesTemp(index)
+                                            ElseIf otherEntCollisionTypesTemp(index).name = solidTagName Then
+                                                otherEntSolid = True
+                                            End If
+                                        Next
+                                    Else
+                                        If otherEntCollisionTypesTemp.name = effectTagName Then
+                                            otherEntEffect = otherEntCollisionTypesTemp
+                                        ElseIf otherEntCollisionTypesTemp.name = solidTagName Then
+                                            otherEntSolid = True
+                                        End If
+                                    End If
+                                End If
+
+                                If otherEntSolid And collisionResult.willIntersect Then
+                                    'adjusts velocity to prevent penetration
+                                    velocity1 += collisionResult.minTranslationVect
+                                End If
+
+                                If entVulnerable And Not IsNothing(otherEntEffect) Then
+                                    'executes the effect of the other entity
+                                End If
+                            End If
+
                         End If
-                    End If
-                Next
+                    Next
+                End If
+
+                ent.location = New PointF(ent.location.X + velocity1.X, ent.location.Y + velocity1.Y)
+
 
                 'Case "move"     '[xChange,yChange]
                 '    Dim moveTemp As Object = tag.GetArgument()
@@ -203,11 +253,9 @@ Public Module TagBehaviours
     End Function
 
     Public Function GetEntityHitbox(ent As PRE2.Entity) As RectangleF
-        Return New RectangleF(New PointF(
-                                        (ent.location.X - ent.rotationAnchor.X - 0.5),
+        Return New RectangleF(New PointF((ent.location.X - ent.rotationAnchor.X - 0.5),
                                         (ent.location.Y - ent.rotationAnchor.Y - 0.5)),
-                                New SizeF(
-                                        ent.scale * (ent.Frames(ent.currentFrame).Dimensions.Width + 0.5),
+                                New SizeF(ent.scale * (ent.Frames(ent.currentFrame).Dimensions.Width + 0.5),
                                         ent.scale * (ent.Frames(ent.currentFrame).Dimensions.Height + 0.5)))
     End Function
 
@@ -288,7 +336,7 @@ Public Module TagBehaviours
 
                 For index As Integer = 0 To UBound(points)
                     point1 = points(index)
-                    point2 = If(index <= UBound(points), points(index + 1), points(0))      'loops back round to close polygon
+                    point2 = If(index < UBound(points), points(index + 1), points(0))      'loops back round to close polygon
 
                     edges(index) = point2 - point1
                 Next
@@ -387,7 +435,7 @@ Public Module TagBehaviours
             If edgeIndex <= UBound(poly1.edges) Then
                 edge = poly1.edges(edgeIndex)
             Else
-                edge = poly2.edges(edgeIndex)
+                edge = poly2.edges(edgeIndex - 4)
             End If
 
             'find if the polygons are intersecting
@@ -546,12 +594,13 @@ Public Module TagBehaviours
                     Dim leftPart As String = parts(operatorIndex).Trim
                     Dim rightPart As String = parts(operatorIndex + 1).Trim
                     Dim newPart As String
+                    Dim theseParts() As String = {leftPart, rightPart}
 
-                    For Each part As String In {leftPart, rightPart}        'TODO: might need to expand on this part, eg referring to other instances
-                        If ent.HasTag(part) Then
-                            part = ent.FindTag(part).GetArgument()
-                        ElseIf room.HasParam(part) Then
-                            part = room.FindParam(part).GetArgument()
+                    For index As Integer = 0 To UBound(theseParts)        'TODO: might need to expand on this part, eg referring to other instances
+                        If ent.HasTag(theseParts(index)) Then
+                            theseParts(index) = ent.FindTag(theseParts(index)).GetArgument()
+                        ElseIf room.HasParam(theseParts(index)) Then
+                            theseParts(index) = room.FindParam(theseParts(index)).GetArgument()
                         End If
                     Next
 
