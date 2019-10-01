@@ -83,6 +83,8 @@ Public Class FrmLevelEditor
             RefreshInstancesList()
             RefreshTemplatesList()
             RefreshParameterList()
+
+            RefreshControlsEnabled()
         Else
             PRE2.DisplayError("No file found at " & fileLocation)
         End If
@@ -118,70 +120,27 @@ Public Class FrmLevelEditor
     End Sub
 
 
-    'rooms save/load
+    Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        'displays a warning to the user if they have unsaved work when they close the form
 
-    'Private Sub LoadRoom(fileLocation As String)
-    '    'loads a room from a file (is this necessary?)
+        Dim unsavedChanges As Boolean = False
 
-    '    Dim newRoom As FrmGame.Room = FrmGame.LoadRoomFile(fileLocation, thisLevel, renderer.roomFolderLocation)
+        If Not IsNothing(levelSaveLocation) AndAlso IO.File.Exists(levelSaveLocation) Then
+            Dim savedLevelString As String = PRE2.ReadFile(levelSaveLocation)
 
-    '    If IsNothing(thisLevel.rooms) = True Then
-    '        ReDim thisLevel.rooms(0)
-    '    Else
-    '        ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) + 1)
-    '    End If
-    '    thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
+            If savedLevelString <> thisLevel.ToString Then
+                unsavedChanges = True
+            End If
+        ElseIf Not IsNothing(renderer.levelFolderLocation) Then     'no level folder location if form isnt finished loading
+            unsavedChanges = True
+        End If
 
-    '    RefreshRoomsList()
-    '    lstRooms.SelectedIndex = UBound(thisLevel.rooms)        'automatically selects the loaded room
-    'End Sub
-
-    'Private Sub SaveRoom(levelOfRoom As FrmGame.Level, roomToSave As FrmGame.Room)
-    '    'saves a single room to a file, can only be loaded when the level is loaded
-
-    '    PRE2.WriteFile(renderer.roomFolderLocation & roomToSave.name & ".room", CreateRoomString(levelOfRoom, roomToSave))
-    'End Sub
-
-
-
-    Private Sub BtnRoomOpen_Click(sender As Object, e As EventArgs) Handles btnRoomOpen.Click
-        MsgBox("Should probably remove this button")
-
-        'Dim openDialog As New OpenFileDialog With {.Filter = "Room file (*.room)|*.room", .Multiselect = True, .InitialDirectory = renderer.roomFolderLocation}
-
-        'If openDialog.ShowDialog() = DialogResult.OK Then
-        '    For Each fileLocation As String In openDialog.FileNames
-        '        LoadRoom(fileLocation)
-        '    Next
-        'End If      
-    End Sub
-
-    Private Sub btnRoomSaveAs_Click(sender As Object, e As EventArgs) Handles btnRoomSaveAs.Click
-        MsgBox("Should probably remove this button")
-
-        'If Not IsNothing(levelSaveLocation) Then
-        '    'Dim fileName As String = InputBox("Enter file name for room. For example: " & vbCrLf & "- 1,3" & vbCrLf & "- pillars" & vbCrLf & "- room3")
-        '    'Dim fileName As String = SelectedRoom.name
-
-        '    'If fileName.Length >= 1 Then        'checks that the user actually entered something
-        '    'roomSaveLocation = renderer.roomFolderLocation & fileName & ".room"
-        '    'thisLevel.rooms(lstRooms.SelectedIndex).fileLocation = renderer.roomFolderLocation & fileName & ".room"
-        '    SaveRoom(thisLevel, SelectedRoom)
-        '    btnRoomSave.Enabled = True
-        '    'End If
-        'Else
-        '    PRE2.DisplayError("Please save the level first before saving any rooms")
-        'End If
-    End Sub
-
-    Private Sub btnRoomSave_Click(sender As Object, e As EventArgs) Handles btnRoomSave.Click
-        MsgBox("Should probably remove this button")
-
-        'If Not IsNothing(levelSaveLocation) Then
-        '    SaveRoom(thisLevel, SelectedRoom)
-        'Else
-        '    PRE2.DisplayError("Please save the level first before saving any rooms")
-        'End If
+        'if there are unsaved changes then warns the user
+        If unsavedChanges Then
+            If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
+                e.Cancel = True
+            End If
+        End If
     End Sub
 
 #End Region
@@ -212,7 +171,8 @@ Public Class FrmLevelEditor
 #End Region
 
 #Region "Entities"
-    'entities
+
+#Region "Templates"
 
     Private Sub LoadEntityTemplate(fileLocation As String)
         'loads an entity saved to a file for a template
@@ -305,6 +265,61 @@ Public Class FrmLevelEditor
 
     End Sub
 
+
+    Private Sub btnLoadEntity_Click(sender As Object, e As EventArgs) Handles btnLoadEntity.Click
+        Dim openDialog As New OpenFileDialog With {.Filter = "Entity files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.entityFolderLocation}
+
+        If openDialog.ShowDialog() = DialogResult.OK Then
+            For Each fileName As String In openDialog.FileNames
+                LoadEntityTemplate(fileName)
+            Next
+        End If
+    End Sub
+
+    Private Sub btnRemoveEntity_Click(sender As Object, e As EventArgs) Handles btnRemoveEntity.Click
+        If lstTemplates.SelectedIndex > -1 Then
+            If MsgBox("Are you sure you wish to remove this template?" & Environment.NewLine &
+                  "This will also remove all instances which use this template") = DialogResult.OK Then
+                RemoveEntityTemplate(lstTemplates.SelectedIndex)
+            End If
+        End If
+    End Sub
+
+
+    Private Sub RefreshTemplatesList()
+        If IsNothing(thisLevel.templates) = False Then
+            Dim names(UBound(thisLevel.templates)) As String
+
+            For index As Integer = 0 To UBound(thisLevel.templates)
+                names(index) = thisLevel.templates(index).name
+            Next
+
+            RefreshList(lstTemplates, names)
+        Else
+            RefreshList(lstTemplates, Nothing)
+        End If
+    End Sub
+
+    Private Sub lstTemplates_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstTemplates.SelectedIndexChanged
+        'deselects whatever is selected in lstInstances
+
+        If lstTemplates.SelectedIndex > -1 Then     'checks that this isn't being unselected
+            lstInstances.SelectedIndex = -1
+
+            'ToggleTagControls(True)
+            ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+        Else
+            If lstInstances.SelectedIndex = -1 Then
+                'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
+                ShowEntityTags(Nothing, False)
+            End If
+        End If
+    End Sub
+
+#End Region
+
+#Region "Instances"
+
     Private Sub AddEntityInstance(template As PRE2.Entity)
         'creates a new instance from the given entity
 
@@ -357,29 +372,10 @@ Public Class FrmLevelEditor
                 thisLevel.rooms(lstRooms.SelectedIndex).instances = Nothing
             End If
         Else
-                PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(SelectedRoom.instances))
+            PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(SelectedRoom.instances))
         End If
 
         RefreshInstancesList()
-    End Sub
-
-    Private Sub btnLoadEntity_Click(sender As Object, e As EventArgs) Handles btnLoadEntity.Click
-        Dim openDialog As New OpenFileDialog With {.Filter = "Entity files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.entityFolderLocation}
-
-        If openDialog.ShowDialog() = DialogResult.OK Then
-            For Each fileName As String In openDialog.FileNames
-                LoadEntityTemplate(fileName)
-            Next
-        End If
-    End Sub
-
-    Private Sub btnRemoveEntity_Click(sender As Object, e As EventArgs) Handles btnRemoveEntity.Click
-        If lstTemplates.SelectedIndex > -1 Then
-            If MsgBox("Are you sure you wish to remove this template?" & Environment.NewLine &
-                  "This will also remove all instances which use this template") = DialogResult.OK Then
-                RemoveEntityTemplate(lstTemplates.SelectedIndex)
-            End If
-        End If
     End Sub
 
 
@@ -418,20 +414,6 @@ Public Class FrmLevelEditor
     End Sub
 
 
-    Private Sub RefreshTemplatesList()
-        If IsNothing(thisLevel.templates) = False Then
-            Dim names(UBound(thisLevel.templates)) As String
-
-            For index As Integer = 0 To UBound(thisLevel.templates)
-                names(index) = thisLevel.templates(index).name
-            Next
-
-            RefreshList(lstTemplates, names)
-        Else
-            RefreshList(lstTemplates, Nothing)
-        End If
-    End Sub
-
     Private Sub RefreshInstancesList()
         If IsNothing(SelectedRoom.instances) = False Then
             Dim names(UBound(SelectedRoom.instances)) As String
@@ -443,22 +425,6 @@ Public Class FrmLevelEditor
             RefreshList(lstInstances, names)
         Else
             RefreshList(lstInstances, Nothing)
-        End If
-    End Sub
-
-    Private Sub lstTemplates_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstTemplates.SelectedIndexChanged
-        'deselects whatever is selected in lstInstances
-
-        If lstTemplates.SelectedIndex > -1 Then     'checks that this isn't being unselected
-            lstInstances.SelectedIndex = -1
-
-            'ToggleTagControls(True)
-            ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
-        Else
-            If lstInstances.SelectedIndex = -1 Then
-                'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
-                ShowEntityTags(Nothing, False)
-            End If
         End If
     End Sub
 
@@ -479,6 +445,8 @@ Public Class FrmLevelEditor
             End If
         End If
     End Sub
+
+#End Region
 
 #End Region
 
@@ -663,6 +631,55 @@ Public Class FrmLevelEditor
             SelectedRoom.instances(lstInstances.SelectedIndex).name = txtTagName.Text
         End If
     End Sub
+
+
+#Region "Mouse Location Control"
+
+    Dim heldInstanceIndex As Integer = -1
+
+    Private Sub PnlRenderMouseDown(sender As Object, e As MouseEventArgs) Handles pnlRender.MouseDown
+        'mouse starts holding the instance underneath it
+
+        'gets the relative mouse location in the game render
+        Dim mouseLocationInRender As New PointF(e.X * renderer.RenderScale.Width, e.Y * renderer.RenderScale.Height)
+
+        'finds which instances the mouse is over
+        Dim possibleInstanceIndices() As Integer = Nothing
+        For index As Integer = 0 To UBound(SelectedRoom.instances)
+            Dim instanceArea As RectangleF = SelectedRoom.instances(index).GetEntityHitbox()
+
+            If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
+                And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
+                If Not IsNothing(possibleInstanceIndices) Then
+                    possibleInstanceIndices = {index}
+                Else
+                    ReDim Preserve possibleInstanceIndices(UBound(possibleInstanceIndices) + 1)
+                    possibleInstanceIndices(UBound(possibleInstanceIndices)) = index
+                End If
+            End If
+        Next
+
+        'finds which instance has the highest index
+        If Not IsNothing(possibleInstanceIndices) Then
+            'bubble sorts by layer
+        End If
+    End Sub
+
+    Private Sub PnlRenderMouseDrag(sender As Object, e As MouseEventArgs) Handles pnlRender.MouseMove
+        'mouse moves the held instance
+
+        If heldInstanceIndex >= 0 Then
+
+        End If
+    End Sub
+
+    Private Sub PnlRenderMouseUp(sender As Object, e As MouseEventArgs) Handles pnlRender.MouseUp
+        'mouse lets go of the held instance
+
+        heldInstanceIndex = -1
+    End Sub
+
+#End Region
 
 #End Region
 
@@ -1003,20 +1020,21 @@ Public Class FrmLevelEditor
     Private Sub RefreshControlsEnabled()
         'enables or disables controls based on current condition
 
-        Dim templateSelected As Boolean = If(lstTemplates.SelectedIndex > -1, True, False)
-        Dim instanceSelected As Boolean = If(lstInstances.SelectedIndex > -1, True, False)
-        Dim roomSelected As Boolean = If(lstRooms.SelectedIndex > -1, True, False)
-        Dim entityTagSelected As Boolean = If(lstTags.SelectedIndex > -1, True, False)
-        Dim roomParamSelected As Boolean = If(lstRoomParams.SelectedIndex > -1, True, False)
-        Dim levelParamSelected As Boolean = If(lstLevelParams.SelectedIndex > -1, True, False)
+        Dim templateSelected As Boolean = lstTemplates.SelectedIndex > -1
+        Dim instanceSelected As Boolean = lstInstances.SelectedIndex > -1
+        Dim roomSelected As Boolean = lstRooms.SelectedIndex > -1
+        Dim entityTagSelected As Boolean = lstTags.SelectedIndex > -1
+        Dim roomParamSelected As Boolean = lstRoomParams.SelectedIndex > -1
+        Dim levelParamSelected As Boolean = lstLevelParams.SelectedIndex > -1
+        Dim levelSaveLocationSelected As Boolean = Not IsNothing(levelSaveLocation) AndAlso IO.File.Exists(levelSaveLocation)
 
         Dim controlsDefaultDisabled() As Control = {
-            btnInstanceCreate, btnInstanceDuplicate, btnInstanceDelete, btnRemoveEntity, btnLevelSave, btnRoomSaveAs, btnRoomSave,
+            btnInstanceCreate, btnInstanceDuplicate, btnInstanceDelete, btnRemoveEntity, btnLevelSave,
             btnTagAdd, btnTagEdit, btnTagRemove, btnAddRoomParam, btnEditRoomParam, btnRemoveRoomParam, btnLevelParamRemove, btnLevelParamEdit,
             btnRoomEditCoords, btnLevelRoomRemove
         }
         Dim controlsDefaultEnabled() As Control = {
-            btnRoomOpen, btnLevelOpen, btnLevelRoomAdd, btnLoadEntity, btnCreateEntity, btnLevelParamAdd
+            btnLevelOpen, btnLevelRoomAdd, btnLoadEntity, btnCreateEntity, btnLevelParamAdd
         }
         For Each ctrl As Control In controlsDefaultDisabled
             ctrl.Enabled = False
@@ -1068,6 +1086,10 @@ Public Class FrmLevelEditor
         If levelParamSelected Then
             btnLevelParamEdit.Enabled = True
             btnLevelParamRemove.Enabled = True
+        End If
+
+        If levelSaveLocationSelected Then
+            btnLevelSave.Enabled = True
         End If
     End Sub
 
