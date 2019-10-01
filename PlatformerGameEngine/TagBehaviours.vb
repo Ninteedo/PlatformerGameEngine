@@ -130,118 +130,10 @@ Public Module TagBehaviours
 
 #Region "Collision Detection"
 
-    Public Sub ResolveOverlap(ent1 As PRE2.Entity, ent2 As PRE2.Entity)
-
-        Dim ent1CollisionTypes As Object = ent1.FindTag("collision").GetArgument("collisionType")
-        Dim ent2CollisionTypes As Object = ent2.FindTag("collision").GetArgument("collisionType")
-
-        If Not IsNothing(ent1CollisionTypes) Then
-            For typeIndex1 As Integer = 0 To UBound(ent1CollisionTypes)
-
-                Select Case LCase(ent1CollisionTypes(typeIndex1).name)
-                    Case "solveoverlap"
-                        'solve overlap
-
-                        'Dim ent2Solid As Boolean = False
-                        'For Each otherEntCollisionType In ent2EntCollisionTypes
-                        '    If otherEntCollisionType.name = "solid" Then
-                        '        ent2Solid = True
-                        '        Exit For
-                        '    End If
-                        'Next
-
-
-                        'If ent2Solid Then
-                        '    'reverse movement?
-                        '    Dim temp() As Object = ent.FindTag("lastMove").GetArgument
-                        '    Dim lastMovement As New PointF(temp(0), temp(1))
-                        '    Dim testEnt As PRE2.Entity = ent.Clone
-
-                        '    'check x
-                        '    'testEnt.location = 
-
-
-                        '    'check y
-                        'End If
-                    Case "vulnerable"
-                        'take damage if other hitbox has a specified effect
-
-                        If Not IsNothing(ent2CollisionTypes) Then
-                            For typeIndex2 As Integer = 0 To UBound(ent2CollisionTypes)
-                                If ent2CollisionTypes(typeIndex2).name = "effect" Then
-
-                                End If
-                            Next
-                        End If
-                    Case "effect"
-                        'deal damage if other hitbox is vulnerable (let other entity handle it)
-                    Case "solid"
-                        'do nothing
-                End Select
-            Next
-        End If
-    End Sub
-
-    'Public Function CheckForOverlaps(ent As PRE2.Entity, room As FrmGame.Room, renderEngine As PRE2) As PRE2.Tag()
-    '    'returns a list of overlaps between hitboxes
-    '    '{"collision":[{"hitboxes":[{"rectangle":[{"origin":[1,1]},{"size":[14,14]}]}]},{"collisionType":[{"solveOverlap"},{"vulnerable"}]}]}
-
-    '    Dim overlaps() As PRE2.Tag = Nothing
-
-    '    If ent.HasTag("collision") Then
-    '        Dim entHitboxTemp As Object = ent.FindTag("collision").GetArgument("hitboxes")
-
-    '        For hitboxIndex As Integer = 0 To UBound(entHitboxTemp)
-    '            'calculates the hitbox
-    '            Dim entHitbox As RectangleF = TagToRectangleF(entHitboxTemp(hitboxIndex), ent.location, ent.scale)
-
-    '            For otherEntIndex As Integer = 0 To UBound(room.instances)
-    '                If room.instances(otherEntIndex).HasTag("collision") Then
-    '                    Dim otherEntHitboxTemp As Object = room.instances(otherEntIndex).FindTag("collision").GetArgument("hitboxes")
-
-    '                    For otherHitboxIndex As Integer = 0 To UBound(otherEntHitboxTemp)
-    '                        'calculates the other hitbox
-    '                        Dim otherEntHitbox As RectangleF = TagToRectangleF(otherEntHitboxTemp(otherHitboxIndex),
-    '                            room.instances(otherEntIndex).location, room.instances(otherEntIndex).scale)
-
-    '                        If RectanglesOverlapping(entHitbox, otherEntHitbox) Then
-    '                            'noOverlaps = False
-    '                            If IsNothing(overlaps) Then
-    '                                ReDim overlaps(0)
-    '                            Else
-    '                                ReDim Preserve overlaps(UBound(overlaps))
-    '                            End If
-    '                            overlaps(UBound(overlaps)) = New PRE2.Tag("overlap", ArrayToString({
-    '                                New PRE2.Tag("ent1", New PRE2.Tag("name", ent.name).ToString),
-    '                                New PRE2.Tag("ent2", New PRE2.Tag("name", room.instances(otherEntIndex).name).ToString)
-    '                                }))
-    '                        End If
-    '                    Next
-    '                End If
-    '            Next
-    '        Next
-    '    End If
-
-    '    Return overlaps
-    'End Function
-
-    Public Function RectanglesOverlapping(rect1 As RectangleF, rect2 As RectangleF) As Boolean
-        'used for collision detection
-
-        Return rect1.Right > rect2.Left AndAlso rect1.Bottom > rect2.Top _
-            AndAlso rect2.Right > rect1.Left AndAlso rect2.Bottom > rect1.Top
-    End Function
-
-    'Public Function DotProduct(vect1 As PointF, vect2 As PointF) As Single
-    '    Return vect1.X * vect2.X + vect1.Y * vect2.Y
-    'End Function
-
-
-#Region "Vectors"
 
     Public Function CheckPolygons(ent1 As PRE2.Entity, ent2 As PRE2.Entity, velocity As Vector) As PolygonCollisionResult
-        Dim ent1Poly As New Polygon(GetEntityHitbox(ent1))
-        Dim ent2Poly As New Polygon(GetEntityHitbox(ent2))
+        Dim ent1Poly As New Polygon(ent1.GetEntityHitbox())
+        Dim ent2Poly As New Polygon(ent2.GetEntityHitbox())
 
         Dim poly1Translation As New Vector
         Dim collisionResult As PolygonCollisionResult = PolygonCollision(ent1Poly, ent2Poly, velocity)
@@ -252,12 +144,7 @@ Public Module TagBehaviours
         Return collisionResult
     End Function
 
-    Public Function GetEntityHitbox(ent As PRE2.Entity) As RectangleF
-        Return New RectangleF(New PointF((ent.location.X - ent.rotationAnchor.X - 0.5),
-                                        (ent.location.Y - ent.rotationAnchor.Y - 0.5)),
-                                New SizeF(ent.scale * (ent.Frames(ent.currentFrame).Dimensions.Width + 0.5),
-                                        ent.scale * (ent.Frames(ent.currentFrame).Dimensions.Height + 0.5)))
-    End Function
+    
 
     Public Structure Vector
         Dim X As Single
@@ -367,27 +254,27 @@ Public Module TagBehaviours
             CalculateEdges()
         End Sub
 
-        Public Function ToRectangle() As RectangleF
-            'wont work with irregular quadrahedrons
+        'Public Function ToRectangle() As RectangleF
+        '    'wont work with irregular quadrahedrons
 
-            If points.Length = 4 Then
-                Dim topLeft As Vector = points(0)
-                Dim bottomRight As Vector = points(0)
+        '    If points.Length = 4 Then
+        '        Dim topLeft As Vector = points(0)
+        '        Dim bottomRight As Vector = points(0)
 
-                For pointIndex As Integer = 0 To UBound(points)
-                    If points(pointIndex).X < topLeft.X And points(pointIndex).Y < topLeft.Y Then
-                        topLeft = points(pointIndex)
-                    ElseIf points(pointIndex).X > bottomRight.X And points(pointIndex).Y > bottomRight.Y Then
-                        bottomRight = points(pointIndex)
-                    End If
-                Next
+        '        For pointIndex As Integer = 0 To UBound(points)
+        '            If points(pointIndex).X < topLeft.X And points(pointIndex).Y < topLeft.Y Then
+        '                topLeft = points(pointIndex)
+        '            ElseIf points(pointIndex).X > bottomRight.X And points(pointIndex).Y > bottomRight.Y Then
+        '                bottomRight = points(pointIndex)
+        '            End If
+        '        Next
 
-                Return New RectangleF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y)
-            Else
-                PRE2.DisplayError("Tried to convert a polygon with " & points.Length & " sides to a polygon")
-                Return Nothing
-            End If
-        End Function
+        '        Return New RectangleF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y)
+        '    Else
+        '        PRE2.DisplayError("Tried to convert a polygon with " & points.Length & " sides to a polygon")
+        '        Return Nothing
+        '    End If
+        'End Function
     End Structure
 
     Public Structure PolygonCollisionResult
@@ -497,7 +384,6 @@ Public Module TagBehaviours
         Return result
     End Function
 
-#End Region
 #End Region
 
 #Region "Tags to other Data Types"

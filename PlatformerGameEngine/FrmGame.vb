@@ -582,7 +582,7 @@ Public Class FrmGame
     Private Sub GameTick()
         'broadcasts the key held event for each key currently held
         For keyIndex As Integer = 0 To UBound(keysHeld)
-            If Not IsNothing(keysHeld(keyIndex)) AndAlso keysHeld(keyIndex) > 0 Then
+            If keysHeld(keyIndex) <> Keys.None Then
                 TagEvents.BroadcastEvent(New PRE2.Tag("event", ArrayToString(New PRE2.Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom.instances, renderer)
             End If
         Next keyIndex

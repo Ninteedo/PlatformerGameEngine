@@ -464,6 +464,13 @@ Public Class PanelRenderEngine2
                 Return True
             End If
         End Function
+
+        Public Function GetEntityHitbox() As RectangleF
+            Return New RectangleF(New PointF((location.X - rotationAnchor.X),
+                                            (location.Y - rotationAnchor.Y)),
+                                    New SizeF(scale * (Frames(currentFrame).Dimensions.Width - 0),
+                                            scale * (Frames(currentFrame).Dimensions.Height - 0)))
+        End Function
     End Structure
 
     Public Structure Frame
