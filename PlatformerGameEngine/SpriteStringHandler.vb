@@ -22,7 +22,7 @@ Public Module SpriteStringHandler
         For y As Integer = 0 To gridSize.Height - 1                 'colour indices of every pixel
             For x As Integer = 0 To gridSize.Width - 1
                 If x < gridSize.Width And y < gridSize.Height Then       'runs one more time so if last pixel is repeated it will still be added
-                    ProcessColourIndex(colourIndices(x, y), repeatedColourStreak, repeatedColourIndex, result, If(x = gridSize.Width - 1 And y = gridSize.Height - 1, True, False))
+                    ProcessColourIndex(colourIndices(x, y), repeatedColourStreak, repeatedColourIndex, result, x = gridSize.Width - 1 And y = gridSize.Height - 1)
                 End If
             Next x
         Next y
@@ -39,7 +39,7 @@ Public Module SpriteStringHandler
         Dim sizeLine As String = Trim(Str(sprite.pixels.GetLength(0))) & "x" & Trim(Str(sprite.pixels.GetLength(1)))
 
         'gets colours
-        Dim colours() As Color = {sprite.pixels(0, 0)}
+        Dim colours() As Color = {Color.Transparent}
 
         For Each pixelColour As Color In sprite.pixels
             Dim duplicate As Boolean = False
