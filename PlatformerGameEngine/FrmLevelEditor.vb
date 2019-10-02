@@ -635,13 +635,14 @@ Public Class FrmLevelEditor
 
 #Region "Mouse Location Control"
 
-    Dim heldInstanceIndex As Integer = -1
+    Dim heldInstanceIndex As Integer = -1           'index of the entity being held by the user
+    Dim relativeHoldLocation As PointF = Nothing    'used so that the mouse holds a specific location on the instance
 
     Private Sub PnlRenderMouseDown(sender As Object, e As MouseEventArgs) Handles pnlRender.MouseDown
         'mouse starts holding the instance underneath it
 
         'gets the relative mouse location in the game render
-        Dim mouseLocationInRender As New PointF(e.X * renderer.RenderScale.Width, e.Y * renderer.RenderScale.Height)
+        Dim mouseLocationInRender As New PointF(e.X / renderer.RenderScale.Width, e.Y / renderer.RenderScale.Height)
 
         'finds which instances the mouse is over
         Dim possibleInstanceIndices() As Integer = Nothing
@@ -650,7 +651,7 @@ Public Class FrmLevelEditor
 
             If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
                 And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
-                If Not IsNothing(possibleInstanceIndices) Then
+                If IsNothing(possibleInstanceIndices) Then
                     possibleInstanceIndices = {index}
                 Else
                     ReDim Preserve possibleInstanceIndices(UBound(possibleInstanceIndices) + 1)
@@ -661,7 +662,17 @@ Public Class FrmLevelEditor
 
         'finds which instance has the highest index
         If Not IsNothing(possibleInstanceIndices) Then
-            'bubble sorts by layer
+            Dim topMostInstanceIndex As Integer = possibleInstanceIndices(0)
+            For index As Integer = 0 To UBound(possibleInstanceIndices)
+                If SelectedRoom.instances(possibleInstanceIndices(index)).layer > SelectedRoom.instances(topMostInstanceIndex).layer Then
+                    topMostInstanceIndex = possibleInstanceIndices(index)
+                End If
+            Next
+
+            heldInstanceIndex = topMostInstanceIndex
+            relativeHoldLocation = New PointF(SelectedRoom.instances(heldInstanceIndex).GetEntityHitbox.Left - mouseLocationInRender.X, _
+                                              SelectedRoom.instances(heldInstanceIndex).GetEntityHitbox.Top - mouseLocationInRender.Y)
+            lstInstances.SelectedIndex = heldInstanceIndex
         End If
     End Sub
 
@@ -669,7 +680,10 @@ Public Class FrmLevelEditor
         'mouse moves the held instance
 
         If heldInstanceIndex >= 0 Then
-
+            SelectedRoom.instances(heldInstanceIndex).location = New PointF(e.X / renderer.RenderScale.Width + relativeHoldLocation.X, _
+                                                                            e.Y / renderer.RenderScale.Height + relativeHoldLocation.Y)
+            RenderCurrentRoom()
+            ShowEntityTags(SelectedRoom.instances(heldInstanceIndex), False)
         End If
     End Sub
 
