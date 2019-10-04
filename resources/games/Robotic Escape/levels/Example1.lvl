@@ -1,0 +1,5 @@
+addParam||tag(gravity\9.8)
+loadEnt||PixelTester.ent/PixelTesterA/tag(fileName\PixelTester.ent)/tag(name\PixelTesterA)
+loadEnt||PixelTester.ent/PixelTesterB/tag(fileName\PixelTester.ent)/tag(name\PixelTesterB)
+loadRoom||Enterance||(0,0)||addParam|tag(exampleTag\"I need quotes")/tag(exampleTag2\1337);addent|PixelTesterA
+loadRoom||Right1Down0||(1,0):

@@ -1,0 +1,5 @@
+entityFolder: entities\
+levelFolder: levels\
+spriteFolder: sprites\
+
+level1: example1.lvl

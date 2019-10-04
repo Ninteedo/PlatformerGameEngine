@@ -1,0 +1,5 @@
+addParam||tag(gravity\9.8)
+loadEnt||PixelTester.ent/PixelTester-1/tag(fileName\PixelTester.ent)/tag(name\PixelTester-1)
+loadEnt||PixelTester.ent/PixelTester-2/tag(name\PixelTester-2)/tag(fileName\PixelTester.ent)
+loadRoom||addEnt|PixelTester-1/PixelTester-1-1/tag(templateName\PixelTester-1)/tag(name\PixelTester-1-1);addEnt|PixelTester-1/PixelTester-1-2/tag(templateName\PixelTester-1)/tag(name\PixelTester-1-2);addEnt|PixelTester-1/PixelTester-1-3/tag(templateName\PixelTester-1)/tag(name\PixelTester-1-3);addEnt|PixelTester-2/PixelTester-2-1/tag(templateName\PixelTester-2)/tag(name\PixelTester-2-1);addEnt|PixelTester-2/PixelTester-2-2/tag(templateName\PixelTester-2)/tag(name\PixelTester-2-2);
+loadRoom||addEnt|PixelTester-2/PixelTester-2-1/tag(templateName\PixelTester-2)/tag(name\PixelTester-2-1);addEnt|PixelTester-1/PixelTester-1-1/tag(templateName\PixelTester-1)/tag(name\PixelTester-1-1);addEnt|PixelTester-2/PixelTester-2-2/tag(templateName\PixelTester-2)/tag(name\PixelTester-2-2);addEnt|PixelTester-1/PixelTester-1-2/tag(templateName\PixelTester-1)/tag(name\PixelTester-1-2);||

@@ -1,0 +1,5 @@
+addParam: tag(gravity\9.8)
+loadEnt: PixelTester.ent/PixelTesterA/tag(fileName\PixelTester.ent)/tag(name\PixelTesterA)
+loadEnt: PixelTester.ent/PixelTesterB/tag(fileName\PixelTester.ent)/tag(name\PixelTesterB)
+loadRoom: TestRoom1.room
+loadRoom: TestRoom2.room

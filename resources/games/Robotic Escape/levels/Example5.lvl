@@ -1,0 +1,2 @@
+loadEnt||PlayerRobot.ent//PlayerRobot//tag()//tag(name\PlayerRobot)//tag(fileName\PlayerRobot.ent)
+loadRoom||addParam|tag(name\Test);addEnt|PlayerRobot/tag(templateName\PlayerRobot)/tag(name\PlayerRobot-1)/tag(location\{X=0, Y=0})/tag(layer\0)/tag(scale\50);
