@@ -138,7 +138,7 @@ Public Class FrmSpriteMaker
         Get
             'returns the string version of the user's sprite
 
-            Dim createdSprite As PRE2.Sprite = New PRE2.Sprite(colourIndices, colours)
+            Dim createdSprite As Sprite = New Sprite(colourIndices, colours)
             Return createdSprite.ToString()
         End Get
     End Property

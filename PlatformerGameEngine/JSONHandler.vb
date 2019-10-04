@@ -11,7 +11,7 @@ Public Module JSONHandler
 
 #Region "JSON-Tag Conversions"
 
-    Public Function TagToJSON(tag As PRE2.Tag) As String
+    Public Function TagToJSON(tag As Tag) As String
         Dim result As String = ""
         If Not IsNothing(tag.name) Then
             result = "{" & AddQuotes(tag.name) &
@@ -20,7 +20,7 @@ Public Module JSONHandler
         Return result
     End Function
 
-    Public Function JSONToTag(jsonString As String) As PRE2.Tag
+    Public Function JSONToTag(jsonString As String) As Tag
         'converts a JSON string into a tag
         'TODO: input validation and error handling
 
@@ -81,7 +81,7 @@ Public Module JSONHandler
             End If
         End If
 
-        Return New PRE2.Tag(resultName, currentValue)
+        Return New Tag(resultName, currentValue)
     End Function
 #End Region
 
@@ -124,7 +124,10 @@ Public Module JSONHandler
         Return result
     End Function
 
-    Public Function InterpretValue(valueString As String) As Object
+    Public Function InterpretValue(valueString As String, Optional fullInterpret As Boolean = False) As Object
+        'interprets a value from JSON
+        'full interpret means that for tags and arrays the arguments are also interpreted
+
         Dim result As Object = Nothing
 
         If Not IsNothing(valueString) AndAlso Len(valueString.Trim) > 0 Then
@@ -146,18 +149,27 @@ Public Module JSONHandler
                             result = valueString
                         Case "{"        'object (another tag)
                             result = JSONToTag(valueString)
+                            If fullInterpret Then
+                                result.SetArgument(InterpretValue(result.argument, True))
+                            End If
                         Case "["        'array
                             Dim valueStrings() As String = JSONSplit(valueString, 0)   '{""}
                             Dim values() As Object
                             ReDim values(UBound(valueStrings))
                             For index As Integer = 0 To UBound(valueStrings)
                                 values(index) = InterpretValue(valueStrings(index).Trim)  'Mid(valueStrings(index), 2, Len(valueStrings(index)) - 2).Trim)
+
+                                'If fullInterpret Then
+                                '    values(index) = InterpretValue()
+                                'End If
                             Next
 
                             result = values
                         Case Else
                             If IsNumeric(valueString) Then
                                 result = Val(valueString)
+                            ElseIf fullInterpret Then
+
                             End If
                     End Select
             End Select

@@ -180,7 +180,7 @@ Public Class FrmLevelEditor
         Dim entityString As String = PRE2.ReadFile(fileLocation)
         If IsNothing(entityString) = False Then
             Dim successfulLoad As Boolean = False
-            Dim newTemplate As PRE2.Entity = EntityStringHandler.ReadEntityString(entityString, renderer, successfulLoad)
+            Dim newTemplate As Entity = EntityStringHandler.ReadEntityString(entityString, renderer, successfulLoad)
 
             If successfulLoad Then
                 If Not IsNothing(thisLevel.templates) Then      'makes name unique
@@ -191,7 +191,7 @@ Public Class FrmLevelEditor
                     newTemplate.name = FrmGame.MakeNameUnique(newTemplate.name, templateNames, True)
                 End If
 
-                newTemplate.AddTag(New PRE2.Tag("fileName", AddQuotes(fileLocation.Remove(0, Len(renderer.entityFolderLocation)))))
+                newTemplate.AddTag(New Tag("fileName", AddQuotes(fileLocation.Remove(0, Len(renderer.entityFolderLocation)))))
 
                 If IsNothing(thisLevel.templates) = True Then
                     ReDim thisLevel.templates(0)
@@ -222,7 +222,7 @@ Public Class FrmLevelEditor
                         If Not IsNothing(currentRoom.instances) AndAlso UBound(currentRoom.instances) >= 0 Then
                             Dim instanceIndex As Integer = 0
                             Do
-                                Dim currentInstance As PRE2.Entity = currentRoom.instances(instanceIndex)
+                                Dim currentInstance As Entity = currentRoom.instances(instanceIndex)
 
                                 If currentInstance.FindTag("templateName").GetArgument = templateName Then
                                     'removes current instance if the templateName matches
@@ -320,14 +320,14 @@ Public Class FrmLevelEditor
 
 #Region "Instances"
 
-    Private Sub AddEntityInstance(template As PRE2.Entity)
+    Private Sub AddEntityInstance(template As Entity)
         'creates a new instance from the given entity
 
         'Dim templateName As String = template.name
 
-        Dim newInstance As PRE2.Entity = template.Clone
+        Dim newInstance As Entity = template.Clone
         If Not newInstance.HasTag("templateName") Then      'doesn't add template name if template is an instance of a template
-            newInstance.AddTag(New PRE2.Tag("templateName", template.name))       'instance stores the name of its template so the instance can be created from the correct template when loading
+            newInstance.AddTag(New Tag("templateName", template.name))       'instance stores the name of its template so the instance can be created from the correct template when loading
         End If
 
         'checks if there are any instances with the same name yet, and numbers the instance accordingly
@@ -471,13 +471,13 @@ Public Class FrmLevelEditor
         Next
     End Sub
 
-    Private Sub ShowEntityTags(ByVal ent As PRE2.Entity, isTemplate As Boolean)
+    Private Sub ShowEntityTags(ByVal ent As Entity, isTemplate As Boolean)
         'changes the values displayed in the controls for tags to show values of the current entity
 
         disableTagChangedEvent = True
 
         If IsNothing(ent) Then      'if no entity provided then uses an empty entity
-            ent = New PRE2.Entity With {.name = "No Entity Selected"}       'this doesn't work as entities have some default properties
+            ent = New Entity With {.name = "No Entity Selected"}       'this doesn't work as entities have some default properties
             'ToggleTagControls(False)
         End If
 
@@ -501,7 +501,7 @@ Public Class FrmLevelEditor
         'updates lstTags
         lstTags.Items.Clear()
         If IsNothing(ent.tags) = False Then
-            For Each thisTag As PRE2.Tag In ent.tags
+            For Each thisTag As Tag In ent.tags
                 If IsNothing(thisTag.name) = False Then
                     lstTags.Items.Add(thisTag.ToString)
                 End If
@@ -517,7 +517,7 @@ Public Class FrmLevelEditor
 
         If Not disableTagChangedEvent Then
             'selects the entity to update, currently selected instance or template
-            Dim entityToUpdate As PRE2.Entity
+            Dim entityToUpdate As Entity
             If lstInstances.SelectedIndex > -1 Then
                 entityToUpdate = SelectedRoom.instances(lstInstances.SelectedIndex)
             ElseIf lstTemplates.SelectedIndex > -1 Then
@@ -594,7 +594,7 @@ Public Class FrmLevelEditor
     Private Sub btnTagRemove_Click(sender As Object, e As EventArgs) Handles btnTagRemove.Click
         'removes the selected tag
 
-        Dim newTags() As PRE2.Tag
+        Dim newTags() As Tag
         If lstInstances.SelectedIndex > -1 Then
             newTags = SelectedRoom.instances(lstInstances.SelectedIndex).tags
         ElseIf lstTemplates.SelectedIndex > -1 Then
@@ -670,7 +670,7 @@ Public Class FrmLevelEditor
             Next
 
             heldInstanceIndex = topMostInstanceIndex
-            relativeHoldLocation = New PointF(SelectedRoom.instances(heldInstanceIndex).GetEntityHitbox.Left - mouseLocationInRender.X, _
+            relativeHoldLocation = New PointF(SelectedRoom.instances(heldInstanceIndex).GetEntityHitbox.Left - mouseLocationInRender.X,
                                               SelectedRoom.instances(heldInstanceIndex).GetEntityHitbox.Top - mouseLocationInRender.Y)
             lstInstances.SelectedIndex = heldInstanceIndex
         End If
@@ -680,7 +680,7 @@ Public Class FrmLevelEditor
         'mouse moves the held instance
 
         If heldInstanceIndex >= 0 Then
-            SelectedRoom.instances(heldInstanceIndex).location = New PointF(e.X / renderer.RenderScale.Width + relativeHoldLocation.X, _
+            SelectedRoom.instances(heldInstanceIndex).location = New PointF(e.X / renderer.RenderScale.Width + relativeHoldLocation.X,
                                                                             e.Y / renderer.RenderScale.Height + relativeHoldLocation.Y)
             RenderCurrentRoom()
             ShowEntityTags(SelectedRoom.instances(heldInstanceIndex), False)
@@ -723,7 +723,7 @@ Public Class FrmLevelEditor
         RefreshList(lstRoomParams, items)
     End Sub
 
-    Private Sub AddParameter(newParam As PRE2.Tag, ByRef parameterList() As PRE2.Tag)
+    Private Sub AddParameter(newParam As Tag, ByRef parameterList() As Tag)
         'adds a given parameter to the level
 
         If IsNothing(parameterList) = True Then
@@ -736,7 +736,7 @@ Public Class FrmLevelEditor
         RefreshParameterList()
     End Sub
 
-    Private Sub ReplaceParameter(paramIndex As Integer, newParam As PRE2.Tag, parameterList() As PRE2.Tag)
+    Private Sub ReplaceParameter(paramIndex As Integer, newParam As Tag, parameterList() As Tag)
         'replaces the parameter in the given index with the given parameter
 
         parameterList(paramIndex) = newParam
@@ -744,7 +744,7 @@ Public Class FrmLevelEditor
         RefreshParameterList()
     End Sub
 
-    Private Sub RemoveParameter(paramIndex As Integer, ByRef parameterList() As PRE2.Tag)
+    Private Sub RemoveParameter(paramIndex As Integer, ByRef parameterList() As Tag)
         'removes the parameter at the given index
 
         For index As Integer = paramIndex To UBound(parameterList) - 1

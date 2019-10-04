@@ -47,18 +47,18 @@ Public Class FrmGame
     Public Structure Room
         'a room is a collection of entities which are all rendered at once
 
-        Dim instances() As PRE2.Entity    'the entities which are used in the game, modified copies of the defaults
-        Dim parameters() As PRE2.Tag
+        Dim instances() As Entity    'the entities which are used in the game, modified copies of the defaults
+        Dim parameters() As Tag
 
-        Public Sub New(roomTag As PRE2.Tag, renderEngine As PRE2)
+        Public Sub New(roomTag As Tag, renderEngine As PRE2)
             Dim tagStrings() As Object = roomTag.GetArgument
             If Not IsNothing(tagStrings) Then
-                Dim tags(UBound(tagStrings)) As PRE2.Tag
+                Dim tags(UBound(tagStrings)) As Tag
                 For tagIndex As Integer = 0 To UBound(tags)
-                    tags(tagIndex) = New PRE2.Tag(tagStrings(tagIndex).ToString)
+                    tags(tagIndex) = New Tag(tagStrings(tagIndex).ToString)
                 Next
 
-                For Each thisTag As PRE2.Tag In tags
+                For Each thisTag As Tag In tags
                     If Not IsNothing(thisTag) Then
                         Select Case thisTag.name
                             Case "instances"
@@ -66,7 +66,7 @@ Public Class FrmGame
                                 If Not IsNothing(temp) Then
                                     ReDim instances(UBound(temp))
                                     For index As Integer = 0 To UBound(temp)
-                                        instances(index) = New PRE2.Entity(temp(index).ToString, renderEngine)
+                                        instances(index) = New Entity(temp(index).ToString, renderEngine)
                                     Next
                                 End If
                             Case "parameters"
@@ -92,10 +92,10 @@ Public Class FrmGame
 
             'adds an addParam line for each instance
             If Not IsNothing(parameters) Then
-                For Each param As PRE2.Tag In parameters
+                For Each param As Tag In parameters
                     'only adds parameter if the level doesn't have an identical global parameter
                     'Dim levelHasParam As Boolean = False
-                    'For Each globalParam As PRE2.Tag In levelOfRoom.globalParameters
+                    'For Each globalParam As Tag In levelOfRoom.globalParameters
                     '    If param = globalParam Then
                     '        levelHasParam = True
                     '    End If
@@ -109,13 +109,13 @@ Public Class FrmGame
 
             'adds an addEnt line for each instance
             If Not IsNothing(instances) Then
-                For Each instance As PRE2.Entity In instances
+                For Each instance As Entity In instances
                     'finds the template of the instance
-                    Dim templateOfInstance As PRE2.Entity = Nothing           'used so that tags can be compared and identical ones can be ignored
+                    Dim templateOfInstance As Entity = Nothing           'used so that tags can be compared and identical ones can be ignored
                     Dim templateName As String = Nothing
                     If instance.HasTag("templateName") Then
                         templateName = instance.FindTag("templateName").GetArgument()
-                        For Each template As PRE2.Entity In levelOfRoom.templates
+                        For Each template As Entity In levelOfRoom.templates
                             If template.name = templateName Then
                                 templateOfInstance = template
                                 Exit For
@@ -130,7 +130,7 @@ Public Class FrmGame
                         Dim line As String = "addEnt" & roomDelimiters(0) & templateName
 
                         'adds each added tag to the line, which is not identical to one which the template has
-                        For Each thisTag As PRE2.Tag In instance.tags
+                        For Each thisTag As Tag In instance.tags
                             If Not IsNothing(templateOfInstance.FindTag(thisTag.name)) AndAlso templateOfInstance.FindTag(thisTag.name) <> thisTag Then
                                 line += roomDelimiters(1) & thisTag.ToString
                             End If
@@ -149,14 +149,14 @@ Public Class FrmGame
         Public Overrides Function ToString() As String
             'updated version of room tostring which makes better use of tags
 
-            Dim parametersTag As New PRE2.Tag("parameters", ArrayToString(parameters))
-            Dim instancesTag As New PRE2.Tag("instances", ArrayToString(instances))
+            Dim parametersTag As New Tag("parameters", ArrayToString(parameters))
+            Dim instancesTag As New Tag("instances", ArrayToString(instances))
 
-            Return New PRE2.Tag(Name, ArrayToString({parametersTag, instancesTag})).ToString
+            Return New Tag(Name, ArrayToString({parametersTag, instancesTag})).ToString
         End Function
 
 
-        Public Function FindParam(paramName As String) As PRE2.Tag
+        Public Function FindParam(paramName As String) As Tag
             'returns the first parameter this room has with the given name
 
             If IsNothing(parameters) = False Then
@@ -180,7 +180,7 @@ Public Class FrmGame
             End If
         End Function
 
-        Public Sub AddParam(newParam As PRE2.Tag, Optional removeDuplicates As Boolean = False)
+        Public Sub AddParam(newParam As Tag, Optional removeDuplicates As Boolean = False)
             'adds the given parameter to this room's list of tags
 
             If removeDuplicates Then
@@ -225,7 +225,7 @@ Public Class FrmGame
                 End If
             End Get
             Set(value As String)
-                AddParam(New PRE2.Tag("name", AddQuotes(value)), True)
+                AddParam(New Tag("name", AddQuotes(value)), True)
             End Set
         End Property
 
@@ -239,7 +239,7 @@ Public Class FrmGame
             End Get
             Set(value As Point)
                 RemoveParam("coords")
-                AddParam(New PRE2.Tag("coords", "[" & value.X & "," & value.Y & "]"))
+                AddParam(New Tag("coords", "[" & value.X & "," & value.Y & "]"))
             End Set
         End Property
     End Structure
@@ -247,8 +247,8 @@ Public Class FrmGame
     Public Structure Level
         'class to store entity defaults and rooms
 
-        Dim templates() As PRE2.Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
-        Dim globalParameters() As PRE2.Tag            'essentially global variables for the level
+        Dim templates() As Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
+        Dim globalParameters() As Tag            'essentially global variables for the level
 
         Dim rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
         'Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
@@ -259,15 +259,15 @@ Public Class FrmGame
             globalParameters = Nothing
             rooms = Nothing
 
-            Dim tagStrings() As Object = New PRE2.Tag(levelString).GetArgument 'JSONSplit(levelString, 0)
+            Dim tagStrings() As Object = New Tag(levelString).GetArgument 'JSONSplit(levelString, 0)
             If Not IsNothing(tagStrings) Then
-                Dim tags(UBound(tagStrings)) As PRE2.Tag
+                Dim tags(UBound(tagStrings)) As Tag
 
                 For tagIndex As Integer = 0 To UBound(tagStrings)
-                    tags(tagIndex) = New PRE2.Tag(tagStrings(tagIndex).ToString)
+                    tags(tagIndex) = New Tag(tagStrings(tagIndex).ToString)
                 Next
 
-                For Each thisTag As PRE2.Tag In tags
+                For Each thisTag As Tag In tags
                     If Not IsNothing(thisTag) Then
                         Select Case thisTag.name
                             Case "parameters"
@@ -275,7 +275,7 @@ Public Class FrmGame
                                 If Not IsNothing(temp) Then
                                     ReDim globalParameters(UBound(temp))
                                     For index As Integer = 0 To UBound(temp)
-                                        globalParameters(index) = New PRE2.Tag(temp(index).ToString)
+                                        globalParameters(index) = New Tag(temp(index).ToString)
                                     Next
                                 End If
                             Case "templates"
@@ -283,7 +283,7 @@ Public Class FrmGame
                                 If Not IsNothing(temp) Then
                                     ReDim templates(UBound(temp))
                                     For index As Integer = 0 To UBound(temp)
-                                        templates(index) = New PRE2.Entity(temp(index).ToString, renderEngine)
+                                        templates(index) = New Entity(temp(index).ToString, renderEngine)
                                     Next
                                 End If
                             Case "rooms"
@@ -310,19 +310,19 @@ Public Class FrmGame
 
             'adds an addParam line for each parameter
             If Not IsNothing(globalParameters) Then
-                For Each param As PRE2.Tag In globalParameters
+                For Each param As Tag In globalParameters
                     levelString += "addParam" & levelDelimiters(0) & param.ToString & levelDelimiters(2)
                 Next param
             End If
 
             'adds a loadEnt line for each template
             If Not IsNothing(templates) Then
-                For Each template As PRE2.Entity In templates
+                For Each template As Entity In templates
                     If template.HasTag("fileName") = True Then
                         Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").GetArgument() & levelDelimiters(1) & template.name
 
                         'adds each tag
-                        For Each thisTag As PRE2.Tag In template.tags
+                        For Each thisTag As Tag In template.tags
                             line += levelDelimiters(1) & thisTag.ToString
                         Next
 
@@ -348,20 +348,20 @@ Public Class FrmGame
         Public Overrides Function ToString() As String
             'updated version of level tostring which uses tags better
 
-            Dim parametersTag As New PRE2.Tag("parameters", ArrayToString(globalParameters))
-            Dim templatesTag As New PRE2.Tag("templates", ArrayToString(templates))
-            Dim roomsTag As New PRE2.Tag("rooms", ArrayToString(rooms))
+            Dim parametersTag As New Tag("parameters", ArrayToString(globalParameters))
+            Dim templatesTag As New Tag("templates", ArrayToString(templates))
+            Dim roomsTag As New Tag("rooms", ArrayToString(rooms))
 
-            Return New PRE2.Tag(Name, ArrayToString({parametersTag, templatesTag, roomsTag})).ToString
+            Return New Tag(Name, ArrayToString({parametersTag, templatesTag, roomsTag})).ToString
         End Function
 
 
-        Public Function GetRoomParameters(roomIndex As Integer) As PRE2.Tag()
+        Public Function GetRoomParameters(roomIndex As Integer) As Tag()
             'returns the level's global parameters combined with the room's parameters
 
-            Dim result() As PRE2.Tag = rooms(roomIndex).parameters
+            Dim result() As Tag = rooms(roomIndex).parameters
 
-            For Each parameter As PRE2.Tag In globalParameters
+            For Each parameter As Tag In globalParameters
                 If Not rooms(roomIndex).HasParam(parameter.name) Then
                     If IsNothing(result) Then
                         ReDim result(0)
@@ -389,7 +389,7 @@ Public Class FrmGame
         End Function
 
 
-        Public Function FindParam(paramName As String) As PRE2.Tag
+        Public Function FindParam(paramName As String) As Tag
             'returns the first parameter this room has with the given name
 
             If IsNothing(globalParameters) = False Then
@@ -413,7 +413,7 @@ Public Class FrmGame
             End If
         End Function
 
-        Public Sub AddParam(newParam As PRE2.Tag, Optional removeDuplicates As Boolean = False)
+        Public Sub AddParam(newParam As Tag, Optional removeDuplicates As Boolean = False)
             'adds the given parameter to this level's list of tags
 
             If IsNothing(globalParameters) = True Then
@@ -460,7 +460,7 @@ Public Class FrmGame
             End Get
             Set(value As String)
                 RemoveParam("name")
-                AddParam(New PRE2.Tag("name", value))
+                AddParam(New Tag("name", value))
             End Set
         End Property
     End Structure
@@ -557,7 +557,7 @@ Public Class FrmGame
         Return Nothing
     End Function
 
-    'Public Shared Function LoadEntity(fileLocation As String, renderEngine As PRE2) As PRE2.Entity
+    'Public Shared Function LoadEntity(fileLocation As String, renderEngine As PRE2) As Entity
     '    If IO.File.Exists(fileLocation) = True Then
     '        Dim fileText As String = PRE2.ReadFile(fileLocation)
     '        Return EntityStringHandler.ReadEntityString(fileText, renderEngine)
@@ -576,14 +576,14 @@ Public Class FrmGame
 
     Public currentLevel As Level
     Public currentRoom As Room
-    'Public playerEntity As PRE2.Entity
+    'Public playerEntity As Entity
     Dim frameTimer As New Timer
 
     Private Sub GameTick()
         'broadcasts the key held event for each key currently held
         For keyIndex As Integer = 0 To UBound(keysHeld)
             If keysHeld(keyIndex) <> Keys.None Then
-                TagEvents.BroadcastEvent(New PRE2.Tag("event", ArrayToString(New PRE2.Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom.instances, renderer)
+                TagEvents.BroadcastEvent(New Tag("event", ArrayToString(New Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom.instances, renderer)
             End If
         Next keyIndex
 
@@ -594,7 +594,7 @@ Public Class FrmGame
         renderer.DoGameRender(currentRoom.instances)
     End Sub
 
-    Private Sub EntityTick(ByRef ent As PRE2.Entity)
+    Private Sub EntityTick(ByRef ent As Entity)
         'processes the entity's actions for this tick
         Dim tagIndex As Integer = 0
         Do
@@ -608,7 +608,7 @@ Public Class FrmGame
 
 #Region "Higher Level Entity Control"
 
-    Public Function GetEntityArgument(tag As PRE2.Tag, Optional ent As PRE2.Entity = Nothing,
+    Public Function GetArgument(tag As Tag, Optional ent As Entity = Nothing,
                                       Optional room As Room = Nothing, Optional defaultResult As Object = Nothing) As Object
         'returns a processed entity argument
         'TODO: this doesnt work with arrays
@@ -618,7 +618,7 @@ Public Class FrmGame
         Dim result As Object = defaultResult
 
         If Not IsNothing(tag.GetArgument) Then ' AndAlso argIndex <= UBound(tag.args) Then
-            Dim rawArg As Object = tag.GetArgument().ToString
+            Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True).ToString
             Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
 
             If IsNothing(rawArg) Then           'is not anything
@@ -635,7 +635,7 @@ Public Class FrmGame
         Return result
     End Function
 
-    'Public Shared Function FindInstanceByName(name As String, room As Room, Optional thisEntity As PRE2.Entity = Nothing) As PRE2.Entity
+    'Public Shared Function FindInstanceByName(name As String, room As Room, Optional thisEntity As Entity = Nothing) As Entity
     '    'returns an entity in a room when referred to by name
 
     '    Select Case LCase(name)
@@ -652,7 +652,7 @@ Public Class FrmGame
     '    Return Nothing
     'End Function
 
-    Public Shared Function FindReference(ent As PRE2.Entity, refString As String, currentRoom As Room)
+    Public Shared Function FindReference(ent As Entity, refString As String, currentRoom As Room)
         'finds what a reference is referring to
         'ExampleEntity.velocity(0)
 

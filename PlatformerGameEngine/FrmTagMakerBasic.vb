@@ -8,11 +8,11 @@ Public Class FrmTagMakerBasic
 
     Public userFinished As Boolean = False
 
-    Public Property TagCreated As PRE2.Tag
+    Public Property TagCreated As Tag
         Get
             Return JSONToTag(txtJSON.Text)
         End Get
-        Set(value As PRE2.Tag)
+        Set(value As Tag)
             txtJSON.Text = TagToJSON(value)
         End Set
     End Property

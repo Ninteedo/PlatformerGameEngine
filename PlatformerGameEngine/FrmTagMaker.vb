@@ -9,11 +9,11 @@ Public Class FrmTagMaker
     'TODO: clean this all up
 
     Public dataTypes() As String = {"number", "text", "tag"}
-    Private tagInCreation As New PRE2.Tag
+    Private tagInCreation As New Tag
     Public arguments As Object
     Public userFinished As Boolean = False
 
-    Public ReadOnly Property CreatedTag As PRE2.Tag
+    Public ReadOnly Property CreatedTag As Tag
         Get
             If IsArray(arguments) Then
                 tagInCreation.SetArgument(ArrayToString(arguments))
@@ -34,7 +34,7 @@ Public Class FrmTagMaker
 
     End Sub
 
-    Public Sub New(startTag As PRE2.Tag)
+    Public Sub New(startTag As Tag)
 
         ' This call is required by the designer.
         InitializeComponent()
@@ -143,7 +143,7 @@ Public Class FrmTagMaker
 
                     'If IsNumeric(arg) = True Then      'number
                     '    argString = "num:" & Trim(Val(arg))
-                    'ElseIf Not IsNothing(New PRE2.Tag(arg.ToString)) Then       'another tag
+                    'ElseIf Not IsNothing(New Tag(arg.ToString)) Then       'another tag
                     '    argString = arg.ToString
                     'Else                'plain string
                     '    argString = "text:" & arg

@@ -23,7 +23,7 @@ Public Class FrmEntityMaker
 
         LayoutInitialisation()
         GetFolderLocations()
-        ent = New PRE2.Entity(Nothing, renderer)
+        ent = New Entity(Nothing, renderer)
     End Sub
 
     Private Sub LayoutInitialisation()
@@ -39,7 +39,7 @@ Public Class FrmEntityMaker
 
 #Region "Save/Load"
 
-    Dim ent As PRE2.Entity          'the user's created entity
+    Dim ent As Entity          'the user's created entity
     Dim saveLocation As String = ""
     'Dim gameLocation As String = ""
 
@@ -198,12 +198,12 @@ Public Class FrmEntityMaker
 #Region "Render"
     Dim renderer As PRE2
 
-    Private Sub DrawFramePreview(frameToDraw As PRE2.Frame)
+    Private Sub DrawFramePreview(frameToDraw As Frame)
         'draws the given frame in the preview box
 
         If IsNothing(frameToDraw.sprites) = False Then
-            Dim previewTags() As PRE2.Tag = {New PRE2.Tag("name", "FramePreviewEntity")} '= {New PRE2.Tag("location", {frameToDraw.Centre.ToString})}
-            Dim previewEntity As New PRE2.Entity({frameToDraw}, previewTags, renderer.spriteFolderLocation, New PointF(0, 0)) With {
+            Dim previewTags() As Tag = {New Tag("name", "FramePreviewEntity")} '= {New Tag("location", {frameToDraw.Centre.ToString})}
+            Dim previewEntity As New Entity({frameToDraw}, previewTags, renderer.spriteFolderLocation, New PointF(0, 0)) With {
                 .location = New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
             } 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
             'New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
@@ -247,7 +247,7 @@ Public Class FrmEntityMaker
             ReDim Preserve ent.Frames(UBound(ent.Frames) + 1)
         End If
 
-        ent.Frames(UBound(ent.Frames)) = New PRE2.Frame(Nothing, renderer.spriteFolderLocation)
+        ent.Frames(UBound(ent.Frames)) = New Frame(Nothing, renderer.spriteFolderLocation)
         RefreshFramesList()
     End Sub
 
@@ -325,7 +325,7 @@ Public Class FrmEntityMaker
         lstTags.Items.Clear()
 
         If IsNothing(ent.tags) = False Then
-            For Each thisTag As PRE2.Tag In ent.tags
+            For Each thisTag As Tag In ent.tags
                 If IsNothing(thisTag.name) = False Then
                     lstTags.Items.Add(thisTag.ToString)
                 End If
