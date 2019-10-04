@@ -13,7 +13,7 @@ Public Module TagBehaviours
     Const effectTagName As String = "effect"
     Const solidTagName As String = "solid"
 
-    Public Sub ProcessTag(tag As Tag, ByRef ent As Entity, ByRef room As FrmGame.Room, renderEngine As PRE2)
+    Public Sub ProcessTag(tag As Tag, ByRef ent As Entity, ByRef room As Room, renderEngine As PRE2)
         'processes a single tag and modifies the entity accordingly
 
         'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
@@ -68,7 +68,7 @@ Public Module TagBehaviours
 
 #Region "Collision Detection"
 
-    Private Sub VelocityHandling(ByRef ent As Entity, ByRef velocity As Vector, ByRef room As FrmGame.Room)
+    Private Sub VelocityHandling(ByRef ent As Entity, ByRef velocity As Vector, ByRef room As Room)
         If ent.HasTag(collisionTagName) Then
             For Each otherEnt As Entity In room.instances
                 If ent.name <> otherEnt.name Then
@@ -412,7 +412,7 @@ Public Module TagBehaviours
 
 #Region "Calculation"
 
-    Public Function ProcessCalculation(calc As String, Optional ent As Entity = Nothing, Optional room As FrmGame.Room = Nothing) As String
+    Public Function ProcessCalculation(calc As String, Optional ent As Entity = Nothing, Optional room As Room = Nothing) As String
         'takes in a calculation as a string and returns the result
 
         Dim operatorSymbols() As String = {"^", "/", "*", "+", "-"}

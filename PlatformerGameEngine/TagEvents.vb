@@ -23,7 +23,7 @@ Public Module TagEvents
         Next
     End Sub
 
-    Public Sub ReceiveEvent(ByRef ent As Entity, listenerTag As Tag, renderEngine As PRE2, Optional room As FrmGame.Room = Nothing)
+    Public Sub ReceiveEvent(ByRef ent As Entity, listenerTag As Tag, renderEngine As PRE2, Optional room As Room = Nothing)
         'processes a received event
 
         For Each tag As Tag In ent.tags

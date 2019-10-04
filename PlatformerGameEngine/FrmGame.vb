@@ -42,431 +42,6 @@ Public Class FrmGame
 
 #End Region
 
-#Region "Data Structures"
-
-    Public Structure Room
-        'a room is a collection of entities which are all rendered at once
-
-        Dim instances() As Entity    'the entities which are used in the game, modified copies of the defaults
-        Dim parameters() As Tag
-
-        Public Sub New(roomTag As Tag, renderEngine As PRE2)
-            Dim tagStrings() As Object = roomTag.GetArgument
-            If Not IsNothing(tagStrings) Then
-                Dim tags(UBound(tagStrings)) As Tag
-                For tagIndex As Integer = 0 To UBound(tags)
-                    tags(tagIndex) = New Tag(tagStrings(tagIndex).ToString)
-                Next
-
-                For Each thisTag As Tag In tags
-                    If Not IsNothing(thisTag) Then
-                        Select Case thisTag.name
-                            Case "instances"
-                                Dim temp() As Object = thisTag.GetArgument
-                                If Not IsNothing(temp) Then
-                                    ReDim instances(UBound(temp))
-                                    For index As Integer = 0 To UBound(temp)
-                                        instances(index) = New Entity(temp(index).ToString, renderEngine)
-                                    Next
-                                End If
-                            Case "parameters"
-                                Dim temp() As Object = thisTag.GetArgument
-                                If Not IsNothing(temp) Then
-                                    ReDim parameters(UBound(temp))
-                                    For index As Integer = 0 To UBound(temp)
-                                        parameters(index) = temp(index)
-                                    Next
-                                End If
-                            Case Else
-                                PRE2.DisplayError("Unknown tag in room tag: " & thisTag.name)
-                        End Select
-                    End If
-                Next
-            End If
-        End Sub
-
-        Public Overloads Function ToString(levelOfRoom As Level, roomDelimiters() As String) As String
-            'returns a string to save the given room
-
-            Dim roomString As String = ""
-
-            'adds an addParam line for each instance
-            If Not IsNothing(parameters) Then
-                For Each param As Tag In parameters
-                    'only adds parameter if the level doesn't have an identical global parameter
-                    'Dim levelHasParam As Boolean = False
-                    'For Each globalParam As Tag In levelOfRoom.globalParameters
-                    '    If param = globalParam Then
-                    '        levelHasParam = True
-                    '    End If
-                    'Next globalParam
-
-                    'If Not levelHasParam Then
-                    roomString += "addParam" & roomDelimiters(0) & param.ToString & roomDelimiters(2)
-                    'End If
-                Next param
-            End If
-
-            'adds an addEnt line for each instance
-            If Not IsNothing(instances) Then
-                For Each instance As Entity In instances
-                    'finds the template of the instance
-                    Dim templateOfInstance As Entity = Nothing           'used so that tags can be compared and identical ones can be ignored
-                    Dim templateName As String = Nothing
-                    If instance.HasTag("templateName") Then
-                        templateName = instance.FindTag("templateName").GetArgument()
-                        For Each template As Entity In levelOfRoom.templates
-                            If template.name = templateName Then
-                                templateOfInstance = template
-                                Exit For
-                            End If
-                        Next template
-                    End If
-
-                    If IsNothing(templateOfInstance) Then
-                        PRE2.DisplayError("Could not find a template called " & templateName & " for instance " & instance.name)
-                    Else
-                        'Dim line As String = "addEnt" & roomDelimiters(0) & templateName & roomDelimiters(1) & instance.name        'this looks wrong
-                        Dim line As String = "addEnt" & roomDelimiters(0) & templateName
-
-                        'adds each added tag to the line, which is not identical to one which the template has
-                        For Each thisTag As Tag In instance.tags
-                            If Not IsNothing(templateOfInstance.FindTag(thisTag.name)) AndAlso templateOfInstance.FindTag(thisTag.name) <> thisTag Then
-                                line += roomDelimiters(1) & thisTag.ToString
-                            End If
-                        Next thisTag
-
-                        roomString += line & roomDelimiters(2)
-                    End If
-                Next instance
-            End If
-
-            roomString = roomString.TrimEnd     'removes any trailing whitespace
-
-            Return roomString
-        End Function
-
-        Public Overrides Function ToString() As String
-            'updated version of room tostring which makes better use of tags
-
-            Dim parametersTag As New Tag("parameters", ArrayToString(parameters))
-            Dim instancesTag As New Tag("instances", ArrayToString(instances))
-
-            Return New Tag(Name, ArrayToString({parametersTag, instancesTag})).ToString
-        End Function
-
-
-        Public Function FindParam(paramName As String) As Tag
-            'returns the first parameter this room has with the given name
-
-            If IsNothing(parameters) = False Then
-                For index As Integer = 0 To UBound(parameters)
-                    If LCase(parameters(index).name) = LCase(paramName) Then
-                        Return parameters(index)
-                    End If
-                Next index
-            End If
-
-            Return Nothing
-        End Function
-
-        Public Function HasParam(paramName As String) As Boolean
-            'returns whether or not this room has a parameter with the given name
-
-            If FindParam(paramName).name <> Nothing Then
-                Return True
-            Else
-                Return False
-            End If
-        End Function
-
-        Public Sub AddParam(newParam As Tag, Optional removeDuplicates As Boolean = False)
-            'adds the given parameter to this room's list of tags
-
-            If removeDuplicates Then
-                RemoveParam(newParam.name)
-            End If
-
-            If IsNothing(parameters) = True Then
-                ReDim parameters(0)
-            Else
-                ReDim Preserve parameters(UBound(parameters) + 1)
-            End If
-
-            parameters(UBound(parameters)) = newParam
-        End Sub
-
-        Public Sub RemoveParam(paramName As String)
-            'removes all parameters with the given name
-
-            Dim paramIndex As Integer = 0
-
-            If Not IsNothing(parameters) Then
-                Do While paramIndex <= UBound(parameters)
-                    If parameters(paramIndex).name = paramName Then
-                        For removeIndex As Integer = paramIndex To UBound(parameters) - 1
-                            parameters(removeIndex) = parameters(removeIndex + 1)
-                        Next removeIndex
-
-                        ReDim Preserve parameters(UBound(parameters) - 1)
-                    Else
-                        paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
-                    End If
-                Loop
-            End If
-        End Sub
-
-        Public Property Name As String
-            Get
-                If HasParam("name") Then
-                    Return FindParam("name").GetArgument()
-                Else
-                    Return "UnnamedRoom"
-                End If
-            End Get
-            Set(value As String)
-                AddParam(New Tag("name", AddQuotes(value)), True)
-            End Set
-        End Property
-
-        Public Property Coords As Point     'need to implement a proper coords system
-            Get
-                If HasParam("coords") Then
-                    Return New Point(Val(FindParam("coords").GetArgument(0)), Val(FindParam("coords").GetArgument(1)))
-                Else
-                    Return New Point(0, 0)
-                End If
-            End Get
-            Set(value As Point)
-                RemoveParam("coords")
-                AddParam(New Tag("coords", "[" & value.X & "," & value.Y & "]"))
-            End Set
-        End Property
-    End Structure
-
-    Public Structure Level
-        'class to store entity defaults and rooms
-
-        Dim templates() As Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
-        Dim globalParameters() As Tag            'essentially global variables for the level
-
-        Dim rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
-        'Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
-        'Dim currentRoomCoords As Point          'stores the coordinates of which room is being used currently
-
-        Public Sub New(levelString As String, renderEngine As PRE2)
-            templates = Nothing
-            globalParameters = Nothing
-            rooms = Nothing
-
-            Dim tagStrings() As Object = New Tag(levelString).GetArgument 'JSONSplit(levelString, 0)
-            If Not IsNothing(tagStrings) Then
-                Dim tags(UBound(tagStrings)) As Tag
-
-                For tagIndex As Integer = 0 To UBound(tagStrings)
-                    tags(tagIndex) = New Tag(tagStrings(tagIndex).ToString)
-                Next
-
-                For Each thisTag As Tag In tags
-                    If Not IsNothing(thisTag) Then
-                        Select Case thisTag.name
-                            Case "parameters"
-                                Dim temp() As Object = thisTag.GetArgument
-                                If Not IsNothing(temp) Then
-                                    ReDim globalParameters(UBound(temp))
-                                    For index As Integer = 0 To UBound(temp)
-                                        globalParameters(index) = New Tag(temp(index).ToString)
-                                    Next
-                                End If
-                            Case "templates"
-                                Dim temp() As Object = thisTag.GetArgument
-                                If Not IsNothing(temp) Then
-                                    ReDim templates(UBound(temp))
-                                    For index As Integer = 0 To UBound(temp)
-                                        templates(index) = New Entity(temp(index).ToString, renderEngine)
-                                    Next
-                                End If
-                            Case "rooms"
-                                Dim temp() As Object = thisTag.GetArgument
-                                If Not IsNothing(temp) Then
-                                    ReDim rooms(UBound(temp))
-                                    For index As Integer = 0 To UBound(temp)
-                                        rooms(index) = New Room(temp(index), renderEngine)
-                                    Next
-                                End If
-                            Case Else
-                                PRE2.DisplayError("Unknown tag in level file: " & thisTag.name)
-                        End Select
-                    End If
-                Next
-            End If
-        End Sub
-
-
-        Public Overloads Function ToString(levelDelimiters() As String, roomDelimiters() As String) As String
-            'creates a string of a level so it can be saved and loaded
-
-            Dim levelString As String = ""
-
-            'adds an addParam line for each parameter
-            If Not IsNothing(globalParameters) Then
-                For Each param As Tag In globalParameters
-                    levelString += "addParam" & levelDelimiters(0) & param.ToString & levelDelimiters(2)
-                Next param
-            End If
-
-            'adds a loadEnt line for each template
-            If Not IsNothing(templates) Then
-                For Each template As Entity In templates
-                    If template.HasTag("fileName") = True Then
-                        Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").GetArgument() & levelDelimiters(1) & template.name
-
-                        'adds each tag
-                        For Each thisTag As Tag In template.tags
-                            line += levelDelimiters(1) & thisTag.ToString
-                        Next
-
-                        levelString += line & levelDelimiters(2)
-                    Else
-                        PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
-                    End If
-                Next
-            End If
-
-            'adds a loadRoom line for each room
-            If Not IsNothing(rooms) Then
-                For Each currentRoom As FrmGame.Room In rooms
-                    levelString += "loadRoom" & levelDelimiters(0) & currentRoom.ToString(Me, roomDelimiters) & levelDelimiters(2)
-                Next currentRoom
-            End If
-            'levelString = levelString.Remove(Len(levelString) - 2, 2)
-            levelString = levelString.Trim
-
-            Return levelString
-        End Function
-
-        Public Overrides Function ToString() As String
-            'updated version of level tostring which uses tags better
-
-            Dim parametersTag As New Tag("parameters", ArrayToString(globalParameters))
-            Dim templatesTag As New Tag("templates", ArrayToString(templates))
-            Dim roomsTag As New Tag("rooms", ArrayToString(rooms))
-
-            Return New Tag(Name, ArrayToString({parametersTag, templatesTag, roomsTag})).ToString
-        End Function
-
-
-        Public Function GetRoomParameters(roomIndex As Integer) As Tag()
-            'returns the level's global parameters combined with the room's parameters
-
-            Dim result() As Tag = rooms(roomIndex).parameters
-
-            For Each parameter As Tag In globalParameters
-                If Not rooms(roomIndex).HasParam(parameter.name) Then
-                    If IsNothing(result) Then
-                        ReDim result(0)
-                    Else
-                        ReDim result(UBound(result) + 1)
-                    End If
-                    result(UBound(result)) = parameter
-                End If
-            Next
-
-            Return result
-        End Function
-
-        Public Function RoomWithCoords(coords As Point) As Room
-            'returns the room with the coords provided
-
-            For index As Integer = 0 To UBound(rooms)
-                If coords = rooms(index).Coords Then
-                    Return rooms(index)
-                End If
-            Next index
-
-            PRE2.DisplayError("Couldn't find a room with coordinates " & Str(coords.X) & "," & Str(coords.Y))
-            Return Nothing
-        End Function
-
-
-        Public Function FindParam(paramName As String) As Tag
-            'returns the first parameter this room has with the given name
-
-            If IsNothing(globalParameters) = False Then
-                For index As Integer = 0 To UBound(globalParameters)
-                    If LCase(globalParameters(index).name) = LCase(paramName) Then
-                        Return globalParameters(index)
-                    End If
-                Next index
-            End If
-
-            Return Nothing
-        End Function
-
-        Public Function HasParam(paramName As String) As Boolean
-            'returns whether or not this room has a parameter with the given name
-
-            If FindParam(paramName).name <> Nothing Then
-                Return True
-            Else
-                Return False
-            End If
-        End Function
-
-        Public Sub AddParam(newParam As Tag, Optional removeDuplicates As Boolean = False)
-            'adds the given parameter to this level's list of tags
-
-            If IsNothing(globalParameters) = True Then
-                ReDim globalParameters(0)
-            Else
-                ReDim Preserve globalParameters(UBound(globalParameters) + 1)
-            End If
-
-            globalParameters(UBound(globalParameters)) = newParam
-
-            If removeDuplicates Then
-                RemoveParam(newParam.name)
-            End If
-        End Sub
-
-        Public Sub RemoveParam(paramName As String)
-            'removes all parameters with the given name
-
-            Dim paramIndex As Integer = 0
-
-            If Not IsNothing(globalParameters) Then
-                Do While paramIndex <= UBound(globalParameters)
-                    If globalParameters(paramIndex).name = paramName Then
-                        For removeIndex As Integer = paramIndex To UBound(globalParameters) - 1
-                            globalParameters(removeIndex) = globalParameters(removeIndex + 1)
-                        Next removeIndex
-
-                        ReDim Preserve globalParameters(UBound(globalParameters) - 1)
-                    Else
-                        paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
-                    End If
-                Loop
-            End If
-        End Sub
-
-
-        Public Property Name As String
-            Get
-                If HasParam("name") Then
-                    Return FindParam("name").GetArgument()
-                Else
-                    Return "UnnamedLevel"
-                End If
-            End Get
-            Set(value As String)
-                RemoveParam("name")
-                AddParam(New Tag("name", value))
-            End Set
-        End Property
-    End Structure
-
-#End Region
-
 #Region "Loading"
 
     Public loaderFileLocation As String
@@ -768,3 +343,424 @@ Public Class FrmGame
 #End Region
 
 End Class
+
+Public Structure Room
+    'a room is a collection of entities which are all rendered at once
+
+    Dim instances() As Entity    'the entities which are used in the game, modified copies of the defaults
+    Dim parameters() As Tag
+
+    Public Sub New(roomTag As Tag, renderEngine As PRE2)
+        Dim tagStrings() As Object = roomTag.GetArgument
+        If Not IsNothing(tagStrings) Then
+            Dim tags(UBound(tagStrings)) As Tag
+            For tagIndex As Integer = 0 To UBound(tags)
+                tags(tagIndex) = New Tag(tagStrings(tagIndex).ToString)
+            Next
+
+            For Each thisTag As Tag In tags
+                If Not IsNothing(thisTag) Then
+                    Select Case thisTag.name
+                        Case "instances"
+                            Dim temp() As Object = thisTag.GetArgument
+                            If Not IsNothing(temp) Then
+                                ReDim instances(UBound(temp))
+                                For index As Integer = 0 To UBound(temp)
+                                    instances(index) = New Entity(temp(index).ToString, renderEngine)
+                                Next
+                            End If
+                        Case "parameters"
+                            Dim temp() As Object = thisTag.GetArgument
+                            If Not IsNothing(temp) Then
+                                ReDim parameters(UBound(temp))
+                                For index As Integer = 0 To UBound(temp)
+                                    parameters(index) = temp(index)
+                                Next
+                            End If
+                        Case Else
+                            PRE2.DisplayError("Unknown tag in room tag: " & thisTag.name)
+                    End Select
+                End If
+            Next
+        End If
+    End Sub
+
+    Public Overloads Function ToString(levelOfRoom As Level, roomDelimiters() As String) As String
+        'returns a string to save the given room
+
+        Dim roomString As String = ""
+
+        'adds an addParam line for each instance
+        If Not IsNothing(parameters) Then
+            For Each param As Tag In parameters
+                'only adds parameter if the level doesn't have an identical global parameter
+                'Dim levelHasParam As Boolean = False
+                'For Each globalParam As Tag In levelOfRoom.globalParameters
+                '    If param = globalParam Then
+                '        levelHasParam = True
+                '    End If
+                'Next globalParam
+
+                'If Not levelHasParam Then
+                roomString += "addParam" & roomDelimiters(0) & param.ToString & roomDelimiters(2)
+                'End If
+            Next param
+        End If
+
+        'adds an addEnt line for each instance
+        If Not IsNothing(instances) Then
+            For Each instance As Entity In instances
+                'finds the template of the instance
+                Dim templateOfInstance As Entity = Nothing           'used so that tags can be compared and identical ones can be ignored
+                Dim templateName As String = Nothing
+                If instance.HasTag("templateName") Then
+                    templateName = instance.FindTag("templateName").GetArgument()
+                    For Each template As Entity In levelOfRoom.templates
+                        If template.name = templateName Then
+                            templateOfInstance = template
+                            Exit For
+                        End If
+                    Next template
+                End If
+
+                If IsNothing(templateOfInstance) Then
+                    PRE2.DisplayError("Could not find a template called " & templateName & " for instance " & instance.name)
+                Else
+                    'Dim line As String = "addEnt" & roomDelimiters(0) & templateName & roomDelimiters(1) & instance.name        'this looks wrong
+                    Dim line As String = "addEnt" & roomDelimiters(0) & templateName
+
+                    'adds each added tag to the line, which is not identical to one which the template has
+                    For Each thisTag As Tag In instance.tags
+                        If Not IsNothing(templateOfInstance.FindTag(thisTag.name)) AndAlso templateOfInstance.FindTag(thisTag.name) <> thisTag Then
+                            line += roomDelimiters(1) & thisTag.ToString
+                        End If
+                    Next thisTag
+
+                    roomString += line & roomDelimiters(2)
+                End If
+            Next instance
+        End If
+
+        roomString = roomString.TrimEnd     'removes any trailing whitespace
+
+        Return roomString
+    End Function
+
+    Public Overrides Function ToString() As String
+        'updated version of room tostring which makes better use of tags
+
+        Dim parametersTag As New Tag("parameters", ArrayToString(parameters))
+        Dim instancesTag As New Tag("instances", ArrayToString(instances))
+
+        Return New Tag(Name, ArrayToString({parametersTag, instancesTag})).ToString
+    End Function
+
+
+    Public Function FindParam(paramName As String) As Tag
+        'returns the first parameter this room has with the given name
+
+        If IsNothing(parameters) = False Then
+            For index As Integer = 0 To UBound(parameters)
+                If LCase(parameters(index).name) = LCase(paramName) Then
+                    Return parameters(index)
+                End If
+            Next index
+        End If
+
+        Return Nothing
+    End Function
+
+    Public Function HasParam(paramName As String) As Boolean
+        'returns whether or not this room has a parameter with the given name
+
+        If FindParam(paramName).name <> Nothing Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+    Public Sub AddParam(newParam As Tag, Optional removeDuplicates As Boolean = False)
+        'adds the given parameter to this room's list of tags
+
+        If removeDuplicates Then
+            RemoveParam(newParam.name)
+        End If
+
+        If IsNothing(parameters) = True Then
+            ReDim parameters(0)
+        Else
+            ReDim Preserve parameters(UBound(parameters) + 1)
+        End If
+
+        parameters(UBound(parameters)) = newParam
+    End Sub
+
+    Public Sub RemoveParam(paramName As String)
+        'removes all parameters with the given name
+
+        Dim paramIndex As Integer = 0
+
+        If Not IsNothing(parameters) Then
+            Do While paramIndex <= UBound(parameters)
+                If parameters(paramIndex).name = paramName Then
+                    For removeIndex As Integer = paramIndex To UBound(parameters) - 1
+                        parameters(removeIndex) = parameters(removeIndex + 1)
+                    Next removeIndex
+
+                    ReDim Preserve parameters(UBound(parameters) - 1)
+                Else
+                    paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
+                End If
+            Loop
+        End If
+    End Sub
+
+    Public Property Name As String
+        Get
+            If HasParam("name") Then
+                Return FindParam("name").GetArgument()
+            Else
+                Return "UnnamedRoom"
+            End If
+        End Get
+        Set(value As String)
+            AddParam(New Tag("name", AddQuotes(value)), True)
+        End Set
+    End Property
+
+    Public Property Coords As Point     'need to implement a proper coords system
+        Get
+            If HasParam("coords") Then
+                Return New Point(Val(FindParam("coords").GetArgument(0)), Val(FindParam("coords").GetArgument(1)))
+            Else
+                Return New Point(0, 0)
+            End If
+        End Get
+        Set(value As Point)
+            RemoveParam("coords")
+            AddParam(New Tag("coords", "[" & value.X & "," & value.Y & "]"))
+        End Set
+    End Property
+End Structure
+
+Public Structure Level
+    'class to store entity defaults and rooms
+
+    Dim templates() As Entity     'the formats for loaded entities, not actually displayed, used to create instances of entities
+    Dim globalParameters() As Tag            'essentially global variables for the level
+
+    Dim rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
+    'Dim roomCoords() As Point               'stores the coordinates of each room, parallel to rooms array
+    'Dim currentRoomCoords As Point          'stores the coordinates of which room is being used currently
+
+    Public Sub New(levelString As String, renderEngine As PRE2)
+        templates = Nothing
+        globalParameters = Nothing
+        rooms = Nothing
+
+        Dim tagStrings() As Object = New Tag(levelString).GetArgument 'JSONSplit(levelString, 0)
+        If Not IsNothing(tagStrings) Then
+            Dim tags(UBound(tagStrings)) As Tag
+
+            For tagIndex As Integer = 0 To UBound(tagStrings)
+                tags(tagIndex) = New Tag(tagStrings(tagIndex).ToString)
+            Next
+
+            For Each thisTag As Tag In tags
+                If Not IsNothing(thisTag) Then
+                    Select Case thisTag.name
+                        Case "parameters"
+                            Dim temp() As Object = thisTag.GetArgument
+                            If Not IsNothing(temp) Then
+                                ReDim globalParameters(UBound(temp))
+                                For index As Integer = 0 To UBound(temp)
+                                    globalParameters(index) = New Tag(temp(index).ToString)
+                                Next
+                            End If
+                        Case "templates"
+                            Dim temp() As Object = thisTag.GetArgument
+                            If Not IsNothing(temp) Then
+                                ReDim templates(UBound(temp))
+                                For index As Integer = 0 To UBound(temp)
+                                    templates(index) = New Entity(temp(index).ToString, renderEngine)
+                                Next
+                            End If
+                        Case "rooms"
+                            Dim temp() As Object = thisTag.GetArgument
+                            If Not IsNothing(temp) Then
+                                ReDim rooms(UBound(temp))
+                                For index As Integer = 0 To UBound(temp)
+                                    rooms(index) = New Room(temp(index), renderEngine)
+                                Next
+                            End If
+                        Case Else
+                            PRE2.DisplayError("Unknown tag in level file: " & thisTag.name)
+                    End Select
+                End If
+            Next
+        End If
+    End Sub
+
+
+    Public Overloads Function ToString(levelDelimiters() As String, roomDelimiters() As String) As String
+        'creates a string of a level so it can be saved and loaded
+
+        Dim levelString As String = ""
+
+        'adds an addParam line for each parameter
+        If Not IsNothing(globalParameters) Then
+            For Each param As Tag In globalParameters
+                levelString += "addParam" & levelDelimiters(0) & param.ToString & levelDelimiters(2)
+            Next param
+        End If
+
+        'adds a loadEnt line for each template
+        If Not IsNothing(templates) Then
+            For Each template As Entity In templates
+                If template.HasTag("fileName") = True Then
+                    Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").GetArgument() & levelDelimiters(1) & template.name
+
+                    'adds each tag
+                    For Each thisTag As Tag In template.tags
+                        line += levelDelimiters(1) & thisTag.ToString
+                    Next
+
+                    levelString += line & levelDelimiters(2)
+                Else
+                    PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
+                End If
+            Next
+        End If
+
+        'adds a loadRoom line for each room
+        If Not IsNothing(rooms) Then
+            For Each currentRoom As Room In rooms
+                levelString += "loadRoom" & levelDelimiters(0) & currentRoom.ToString(Me, roomDelimiters) & levelDelimiters(2)
+            Next currentRoom
+        End If
+        'levelString = levelString.Remove(Len(levelString) - 2, 2)
+        levelString = levelString.Trim
+
+        Return levelString
+    End Function
+
+    Public Overrides Function ToString() As String
+        'updated version of level tostring which uses tags better
+
+        Dim parametersTag As New Tag("parameters", ArrayToString(globalParameters))
+        Dim templatesTag As New Tag("templates", ArrayToString(templates))
+        Dim roomsTag As New Tag("rooms", ArrayToString(rooms))
+
+        Return New Tag(Name, ArrayToString({parametersTag, templatesTag, roomsTag})).ToString
+    End Function
+
+
+    Public Function GetRoomParameters(roomIndex As Integer) As Tag()
+        'returns the level's global parameters combined with the room's parameters
+
+        Dim result() As Tag = rooms(roomIndex).parameters
+
+        For Each parameter As Tag In globalParameters
+            If Not rooms(roomIndex).HasParam(parameter.name) Then
+                If IsNothing(result) Then
+                    ReDim result(0)
+                Else
+                    ReDim result(UBound(result) + 1)
+                End If
+                result(UBound(result)) = parameter
+            End If
+        Next
+
+        Return result
+    End Function
+
+    Public Function RoomWithCoords(coords As Point) As Room
+        'returns the room with the coords provided
+
+        For index As Integer = 0 To UBound(rooms)
+            If coords = rooms(index).Coords Then
+                Return rooms(index)
+            End If
+        Next index
+
+        PRE2.DisplayError("Couldn't find a room with coordinates " & Str(coords.X) & "," & Str(coords.Y))
+        Return Nothing
+    End Function
+
+
+    Public Function FindParam(paramName As String) As Tag
+        'returns the first parameter this room has with the given name
+
+        If IsNothing(globalParameters) = False Then
+            For index As Integer = 0 To UBound(globalParameters)
+                If LCase(globalParameters(index).name) = LCase(paramName) Then
+                    Return globalParameters(index)
+                End If
+            Next index
+        End If
+
+        Return Nothing
+    End Function
+
+    Public Function HasParam(paramName As String) As Boolean
+        'returns whether or not this room has a parameter with the given name
+
+        If FindParam(paramName).name <> Nothing Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+    Public Sub AddParam(newParam As Tag, Optional removeDuplicates As Boolean = False)
+        'adds the given parameter to this level's list of tags
+
+        If IsNothing(globalParameters) = True Then
+            ReDim globalParameters(0)
+        Else
+            ReDim Preserve globalParameters(UBound(globalParameters) + 1)
+        End If
+
+        globalParameters(UBound(globalParameters)) = newParam
+
+        If removeDuplicates Then
+            RemoveParam(newParam.name)
+        End If
+    End Sub
+
+    Public Sub RemoveParam(paramName As String)
+        'removes all parameters with the given name
+
+        Dim paramIndex As Integer = 0
+
+        If Not IsNothing(globalParameters) Then
+            Do While paramIndex <= UBound(globalParameters)
+                If globalParameters(paramIndex).name = paramName Then
+                    For removeIndex As Integer = paramIndex To UBound(globalParameters) - 1
+                        globalParameters(removeIndex) = globalParameters(removeIndex + 1)
+                    Next removeIndex
+
+                    ReDim Preserve globalParameters(UBound(globalParameters) - 1)
+                Else
+                    paramIndex += 1       'param index isn't incremented when a param with matching name is found so none are skipped
+                End If
+            Loop
+        End If
+    End Sub
+
+
+    Public Property Name As String
+        Get
+            If HasParam("name") Then
+                Return FindParam("name").GetArgument()
+            Else
+                Return "UnnamedLevel"
+            End If
+        End Get
+        Set(value As String)
+            RemoveParam("name")
+            AddParam(New Tag("name", value))
+        End Set
+    End Property
+End Structure

@@ -90,7 +90,7 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub SaveLevel(levelToSave As FrmGame.Level, saveLocation As String)
+    Private Sub SaveLevel(levelToSave As Level, saveLocation As String)
         'saves a level (not the rooms) to a file
 
         'PRE2.WriteFile(saveLocation, levelToSave.ToString(FrmGame.levelDelimiters, FrmGame.roomDelimiters))
@@ -149,10 +149,10 @@ Public Class FrmLevelEditor
     'render
 
     Dim renderer As New PRE2
-    Dim thisLevel As FrmGame.Level
-    'Dim thisRoom As FrmGame.Room
+    Dim thisLevel As Level
+    'Dim thisRoom As Room
 
-    Private ReadOnly Property SelectedRoom As FrmGame.Room
+    Private ReadOnly Property SelectedRoom As Room
         Get
             If lstRooms.SelectedIndex > -1 And Not IsNothing(thisLevel.rooms) AndAlso lstRooms.SelectedIndex <= UBound(thisLevel.rooms) Then
                 Return thisLevel.rooms(lstRooms.SelectedIndex)
@@ -216,7 +216,7 @@ Public Class FrmLevelEditor
                 If Not IsNothing(thisLevel.rooms) Then
                     'goes through each room
                     For roomIndex As Integer = 0 To UBound(thisLevel.rooms)
-                        Dim currentRoom As FrmGame.Room = thisLevel.rooms(roomIndex)
+                        Dim currentRoom As Room = thisLevel.rooms(roomIndex)
                         lstRooms.SelectedIndex = roomIndex
 
                         If Not IsNothing(currentRoom.instances) AndAlso UBound(currentRoom.instances) >= 0 Then
@@ -873,12 +873,12 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub AddRoom(newRoom As FrmGame.Room)
+    Private Sub AddRoom(newRoom As Room)
         'adds a new room to the level
 
         'checks that name isn't already being used
         If Not IsNothing(thisLevel.rooms) Then
-            For Each currentRoom As FrmGame.Room In thisLevel.rooms
+            For Each currentRoom As Room In thisLevel.rooms
                 If currentRoom.Name = AddQuotes(newRoom.Name) Then
                     PRE2.DisplayError("Room name " & AddQuotes(newRoom.Name, True) & " is in use, please use a different one")
                     Exit Sub
@@ -959,7 +959,7 @@ Public Class FrmLevelEditor
         Dim roomName As String = InputBox("Please enter a name for the new room")
 
         If roomName.Length > 0 Then
-            AddRoom(New FrmGame.Room With {.Name = roomName})
+            AddRoom(New Room With {.Name = roomName})
         End If
     End Sub
 
