@@ -6,9 +6,6 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Class FrmSpriteMaker
 
-
-
-
 #Region "Initialisation"
 
     Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
@@ -20,6 +17,7 @@ Public Class FrmSpriteMaker
 
     Private Sub Initialisation()
         delayTimer.Stop()
+
 
         RedoLayout()
         panelDrawCanvas = New PaintEventArgs(pnlDraw.CreateGraphics, New Rectangle(New Point(0, 0), pnlDraw.Size))
@@ -53,6 +51,16 @@ Public Class FrmSpriteMaker
 
 #End Region
 
+#Region "Disposing"
+
+    Protected Overrides Sub OnFormClosed(ByVal e As FormClosedEventArgs)
+        panelDrawCanvas = Nothing
+        delayTimer.Dispose()
+        MyBase.OnFormClosed(e)
+    End Sub
+
+#End Region
+
 #Region "Save/Load"
 
     Dim saveLocation As String
@@ -80,7 +88,7 @@ Public Class FrmSpriteMaker
 
         If saveDialog.ShowDialog = DialogResult.OK Then
             saveLocation = saveDialog.FileName
-			PRE2.WriteFile(saveLocation, SpriteString)
+            PRE2.WriteFile(saveLocation, SpriteString)
 
             btnSave.Enabled = True
         End If
@@ -91,7 +99,7 @@ Public Class FrmSpriteMaker
         'saves the file to the already selected location
 
         If IO.File.Exists(saveLocation) Then
-			PRE2.WriteFile(saveLocation, SpriteString)
+            PRE2.WriteFile(saveLocation, SpriteString)
         Else
             PRE2.DisplayError("Couldn't find file at " & saveLocation)
         End If
@@ -135,7 +143,26 @@ Public Class FrmSpriteMaker
         End Get
     End Property
 
+    Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        'displays a warning to the user if they have unsaved work when they close the form
 
+        Dim unsavedChanges As Boolean = False
+
+        If Not IsNothing(saveLocation) AndAlso IO.File.Exists(saveLocation) Then
+            Dim savedSpriteString As String = PRE2.ReadFile(saveLocation)
+
+            If savedSpriteString <> SpriteString Then
+                unsavedChanges = True
+            End If
+        End If
+
+        'if there are unsaved changes then warns the user
+        If unsavedChanges Then
+            If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
+                e.Cancel = True
+            End If
+        End If
+    End Sub
 
 #End Region
 
@@ -144,18 +171,7 @@ Public Class FrmSpriteMaker
     Dim gridScale As Integer = 20
     Dim gridSize As New Size(20, 20)
 
-    Dim panelDrawCanvas As PaintEventArgs 
-
-    Private Sub DrawGridOutline()
-        'draws a white outline of where each square can go 
-        'unused
-
-        For x As Integer = 0 To gridSize.Width - 1
-            For y As Integer = 0 To gridSize.Height - 1
-                panelDrawCanvas.Graphics.DrawRectangle(New Pen(Color.White, 1), New Rectangle(New Point(x * gridScale, y * gridScale), New Size(gridScale, gridScale)))
-            Next y
-        Next x
-    End Sub
+    Dim panelDrawCanvas As PaintEventArgs
 
     Private Sub DrawSavedColours()
         'draws all the colours saved in the colourIndices array
@@ -180,23 +196,21 @@ Public Class FrmSpriteMaker
                 panelDrawCanvas.Graphics.FillRectangle(brush, rect)
                 colourIndices(coords.X, coords.Y) = colourIndex
             ElseIf colourIndex = 0 Then         'colour index 0 is transparent
-                DrawTransparentSquare(coords)
+                'draws a 2x2 grid of light and dark grey squares to show that the current square is transparent
+
+                Dim brush1 As New SolidBrush(Color.Gray)
+                Dim brush2 As New SolidBrush(Color.DimGray)
+                Dim rects1() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)),
+                    New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
+                Dim rects2() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)),
+                    New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
+
+                panelDrawCanvas.Graphics.FillRectangles(brush1, rects1)
+                panelDrawCanvas.Graphics.FillRectangles(brush2, rects2)
             Else
                 PRE2.DisplayError("Selected colour index " & Trim(Str(colourIndex)) & " is invalid")
             End If
         End If
-    End Sub
-
-    Private Sub DrawTransparentSquare(coords As Point)
-        'draws a 2x2 grid of light and dark grey squares to show that the current square is transparent
-
-        Dim brush1 As New SolidBrush(Color.Gray)
-        Dim brush2 As New SolidBrush(Color.DimGray)
-        Dim rects1() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)), New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
-        Dim rects2() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)), New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
-
-        panelDrawCanvas.Graphics.FillRectangles(brush1, rects1)
-        panelDrawCanvas.Graphics.FillRectangles(brush2, rects2)
     End Sub
 
     Private Sub btnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
@@ -243,8 +257,6 @@ Public Class FrmSpriteMaker
     Dim dragEndPoint As Point
     Dim cantDraw As Boolean = False
 
-
-
     Private Sub pnlDraw_MouseClick(sender As Panel, e As MouseEventArgs) Handles pnlDraw.MouseClick
         'draws the user's selected colour at the clicked area
 
@@ -280,8 +292,6 @@ Public Class FrmSpriteMaker
     End Sub
 
 #End Region
-
-
 
 #Region "Colours"
 
@@ -323,34 +333,34 @@ Public Class FrmSpriteMaker
             tblColourSelect.Controls.Add(newBtn)
         Next
     End Sub
-	
-	Private Sub AddColourOption(newColour As Color)
-		If colours.Length < maxColours Then
-			Dim colourUnique As Boolean = True
 
-			For index As Integer = 0 To UBound(colourButtons)
-				If AreColoursEqual(colourButtons(index).BackColor, newColour) Then
-					colourUnique = False
-					Exit For
-				End If
-			Next index
-			
-			If colourUnique Then
+    Private Sub AddColourOption(newColour As Color)
+        If colours.Length < maxColours Then
+            Dim colourUnique As Boolean = True
+
+            For index As Integer = 0 To UBound(colourButtons)
+                If AreColoursEqual(colourButtons(index).BackColor, newColour) Then
+                    colourUnique = False
+                    Exit For
+                End If
+            Next index
+
+            If colourUnique Then
                 If IsNothing(colours) Then
                     ReDim colours(0)
                 Else
                     ReDim Preserve colours(UBound(colours) + 1)
                 End If
-				colours(UBound(colours)) = newColour
-				
+                colours(UBound(colours)) = newColour
+
                 DisplayColourOptions()
-			Else
-				PRE2.DisplayError("This colour is already in the colour palette")
-			End If
-		Else
+            Else
+                PRE2.DisplayError("This colour is already in the colour palette")
+            End If
+        Else
             PRE2.DisplayError("Cannot add any more colours as limit has been reached")
-		End If
-	End Sub
+        End If
+    End Sub
 
     Private Sub SwapColourOption(newColour As Color, colourIndex As Integer)
         'swaps the current custom colour with the currently selected colour
@@ -375,9 +385,9 @@ Public Class FrmSpriteMaker
             PRE2.DisplayError("Please select a custom colour to swap out for, index " & selectedColourIndex & " is not viable")
         End If
     End Sub
-	
-	Private Sub RemoveColourOption(removeIndex As Integer)
-		If IsNothing(colours) = False AndAlso removeIndex >= 0 And removeIndex <= UBound(colours) Then
+
+    Private Sub RemoveColourOption(removeIndex As Integer)
+        If IsNothing(colours) = False AndAlso removeIndex >= 0 And removeIndex <= UBound(colours) Then
             If UBound(colours) - 1 < 0 Then
                 colours = Nothing
             Else
@@ -387,10 +397,10 @@ Public Class FrmSpriteMaker
 
                 ReDim Preserve colours(UBound(colours) - 1)
             End If
-		Else
+        Else
             PRE2.DisplayError("Attempted to remove a colour option at invalid index " & removeIndex)
-		End If
-	End Sub
+        End If
+    End Sub
 
     Private Sub UserSelectColour(sender As Button, e As EventArgs)
         'updates the selected colour index with the colour which the user clicked on
@@ -419,9 +429,5 @@ Public Class FrmSpriteMaker
     End Function
 
 #End Region
-
-
-
-
 
 End Class
