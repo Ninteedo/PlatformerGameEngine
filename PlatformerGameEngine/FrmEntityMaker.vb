@@ -17,6 +17,7 @@ Public Class FrmEntityMaker
 
     Private Sub Initialisation()
         delayTimer.Stop()
+        delayTimer.Dispose()
 
         renderer = New PRE2 With {.renderPanel = pnlFramePreview}
 
@@ -53,47 +54,48 @@ Public Class FrmEntityMaker
         'asks the user to select the game loader file
 
         MsgBox("Please select the loader file for the game")
-        Dim openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Title = "Select Loader File"}
-        If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
-            If IO.File.Exists(openDialog.FileName) = True Then
-                Dim loaderText As String = PRE2.ReadFile(openDialog.FileName)
+        Using openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Title = "Select Loader File"}
+            If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
+                If IO.File.Exists(openDialog.FileName) = True Then
+                    Dim loaderText As String = PRE2.ReadFile(openDialog.FileName)
 
-                Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
-                renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "entityFolder")
-                renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "spriteFolder")
+                    Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
+                    renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "entityFolder")
+                    renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "spriteFolder")
+                Else
+                    PRE2.DisplayError("Couldn't find file " & openDialog.FileName)
+                    Me.Close()
+                End If
             Else
-                PRE2.DisplayError("Couldn't find file " & openDialog.FileName)
                 Me.Close()
             End If
-        Else
-            Me.Close()
-        End If
+        End Using
     End Sub
 
-    Private Sub btnOpen_Click(sender As Button, e As EventArgs) Handles btnOpen.Click
+    Private Sub BtnOpen_Click(sender As Button, e As EventArgs) Handles btnOpen.Click
         'asks the user to select a .sprt file and reads it
 
-        Dim openDialog As New OpenFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .Multiselect = False, .CheckFileExists = True, .InitialDirectory = renderer.entityFolderLocation}
-
-        If openDialog.ShowDialog = DialogResult.OK Then
-            ReadEntityFromFile(openDialog.FileName)
-        End If
+        Using openDialog As New OpenFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .Multiselect = False, .CheckFileExists = True, .InitialDirectory = renderer.entityFolderLocation}
+            If openDialog.ShowDialog = DialogResult.OK Then
+                ReadEntityFromFile(openDialog.FileName)
+            End If
+        End Using
     End Sub
 
-    Private Sub btnSaveAs_Click(sender As Button, e As EventArgs) Handles btnSaveAs.Click
+    Private Sub BtnSaveAs_Click(sender As Button, e As EventArgs) Handles btnSaveAs.Click
         'asks the user to select a save location, then saves the sprite there and enables the regular save button
 
-        Dim saveDialog As New SaveFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .InitialDirectory = renderer.entityFolderLocation}
+        Using saveDialog As New SaveFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .InitialDirectory = renderer.entityFolderLocation}
+            If saveDialog.ShowDialog = DialogResult.OK Then
+                saveLocation = saveDialog.FileName
+                PRE2.WriteFile(saveLocation, EntityString)
 
-        If saveDialog.ShowDialog = DialogResult.OK Then
-            saveLocation = saveDialog.FileName
-            PRE2.WriteFile(saveLocation, EntityString)
-
-            btnSave.Enabled = True
-        End If
+                btnSave.Enabled = True
+            End If
+        End Using
     End Sub
 
-    Private Sub btnSave_Click(sender As Button, e As EventArgs) Handles btnSave.Click
+    Private Sub BtnSave_Click(sender As Button, e As EventArgs) Handles btnSave.Click
         'saves the file to the already selected location
 
         If IO.File.Exists(saveLocation) Then
@@ -129,6 +131,29 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
+    Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        'displays a warning to the user if they have unsaved work when they close the form
+
+        Dim unsavedChanges As Boolean = False
+
+        If Not IsNothing(saveLocation) AndAlso IO.File.Exists(saveLocation) Then
+            Dim savedEntityString As String = PRE2.ReadFile(saveLocation)
+
+            If savedEntityString <> EntityString Then
+                unsavedChanges = True
+            End If
+        ElseIf Not IsNothing(renderer.entityFolderLocation) Then     'no level folder location if form isnt finished loading
+            unsavedChanges = True
+        End If
+
+        'if there are unsaved changes then warns the user
+        If unsavedChanges Then
+            If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
+                e.Cancel = True
+            End If
+        End If
+    End Sub
+
 #End Region
 
 #Region "Sprites"
@@ -145,7 +170,7 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
-    Private Sub btnSpriteLoad_Click(sender As Object, e As EventArgs) Handles btnSpriteLoad.Click
+    Private Sub BtnSpriteLoad_Click(sender As Object, e As EventArgs) Handles btnSpriteLoad.Click
         'loads the user selected sprites
 
         Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
@@ -159,7 +184,7 @@ Public Class FrmEntityMaker
         End Using
     End Sub
 
-    Private Sub lstSprites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstSprites.SelectedIndexChanged
+    Private Sub LstSprites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstSprites.SelectedIndexChanged
 
         If lstSprites.SelectedIndex > -1 Then
             btnFrameAddSprite.Enabled = True
@@ -213,7 +238,7 @@ Public Class FrmEntityMaker
         RefreshTagsList()
     End Sub
 
-    Private Sub btnFrameNew_Click(sender As Object, e As EventArgs) Handles btnFrameNew.Click
+    Private Sub BtnFrameNew_Click(sender As Object, e As EventArgs) Handles btnFrameNew.Click
         'adds a new, empty frame
 
         If IsNothing(ent.Frames) = True Then
@@ -226,7 +251,7 @@ Public Class FrmEntityMaker
         RefreshFramesList()
     End Sub
 
-    Private Sub btnFrameRemove_Click(sender As Object, e As EventArgs) Handles btnFrameRemove.Click
+    Private Sub BtnFrameRemove_Click(sender As Object, e As EventArgs) Handles btnFrameRemove.Click
         'removes the selected frame
 
         Dim removeIndex As Integer = lstFrames.SelectedIndex
@@ -245,7 +270,7 @@ Public Class FrmEntityMaker
         RefreshFramesList()
     End Sub
 
-    Private Sub lstFrames_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstFrames.SelectedIndexChanged
+    Private Sub LstFrames_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstFrames.SelectedIndexChanged
         'enables or disable the remove frame button
 
         If lstFrames.SelectedIndex > -1 Then
@@ -264,7 +289,7 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
-    Private Sub btnFrameAddSprite_Click(sender As Object, e As EventArgs) Handles btnFrameAddSprite.Click
+    Private Sub BtnFrameAddSprite_Click(sender As Object, e As EventArgs) Handles btnFrameAddSprite.Click
         'adds the selected sprite and asks the user for the offset
 
         If lstFrames.SelectedIndex > -1 Then
@@ -310,45 +335,47 @@ Public Class FrmEntityMaker
         'ReloadFrames()
     End Sub
 
-    Private Sub btnTagsNew_Click(sender As Object, e As EventArgs) Handles btnTagsNew.Click
+    Private Sub BtnTagsNew_Click(sender As Object, e As EventArgs) Handles btnTagsNew.Click
         'opens FrmTagMaker to allow the user to create tags
 
-        Dim tagMaker As New FrmTagMaker
-        tagMaker.ShowDialog()
+        Using tagMaker As New FrmTagMaker
+            tagMaker.ShowDialog()
 
-        If tagMaker.userFinished = True Then
-            If IsNothing(ent.tags) = True Then
-                ReDim ent.tags(0)
-            Else
-                ReDim Preserve ent.tags(UBound(ent.tags) + 1)
+            If tagMaker.userFinished = True Then
+                If IsNothing(ent.tags) = True Then
+                    ReDim ent.tags(0)
+                Else
+                    ReDim Preserve ent.tags(UBound(ent.tags) + 1)
+                End If
+
+                ent.tags(UBound(ent.tags)) = tagMaker.CreatedTag
+
+                'lstTags.Items.Add(tagMaker.createdTag.name)
+                RefreshTagsList()
             End If
-
-            ent.tags(UBound(ent.tags)) = tagMaker.CreatedTag
-
-            'lstTags.Items.Add(tagMaker.createdTag.name)
-            RefreshTagsList()
-        End If
+        End Using
     End Sub
 
-    Private Sub btnTagsEdit_Click(sender As Object, e As EventArgs) Handles btnTagsEdit.Click
+    Private Sub BtnTagsEdit_Click(sender As Object, e As EventArgs) Handles btnTagsEdit.Click
         'opens FrmTagMaker with the selected tag already loaded
 
         Dim tagIndex As Integer = lstTags.SelectedIndex
 
         If tagIndex > -1 Then
-            Dim tagMaker As New FrmTagMaker(ent.tags(tagIndex))
+            Using tagMaker As New FrmTagMaker(ent.tags(tagIndex))
 
-            tagMaker.ShowDialog()
+                tagMaker.ShowDialog()
 
-            If tagMaker.userFinished = True Then
-                ent.SetTag(tagIndex, tagMaker.CreatedTag)
-                RefreshTagsList()
-                'lstTags.Items(tagIndex) = tagMaker.createdTag.name
-            End If
+                If tagMaker.userFinished = True Then
+                    ent.SetTag(tagIndex, tagMaker.CreatedTag)
+                    RefreshTagsList()
+                    'lstTags.Items(tagIndex) = tagMaker.createdTag.name
+                End If
+            End Using
         End If
     End Sub
 
-    Private Sub btnTagRemove_Click(sender As Object, e As EventArgs) Handles btnTagRemove.Click
+    Private Sub BtnTagRemove_Click(sender As Object, e As EventArgs) Handles btnTagRemove.Click
         'removes the currently selected tag
 
         If lstTags.SelectedIndex > -1 Then
@@ -365,10 +392,10 @@ Public Class FrmEntityMaker
             End If
 
             RefreshTagsList()
-            End If
+        End If
     End Sub
 
-    Private Sub lstTags_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstTags.SelectedIndexChanged
+    Private Sub LstTags_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstTags.SelectedIndexChanged
         'enables or disables the edit tag button
 
         If lstTags.SelectedIndex > -1 Then
@@ -380,7 +407,7 @@ Public Class FrmEntityMaker
         End If
     End Sub
 
-    Private Sub txtName_TextChanged(sender As Object, e As EventArgs) Handles txtName.LostFocus
+    Private Sub TxtName_TextChanged(sender As Object, e As EventArgs) Handles txtName.LostFocus
         'changes the name of the entity if the name is valid
 
         Dim newName As String = txtName.Text
@@ -397,10 +424,10 @@ Public Class FrmEntityMaker
 
 #Region "Other Controls"
 
-    Private Sub btnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
-        If IsNothing(ent.frames) = False Then
-            If lstFrames.SelectedIndex > -1 AndAlso IsNothing(ent.frames(lstFrames.SelectedIndex)) = False Then
-                DrawFramePreview(ent.frames(lstFrames.SelectedIndex))
+    Private Sub BtnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
+        If IsNothing(ent.Frames) = False Then
+            If lstFrames.SelectedIndex > -1 AndAlso IsNothing(ent.Frames(lstFrames.SelectedIndex)) = False Then
+                DrawFramePreview(ent.Frames(lstFrames.SelectedIndex))
             End If
         Else
             renderer.DoGameRender({})       'if there are no frames then clears the render
