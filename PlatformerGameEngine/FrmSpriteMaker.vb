@@ -6,8 +6,10 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Class FrmSpriteMaker
 
-    Dim gridScale As Integer = 20
-    Dim gridSize As Size = New Size(20, 20)
+
+
+
+#Region "Initialisation"
 
     Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
 
@@ -49,6 +51,9 @@ Public Class FrmSpriteMaker
         Me.Refresh()
     End Sub
 
+#End Region
+
+#Region "Save/Load"
 
     Dim saveLocation As String
 
@@ -114,26 +119,31 @@ Public Class FrmSpriteMaker
                 Me.Refresh()
                 DrawSavedColours()
             Else        'invalid file
-				PRE2.DisplayError("Provided file was not a valid sprite file")
+                PRE2.DisplayError("Provided file was not a valid sprite file")
             End If
         Else
             PRE2.DisplayError("Couldn't find file " & fileLocation)
         End If
     End Sub
 
-    Private Sub btnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
-        'incase the sprite gets cleared from the grid for some reason
+    Private ReadOnly Property SpriteString
+        Get
+            'returns the string version of the user's sprite
 
-        DrawSavedColours()
-    End Sub
+            Dim createdSprite As PRE2.Sprite = New PRE2.Sprite(colourIndices, colours)
+            Return createdSprite.ToString()
+        End Get
+    End Property
 
 
-    Dim selectedColourIndex As Integer = 1
-    Dim colourButtons() As Button
-    Dim colours() As Color = {Color.Transparent}
-    Dim maxColours As Integer = 20
-	Dim colourIndices(,) As Integer
-	
+
+#End Region
+
+#Region "Drawing"
+
+    Dim gridScale As Integer = 20
+    Dim gridSize As New Size(20, 20)
+
     Dim panelDrawCanvas As PaintEventArgs 
 
     Private Sub DrawGridOutline()
@@ -157,10 +167,83 @@ Public Class FrmSpriteMaker
         Next x
     End Sub
 
+    Private Sub DrawSquare(coords As Point, colourIndex As Integer)
+        'draws a square on the grid, colour depends on selected colour index
+
+        If ValidCoords(coords, gridSize) Then
+            colourIndices(coords.X, coords.Y) = colourIndex
+
+            If colourIndex > 0 Then
+                Dim brush As New SolidBrush(colourButtons(colourIndex).BackColor)
+                Dim rect As New Rectangle(New Point(coords.X * gridScale, coords.Y * gridScale), New Size(gridScale, gridScale))
+
+                panelDrawCanvas.Graphics.FillRectangle(brush, rect)
+                colourIndices(coords.X, coords.Y) = colourIndex
+            ElseIf colourIndex = 0 Then         'colour index 0 is transparent
+                DrawTransparentSquare(coords)
+            Else
+                PRE2.DisplayError("Selected colour index " & Trim(Str(colourIndex)) & " is invalid")
+            End If
+        End If
+    End Sub
+
+    Private Sub DrawTransparentSquare(coords As Point)
+        'draws a 2x2 grid of light and dark grey squares to show that the current square is transparent
+
+        Dim brush1 As New SolidBrush(Color.Gray)
+        Dim brush2 As New SolidBrush(Color.DimGray)
+        Dim rects1() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)), New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
+        Dim rects2() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)), New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
+
+        panelDrawCanvas.Graphics.FillRectangles(brush1, rects1)
+        panelDrawCanvas.Graphics.FillRectangles(brush2, rects2)
+    End Sub
+
+    Private Sub btnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
+        'incase the sprite gets cleared from the grid for some reason
+
+        DrawSavedColours()
+    End Sub
+
+
+    Public Function ValidCoords(coords As Point, gridSize As Size) As Boolean
+        'returns whether provided coords are within range of the grid
+
+        If coords.X < 0 Or coords.X >= gridSize.Width Or coords.Y < 0 Or coords.Y >= gridSize.Height Then
+            Return False
+        Else
+            Return True
+        End If
+    End Function
+
+    Private Sub btnResize_Click(sender As Object, e As EventArgs) Handles btnResize.Click
+        'resizes the draw panel, this will reset the drawn sprite so a warning is given
+
+        cantDraw = True
+
+        If MsgBox("Are you sure you want to resize, this will lead to the loss of unsaved work", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then       'displays a warning to the user
+            gridSize = New Size(numResizeW.Value, numResizeH.Value)
+            gridScale = numResizeS.Value
+            ReDim colourIndices(gridSize.Width - 1, gridSize.Height - 1)
+
+            ResetColourOptions()
+            RedoLayout()
+            DrawSavedColours()
+        End If
+
+        cantDraw = False
+    End Sub
+
+#End Region
+
+#Region "User Drawing"
+
     Dim mouseDragging As Boolean = False
     Dim dragStartPoint As Point
     Dim dragEndPoint As Point
     Dim cantDraw As Boolean = False
+
+
 
     Private Sub pnlDraw_MouseClick(sender As Panel, e As MouseEventArgs) Handles pnlDraw.MouseClick
         'draws the user's selected colour at the clicked area
@@ -196,37 +279,17 @@ Public Class FrmSpriteMaker
         mouseDragging = False
     End Sub
 
-    Private Sub DrawSquare(coords As Point, colourIndex As Integer)
-        'draws a square on the grid, colour depends on selected colour index
+#End Region
 
-        If ValidCoords(coords, gridSize) Then
-            colourIndices(coords.x, coords.y) = colourIndex
 
-            If colourIndex > 0 Then
-                Dim brush As New SolidBrush(colourButtons(colourIndex).BackColor)
-                Dim rect As New Rectangle(New Point(coords.x * gridScale, coords.y * gridScale), New Size(gridScale, gridScale))
 
-                panelDrawCanvas.Graphics.FillRectangle(brush, rect)
-                colourIndices(coords.x, coords.y) = colourIndex
-            ElseIf colourIndex = 0 Then         'colour index 0 is transparent
-                DrawTransparentSquare(coords)
-            Else
-                PRE2.DisplayError("Selected colour index " & Trim(Str(colourIndex)) & " is invalid")
-            End If
-        End If
-    End Sub
+#Region "Colours"
 
-    Private Sub DrawTransparentSquare(coords As Point)
-        'draws a 2x2 grid of light and dark grey squares to show that the current square is transparent
-
-        Dim brush1 As New SolidBrush(Color.Gray)
-        Dim brush2 As New SolidBrush(Color.DimGray)
-        Dim rects1() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)), New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
-        Dim rects2() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)), New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
-
-        panelDrawCanvas.Graphics.FillRectangles(brush1, rects1)
-        panelDrawCanvas.Graphics.FillRectangles(brush2, rects2)
-    End Sub
+    Dim selectedColourIndex As Integer = 1
+    Dim colourButtons() As Button
+    Dim colours() As Color = {Color.Transparent}
+    Const maxColours As Integer = 20
+    Dim colourIndices(,) As Integer
 
     Private Sub ColourCreaterUpdate(sender As NumericUpDown, e As EventArgs) Handles numColourR.ValueChanged, numColourG.ValueChanged, numColourB.ValueChanged
         'updates the colour being shown to the user in the custom colour preview when the RGB values are editted
@@ -345,52 +408,20 @@ Public Class FrmSpriteMaker
         SwapColourOption(Color.FromArgb(numColourR.Value, numColourG.Value, numColourB.Value), selectedColourIndex)
     End Sub
 
-    Private Sub btnResize_Click(sender As Object, e As EventArgs) Handles btnResize.Click
-        'resizes the draw panel, this will reset the drawn sprite so a warning is given
+    Private Function AreColoursEqual(colour1 As Color, colour2 As Color) As Boolean
+        'returns whether the RGB values of 2 colours are equal
 
-        cantDraw = True
-
-        If MsgBox("Are you sure you want to resize, this will lead to the loss of unsaved work", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then       'displays a warning to the user
-            gridSize = New Size(numResizeW.Value, numResizeH.Value)
-            gridScale = numResizeS.Value
-            ReDim colourIndices(gridSize.Width - 1, gridSize.Height - 1)
-
-            ResetColourOptions()
-            RedoLayout()
-            DrawSavedColours()
-        End If
-
-        cantDraw = False
-    End Sub
-	
-	Private Function AreColoursEqual(colour1 As Color, colour2 As Color) As Boolean
-		'returns whether the RGB values of 2 colours are equal
-		
         If colour1.A = colour2.A And colour1.R = colour2.R And colour1.G = colour2.G And colour1.B = colour2.B Then
             Return True
         Else
             Return False
         End If
-	End Function
+    End Function
 
-	Public Function ValidCoords(coords As Point, gridSize As Size) As Boolean
-		'returns whether provided coords are within range of the grid
-
-		If coords.x < 0 Or coords.x >= gridSize.Width Or coords.y < 0 Or coords.y >= gridSize.Height Then
-			Return False
-		Else
-			Return True
-		End If
-	End Function
+#End Region
 
 
 
-    Private ReadOnly Property SpriteString
-        Get
-            'returns the string version of the user's sprite
 
-            Dim createdSprite As PRE2.Sprite = New PRE2.Sprite(colourIndices, colours)
-			Return createdSprite.ToString()
-        End Get
-    End Property
+
 End Class
