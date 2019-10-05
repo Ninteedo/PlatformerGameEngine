@@ -98,11 +98,11 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub btnLevelOpen_Click(sender As Object, e As EventArgs) Handles btnLevelOpen.Click
-        Dim openDialog As New OpenFileDialog With {.Filter = "Level file (*.lvl)|*.lvl", .InitialDirectory = renderer.levelFolderLocation}
-
-        If openDialog.ShowDialog() = DialogResult.OK Then
-            LoadLevel(openDialog.FileName)
-        End If
+        Using openDialog As New OpenFileDialog With {.Filter = "Level file (*.lvl)|*.lvl", .InitialDirectory = renderer.levelFolderLocation}
+            If openDialog.ShowDialog() = DialogResult.OK Then
+                LoadLevel(openDialog.FileName)
+            End If
+        End Using
     End Sub
 
     Private Sub BtnLevelSaveAs_Click(sender As Object, e As EventArgs) Handles btnLevelSaveAs.Click
@@ -267,13 +267,14 @@ Public Class FrmLevelEditor
 
 
     Private Sub btnLoadEntity_Click(sender As Object, e As EventArgs) Handles btnLoadEntity.Click
-        Dim openDialog As New OpenFileDialog With {.Filter = "Entity files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.entityFolderLocation}
+        Using openDialog As New OpenFileDialog With {.Filter = "Entity files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.entityFolderLocation}
 
-        If openDialog.ShowDialog() = DialogResult.OK Then
-            For Each fileName As String In openDialog.FileNames
-                LoadEntityTemplate(fileName)
-            Next
-        End If
+            If openDialog.ShowDialog() = DialogResult.OK Then
+                For Each fileName As String In openDialog.FileNames
+                    LoadEntityTemplate(fileName)
+                Next
+            End If
+        End Using
     End Sub
 
     Private Sub btnRemoveEntity_Click(sender As Object, e As EventArgs) Handles btnRemoveEntity.Click
@@ -546,18 +547,19 @@ Public Class FrmLevelEditor
     Private Sub btnTagAdd_Click(sender As Object, e As EventArgs) Handles btnTagAdd.Click
         'adds a tag created by the user using FrmTagMaker
 
-        Dim tagMaker As New FrmTagMaker
-        tagMaker.ShowDialog()
+        Using tagMaker As New FrmTagMaker
+            tagMaker.ShowDialog()
 
-        If tagMaker.userFinished = True Then
-            If lstInstances.SelectedIndex > -1 Then
-                SelectedRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.CreatedTag)
-                ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-            ElseIf lstTemplates.SelectedIndex > -1 Then
-                thisLevel.templates(lstTemplates.SelectedIndex).AddTag(tagMaker.CreatedTag)
-                ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+            If tagMaker.userFinished = True Then
+                If lstInstances.SelectedIndex > -1 Then
+                    SelectedRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.CreatedTag)
+                    ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+                ElseIf lstTemplates.SelectedIndex > -1 Then
+                    thisLevel.templates(lstTemplates.SelectedIndex).AddTag(tagMaker.CreatedTag)
+                    ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+                End If
             End If
-        End If
+        End Using
     End Sub
 
     Private Sub btnTagEdit_Click(sender As Object, e As EventArgs) Handles btnTagEdit.Click
@@ -778,11 +780,12 @@ Public Class FrmLevelEditor
         'user creates a new parameter using FrmTagMaker
 
         'gets the user to create a parameter (same as a tag)
-        Dim tagMaker As New FrmTagMaker
-        tagMaker.ShowDialog()
-        If tagMaker.userFinished = True Then
-            AddParameter(tagMaker.CreatedTag, thisLevel.globalParameters)
-        End If
+        Using tagMaker As New FrmTagMaker
+            tagMaker.ShowDialog()
+            If tagMaker.userFinished = True Then
+                AddParameter(tagMaker.CreatedTag, thisLevel.globalParameters)
+            End If
+        End Using
     End Sub
 
     Private Sub btnLevelParamEdit_Click(sender As Object, e As EventArgs) Handles btnLevelParamEdit.Click
@@ -790,11 +793,12 @@ Public Class FrmLevelEditor
 
         If lstLevelParams.SelectedIndex > -1 Then
             'gets the user to create a parameter (same as a tag)
-            Dim tagMaker As New FrmTagMaker(thisLevel.globalParameters(lstLevelParams.SelectedIndex))
-            tagMaker.ShowDialog()
-            If tagMaker.userFinished = True Then
-                ReplaceParameter(lstLevelParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.globalParameters)
-            End If
+            Using tagMaker As New FrmTagMaker(thisLevel.globalParameters(lstLevelParams.SelectedIndex))
+                tagMaker.ShowDialog()
+                If tagMaker.userFinished = True Then
+                    ReplaceParameter(lstLevelParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.globalParameters)
+                End If
+            End Using
         End If
     End Sub
 
@@ -826,11 +830,12 @@ Public Class FrmLevelEditor
         'user creates a new parameter using FrmTagMaker
 
         'gets the user to create a parameter (same as a tag)
-        Dim tagMaker As New FrmTagMaker
-        tagMaker.ShowDialog()
-        If tagMaker.userFinished = True Then
-            AddParameter(tagMaker.CreatedTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
-        End If
+        Using tagMaker As New FrmTagMaker
+            tagMaker.ShowDialog()
+            If tagMaker.userFinished = True Then
+                AddParameter(tagMaker.CreatedTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
+            End If
+        End Using
     End Sub
 
     Private Sub btnRemoveRoomParam_Click(sender As Object, e As EventArgs) Handles btnRemoveRoomParam.Click
@@ -848,11 +853,12 @@ Public Class FrmLevelEditor
 
         If lstRoomParams.SelectedIndex > -1 Then
             'gets the user to create a parameter (same as a tag)
-            Dim tagMaker As New FrmTagMaker(SelectedRoom.parameters(lstRoomParams.SelectedIndex))
-            tagMaker.ShowDialog()
-            If tagMaker.userFinished = True Then
-                ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
-            End If
+            Using tagMaker As New FrmTagMaker(SelectedRoom.parameters(lstRoomParams.SelectedIndex))
+                tagMaker.ShowDialog()
+                If tagMaker.userFinished = True Then
+                    ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
+                End If
+            End Using
         End If
     End Sub
 

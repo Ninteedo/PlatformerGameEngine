@@ -157,9 +157,10 @@ Public Class FrmGame
 
     Private Sub GameTick()
         'broadcasts the key held event for each key currently held
+        BroadcastEvent(New Tag("event", New Tag("name", AddQuotes("tick")).ToString), currentRoom, renderer)
         For keyIndex As Integer = 0 To UBound(keysHeld)
             If keysHeld(keyIndex) <> Keys.None Then
-                TagEvents.BroadcastEvent(New Tag("event", ArrayToString(New Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom, renderer)
+                BroadcastEvent(New Tag("event", New Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))).ToString), currentRoom, renderer)
             End If
         Next keyIndex
 
@@ -260,24 +261,28 @@ Public Class FrmGame
                 Next
         End Select
 
-        If UBound(parts) > 1 Then
-            For index As Integer = 1 To UBound(parts)
-                If parts(index).Contains(arrayBoundsCharacters(0)) Then
-                    Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf(arrayBoundsCharacters(0)) + 1, parts(index).IndexOf(arrayBoundsCharacters(1)) - parts(index).IndexOf(arrayBoundsCharacters(0))), ent, currentRoom)
-                    result = result.GetArgument(parts(index).Remove(parts(index).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
+        If Not IsNothing(result) Then
+            If UBound(parts) > 1 Then
+
+                For index As Integer = 1 To UBound(parts)
+                    If parts(index).Contains(arrayBoundsCharacters(0)) Then
+                        Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf(arrayBoundsCharacters(0)) + 1, parts(index).IndexOf(arrayBoundsCharacters(1)) - parts(index).IndexOf(arrayBoundsCharacters(0))), ent, currentRoom)
+                        result = result.GetArgument(parts(index).Remove(parts(index).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
+                    Else
+                        result = result.GetArgument(parts(index))
+                    End If
+                Next
+            ElseIf UBound(parts) = 1 Then
+
+                If parts(1).Contains(arrayBoundsCharacters(0)) Then
+                    Dim start As Integer = parts(1).IndexOf(arrayBoundsCharacters(0)) + 2
+                    Dim length As Integer = parts(1).IndexOf(arrayBoundsCharacters(1)) - parts(1).IndexOf(arrayBoundsCharacters(0)) - 1
+                    Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), ent, currentRoom))
+                    'result = result.GetArgument(parts(1).Remove(parts(1).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
+                    result = result.GetArgument()(arrayIndex)
                 Else
-                    result = result.GetArgument(parts(index))
+                    result = result.GetArgument()
                 End If
-            Next
-        ElseIf UBound(parts) = 1 Then
-            If parts(1).Contains(arrayBoundsCharacters(0)) Then
-                Dim start As Integer = parts(1).IndexOf(arrayBoundsCharacters(0)) + 2
-                Dim length As Integer = parts(1).IndexOf(arrayBoundsCharacters(1)) - parts(1).IndexOf(arrayBoundsCharacters(0)) - 1
-                Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), ent, currentRoom))
-                'result = result.GetArgument(parts(1).Remove(parts(1).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
-                result = result.GetArgument()(arrayIndex)
-            Else
-                result = result.GetArgument()
             End If
         End If
 

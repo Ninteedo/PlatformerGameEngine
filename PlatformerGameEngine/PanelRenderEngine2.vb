@@ -23,124 +23,125 @@ Public Class PanelRenderEngine2
     Public Sub DoGameRender(ByRef entityList() As Entity)
         'renders everything
 
-        Dim canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
-        'canvas.Graphics.Clear(Color.White)
-        canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+        Using canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
+            'canvas.Graphics.Clear(Color.White)
+            canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
 
-        Const rotationEnabled As Boolean = False        'used for when rotation isn't working properly
-        Const bitmapMode As Boolean = True
-        Const altLayerMode As Boolean = False
+            Const rotationEnabled As Boolean = False        'used for when rotation isn't working properly
+            Const bitmapMode As Boolean = True
+            Const altLayerMode As Boolean = False
 
-        'render layers
-        Dim context As BufferedGraphicsContext = BufferedGraphicsManager.Current
-        context.MaximumBuffer = renderPanel.Size
+            'render layers
+            Dim context As BufferedGraphicsContext = BufferedGraphicsManager.Current
+            context.MaximumBuffer = renderPanel.Size
 
-        Dim renderLayers() As BufferedGraphics = Nothing      'each render layer
-        Dim renderLayerNumbers() As Integer = Nothing         'the z coordinate of each render layer, parallel to above array
+            Dim renderLayers() As BufferedGraphics = Nothing      'each render layer
+            Dim renderLayerNumbers() As Integer = Nothing         'the z coordinate of each render layer, parallel to above array
 
-        Dim overallRender As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+            Dim overallRender As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
 
-        'entity rendering
-        If IsNothing(entityList) = False Then
-            For entityIndex As Integer = 0 To UBound(entityList)
-                Dim currentEntity As Entity = entityList(entityIndex)
-                If IsNothing(currentEntity.Frames) = False AndAlso currentEntity.currentFrame <= UBound(currentEntity.Frames) And currentEntity.currentFrame >= 0 Then
-                    Dim renderFrame As Frame = currentEntity.Frames(currentEntity.currentFrame)
-                    Dim renderPixels(,) As Color = renderFrame.ToColourArray
+            'entity rendering
+            If IsNothing(entityList) = False Then
+                For entityIndex As Integer = 0 To UBound(entityList)
+                    Dim currentEntity As Entity = entityList(entityIndex)
+                    If IsNothing(currentEntity.Frames) = False AndAlso currentEntity.currentFrame <= UBound(currentEntity.Frames) And currentEntity.currentFrame >= 0 Then
+                        Dim renderFrame As Frame = currentEntity.Frames(currentEntity.currentFrame)
+                        Dim renderPixels(,) As Color = renderFrame.ToColourArray
 
-                    Dim renderLayer As BufferedGraphics
+                        Dim renderLayer As BufferedGraphics
 
-                    If altLayerMode Then
-                        'selects the correct layer to draw to for this entity
-                        If IsNothing(renderLayers) = False Then
-                            If renderLayerNumbers.Contains(currentEntity.layer) = True Then
-                                renderLayer = renderLayers(Array.IndexOf(renderLayerNumbers, currentEntity.layer))
+                        If altLayerMode Then
+                            'selects the correct layer to draw to for this entity
+                            If IsNothing(renderLayers) = False Then
+                                If renderLayerNumbers.Contains(currentEntity.layer) = True Then
+                                    renderLayer = renderLayers(Array.IndexOf(renderLayerNumbers, currentEntity.layer))
+                                Else
+                                    ReDim Preserve renderLayers(UBound(renderLayers) + 1)
+                                    ReDim Preserve renderLayerNumbers(UBound(renderLayers))
+
+                                    renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+                                    renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
+                                    renderLayer = renderLayers(UBound(renderLayers))
+                                    'renderLayer.Graphics.Clear(Color.Transparent)
+                                    renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+                                End If
                             Else
-                                ReDim Preserve renderLayers(UBound(renderLayers) + 1)
-                                ReDim Preserve renderLayerNumbers(UBound(renderLayers))
+                                ReDim renderLayers(0)
+                                ReDim renderLayerNumbers(0)
 
-                                renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
                                 renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
+                                renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
                                 renderLayer = renderLayers(UBound(renderLayers))
-                                'renderLayer.Graphics.Clear(Color.Transparent)
+                                renderLayer.Graphics.Clear(Color.White)
                                 renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
                             End If
                         Else
-                            ReDim renderLayers(0)
-                            ReDim renderLayerNumbers(0)
-
-                            renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
-                            renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
-                            renderLayer = renderLayers(UBound(renderLayers))
-                            renderLayer.Graphics.Clear(Color.White)
-                            renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+                            If IsNothing(renderLayers) Then
+                                ReDim renderLayers(0)
+                                renderLayers(0) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+                                renderLayer = renderLayers(0)
+                                renderLayer.Graphics.Clear(Color.White)
+                                renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+                            Else
+                                renderLayer = renderLayers(0)
+                            End If
                         End If
-                    Else
-                        If IsNothing(renderLayers) Then
-                            ReDim renderLayers(0)
-                            renderLayers(0) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
-                            renderLayer = renderLayers(0)
-                            renderLayer.Graphics.Clear(Color.White)
-                            renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+
+                        Dim rotationAnchor As PointF = currentEntity.rotationAnchor       'the point where the entity is rotated from
+                        Dim rotation As Single = If(rotationEnabled, currentEntity.rotation, 0)
+
+                        'draws the pixels of the entity to the correct layer
+                        If bitmapMode Then
+                            If IsNothing(renderFrame.bitmapVersion) Then
+                                renderFrame.bitmapVersion = renderFrame.ToBitmap(currentEntity.opacity)
+                                entityList(entityIndex).Frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
+                            End If
+
+                            Dim renderSize As SizeF = New SizeF(
+                                        currentEntity.scale * RenderScale.Width * (renderFrame.Dimensions.Width + 0.5),
+                                        currentEntity.scale * RenderScale.Height * (renderFrame.Dimensions.Height + 0.5))
+                            Dim renderArea As New RectangleF(New PointF((currentEntity.location.X - currentEntity.rotationAnchor.X - 0.5) * RenderScale.Width,
+                                                                        (currentEntity.location.Y - currentEntity.rotationAnchor.Y - 0.5) * RenderScale.Height), renderSize)
+                            Dim imageToRender As Image = renderFrame.bitmapVersion
+
+                            renderLayer.Graphics.DrawImage(imageToRender, renderArea)
                         Else
-                            renderLayer = renderLayers(0)
+                            For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
+                                For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
+                                    Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
+                                    Dim scale As SizeF = New SizeF(
+                                currentEntity.scale * RenderScale.Width,
+                                currentEntity.scale * RenderScale.Height)
+
+                                    'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
+                                    'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
+                                    Dim pixelCentre As New PointF(
+                                (currentEntity.location.X * RenderScale.Width) + ((pixelX - currentEntity.rotationAnchor.X) * scale.Width * 2 / 3),
+                                (currentEntity.location.Y * RenderScale.Height) + ((pixelY - currentEntity.rotationAnchor.Y) * scale.Height * 2 / 3))
+
+                                    DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
+                                Next pixelX
+                            Next pixelY
                         End If
                     End If
+                Next entityIndex
 
-                    Dim rotationAnchor As PointF = currentEntity.rotationAnchor       'the point where the entity is rotated from
-                    Dim rotation As Single = If(rotationEnabled, currentEntity.rotation, 0)
+                If altLayerMode AndAlso Not IsNothing(renderLayers) Then
+                    'sorts the render layers from lowest to highest
+                    Dim sortedRenderLayerNumbers() As Integer
+                    sortedRenderLayerNumbers = renderLayerNumbers
+                    'QuickSortRecursive(sortedRenderLayerNumbers, 0, UBound(sortedRenderLayerNumbers))
 
-                    'draws the pixels of the entity to the correct layer
-                    If bitmapMode Then
-                        If IsNothing(renderFrame.bitmapVersion) Then
-                            renderFrame.bitmapVersion = renderFrame.ToBitmap(currentEntity.opacity)
-                            entityList(entityIndex).Frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
-                        End If
-
-                        Dim renderSize As SizeF = New SizeF(
-                                    currentEntity.scale * RenderScale.Width * (renderFrame.Dimensions.Width + 0.5),
-                                    currentEntity.scale * RenderScale.Height * (renderFrame.Dimensions.Height + 0.5))
-                        Dim renderArea As New RectangleF(New PointF((currentEntity.location.X - currentEntity.rotationAnchor.X - 0.5) * RenderScale.Width,
-                                                                    (currentEntity.location.Y - currentEntity.rotationAnchor.Y - 0.5) * RenderScale.Height), renderSize)
-                        Dim imageToRender As Image = renderFrame.bitmapVersion
-
-                        renderLayer.Graphics.DrawImage(imageToRender, renderArea)
-                    Else
-                        For pixelY As Integer = 0 To renderFrame.Dimensions.Height - 1
-                            For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
-                                Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
-                                Dim scale As SizeF = New SizeF(
-                            currentEntity.scale * RenderScale.Width,
-                            currentEntity.scale * RenderScale.Height)
-
-                                'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
-                                'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
-                                Dim pixelCentre As New PointF(
-                            (currentEntity.location.X * RenderScale.Width) + ((pixelX - currentEntity.rotationAnchor.X) * scale.Width * 2 / 3),
-                            (currentEntity.location.Y * RenderScale.Height) + ((pixelY - currentEntity.rotationAnchor.Y) * scale.Height * 2 / 3))
-
-                                DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
-                            Next pixelX
-                        Next pixelY
-                    End If
+                    'renders each layer
+                    For index As Integer = 0 To UBound(renderLayers)
+                        renderLayers(Array.IndexOf(renderLayerNumbers, sortedRenderLayerNumbers(index))).Render()
+                        'MsgBox("Artifical delay")
+                    Next
+                ElseIf Not IsNothing(renderLayers) AndAlso UBound(renderLayers) >= 0 Then
+                    renderLayers(0).Render()
                 End If
-            Next entityIndex
-
-            If altLayerMode AndAlso Not IsNothing(renderLayers) Then
-                'sorts the render layers from lowest to highest
-                Dim sortedRenderLayerNumbers() As Integer
-                sortedRenderLayerNumbers = renderLayerNumbers
-                'QuickSortRecursive(sortedRenderLayerNumbers, 0, UBound(sortedRenderLayerNumbers))
-
-                'renders each layer
-                For index As Integer = 0 To UBound(renderLayers)
-                    renderLayers(Array.IndexOf(renderLayerNumbers, sortedRenderLayerNumbers(index))).Render()
-                    'MsgBox("Artifical delay")
-                Next
-            ElseIf Not IsNothing(renderLayers) AndAlso UBound(renderLayers) >= 0 Then
-                renderLayers(0).Render()
             End If
-        End If
+        End Using
     End Sub
 
     Private Sub DrawPixel(graphicsInstance As Graphics, center As PointF, colour As Color, rotation As Single, scale As SizeF)

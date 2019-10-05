@@ -447,7 +447,7 @@ Public Module TagBehaviours
                         largestBracketOpeningIndex -= 1
                         If largestBracketOpeningIndex >= 0 And currentBracketIndent = 0 Then
                             Dim bracketedCalc As String = Mid(calc, largestBracketOpeningIndex + 1, cIndex - largestBracketOpeningIndex + 1)
-                            calc = calc.Replace(bracketedCalc, ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2)))
+                            calc = calc.Replace(bracketedCalc, ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2), ent, room))
 
                             cIndex = 0
                             largestBracketOpeningIndex = -1
@@ -475,6 +475,25 @@ Public Module TagBehaviours
                     ReDim Preserve parts(UBound(parts) + 1)
                 End If
             Next
+
+            'checks for any negative signs
+            Dim partIndex As Integer = 0
+            Do
+                If parts(partIndex) = Nothing And operatorsUsed(partIndex) = "-" Then
+                    parts(partIndex + 1) = parts(partIndex + 1) * -1
+
+                    For index As Integer = partIndex To UBound(parts) - 1
+                        parts(index) = parts(index + 1)
+                    Next
+                    ReDim Preserve parts(UBound(parts) - 1)
+                    For index As Integer = partIndex To UBound(operatorsUsed) - 1
+                        operatorsUsed(index) = operatorsUsed(index + 1)
+                    Next
+                    ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
+                Else
+                    partIndex += 1
+                End If
+            Loop Until partIndex >= UBound(parts)
 
             ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
 
