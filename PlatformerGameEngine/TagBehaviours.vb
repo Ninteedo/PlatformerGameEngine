@@ -417,119 +417,135 @@ Public Module TagBehaviours
     Public Function ProcessCalculation(calc As String, Optional ent As Entity = Nothing, Optional room As Room = Nothing) As String
         'takes in a calculation as a string and returns the result
 
-        Dim operatorSymbols() As String = {"^", "/", "*", "+", "-"}
-        Dim parts(0) As String
-        Dim operatorsUsed(0) As String
+        If Not IsNothing(calc) AndAlso Len(calc) > 0 Then
+            Dim operatorSymbols() As String = {"^", "/", "*", "+", "-"}
+            Dim parts(0) As String
+            Dim operatorsUsed(0) As String
 
-        If IsNothing(calc) OrElse IsNumeric(calc) Then
+            If IsNothing(calc) OrElse IsNumeric(calc) Then
+                Return calc
+            End If
+
+            'recursively processes the brackets first
+            Dim cIndex As Integer = 0
+            Dim currentBracketIndent As Integer = 0         'total opened brackets - total closed brackets
+            Dim largestBracketOpeningIndex As Integer = -1  'index of opening of outermost bracket
+            Dim inString As Boolean = False
+            Do
+                Dim c As String = calc(cIndex)
+                If Not inString Then
+                    If c = """" Then
+                        inString = True
+                    ElseIf c = "(" Then
+                        If largestBracketOpeningIndex = -1 Then
+                            largestBracketOpeningIndex = cIndex
+                        End If
+                        largestBracketOpeningIndex += 1
+
+                        cIndex += 1
+                    ElseIf c = ")" Then
+                        largestBracketOpeningIndex -= 1
+                        If largestBracketOpeningIndex >= 0 And currentBracketIndent = 0 Then
+                            Dim bracketedCalc As String = Mid(calc, largestBracketOpeningIndex + 1, cIndex - largestBracketOpeningIndex + 1)
+                            calc = calc.Replace(bracketedCalc, ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2)))
+
+                            cIndex = 0
+                            largestBracketOpeningIndex = -1
+                        End If
+                    Else
+                        cIndex += 1
+                    End If
+                ElseIf c = """" AndAlso calc(cIndex - 1) = "\" Then
+                    inString = False
+                    cIndex += 1
+                Else
+                    cIndex += 1
+                End If
+            Loop Until cIndex >= Len(calc)
+
+            'creates an array of parts split by the operators listed above
+            'also creates an ordered list of operators used to split
+            For Each c As String In calc
+                If Array.IndexOf(operatorSymbols, c) = -1 Then
+                    parts(UBound(parts)) += c
+                Else
+                    operatorsUsed(UBound(operatorsUsed)) = c
+                    ReDim Preserve operatorsUsed(UBound(operatorsUsed) + 1)
+
+                    ReDim Preserve parts(UBound(parts) + 1)
+                End If
+            Next
+
+            ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
+
+            'goes in order using BODMAS of each operator finding each calculation it is used in
+            'Dim currentPartIndex As Integer = 0
+            If UBound(parts) > 0 Then
+                For Each operatorSymbol As String In operatorSymbols
+                    Dim operatorIndex As Integer = 0
+                    Do
+                        If operatorIndex <= UBound(operatorsUsed) AndAlso operatorSymbol = operatorsUsed(operatorIndex) Then
+                            Dim leftPart As String = parts(operatorIndex).Trim
+                            Dim rightPart As String = parts(operatorIndex + 1).Trim
+                            Dim newPart As String
+
+                            Dim reference As Object = FrmGame.FindReference(ent, leftPart, room)
+                            If Not IsNothing(reference) Then
+                                leftPart = Val(reference)
+                            End If
+                            reference = FrmGame.FindReference(ent, rightPart, room)
+                            If Not IsNothing(reference) Then
+                                rightPart = Val(reference)
+                            End If
+
+
+                            'leftPart = leftPart.Replace("[", "").Replace("]", "")
+                            'rightPart = rightPart.Replace("[", "").Replace("]", "")
+
+                            If IsNumeric(leftPart) AndAlso IsNumeric(rightPart) Then
+                                Select Case operatorSymbol      'TODO: replace references with strings
+                                    Case "^"
+                                        newPart = Val(leftPart) ^ Val(rightPart)
+                                    Case "/"
+                                        newPart = Val(leftPart) / Val(rightPart)
+                                    Case "*"
+                                        newPart = Val(leftPart) * Val(rightPart)
+                                    Case "+"
+                                        newPart = Val(leftPart) + Val(rightPart)
+                                    Case "-"
+                                        newPart = Val(leftPart) - Val(rightPart)
+                                    Case Else
+                                        newPart = leftPart & operatorSymbol & rightPart
+                                End Select
+
+                                parts(operatorIndex) = newPart
+                                For index As Integer = operatorIndex To UBound(operatorsUsed) - 1
+                                    operatorsUsed(index) = operatorsUsed(index + 1)
+                                Next
+                                ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
+                                For index As Integer = operatorIndex + 1 To UBound(parts) - 1
+                                    parts(index) = parts(index + 1)
+                                Next
+                                ReDim Preserve parts(UBound(parts) - 1)
+                            Else
+                                operatorIndex += 1
+                            End If
+                        Else
+                            operatorIndex += 1
+                        End If
+                    Loop Until operatorIndex >= UBound(parts)
+                Next
+            Else
+                Dim reference As Object = FrmGame.FindReference(ent, parts(0), room)
+                If Not IsNothing(reference) Then
+                    parts(0) = Val(reference)
+                End If
+            End If
+
+            Return parts(0)
+        Else
             Return calc
         End If
-
-        'recursively processes the brackets first
-        Dim cIndex As Integer = 0
-        Dim currentBracketIndent As Integer = 0         'total opened brackets - total closed brackets
-        Dim largestBracketOpeningIndex As Integer = -1  'index of opening of outermost bracket
-        Dim inString As Boolean = False
-        Do
-            Dim c As String = calc(cIndex)
-            If Not inString Then
-                If c = """" Then
-                    inString = True
-                ElseIf c = "(" Then
-                    If largestBracketOpeningIndex = -1 Then
-                        largestBracketOpeningIndex = cIndex
-                    End If
-                    largestBracketOpeningIndex += 1
-
-                    cIndex += 1
-                ElseIf c = ")" Then
-                    largestBracketOpeningIndex -= 1
-                    If largestBracketOpeningIndex >= 0 And currentBracketIndent = 0 Then
-                        Dim bracketedCalc As String = Mid(calc, largestBracketOpeningIndex + 1, cIndex - largestBracketOpeningIndex + 1)
-                        calc = calc.Replace(bracketedCalc, ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2)))
-
-                        cIndex = 0
-                        largestBracketOpeningIndex = -1
-                    End If
-                Else
-                    cIndex += 1
-                End If
-            ElseIf c = """" AndAlso calc(cIndex - 1) = "\" Then
-                inString = False
-                cIndex += 1
-            Else
-                cIndex += 1
-            End If
-        Loop Until cIndex >= Len(calc)
-
-        'creates an array of parts split by the operators listed above
-        'also creates an ordered list of operators used to split
-        For Each c As String In calc
-            If Array.IndexOf(operatorSymbols, c) = -1 Then
-                parts(UBound(parts)) += c
-            Else
-                operatorsUsed(UBound(operatorsUsed)) = c
-                ReDim Preserve operatorsUsed(UBound(operatorsUsed) + 1)
-
-                ReDim Preserve parts(UBound(parts) + 1)
-            End If
-        Next
-
-        ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
-
-        'goes in order using BODMAS of each operator finding each calculation it is used in
-        'Dim currentPartIndex As Integer = 0
-        For Each operatorSymbol As String In operatorSymbols
-            Dim operatorIndex As Integer = 0
-            Do
-                If operatorIndex <= UBound(operatorsUsed) AndAlso operatorSymbol = operatorsUsed(operatorIndex) Then
-                    Dim leftPart As String = parts(operatorIndex).Trim
-                    Dim rightPart As String = parts(operatorIndex + 1).Trim
-                    Dim newPart As String
-                    Dim theseParts() As String = {leftPart, rightPart}
-
-                    For index As Integer = 0 To UBound(theseParts)        'TODO: might need to expand on this part, eg referring to other instances
-                        Dim reference As Object = FrmGame.FindReference(ent, theseParts(index), room)
-                        If Not IsNothing(reference) Then
-                            theseParts(index) = reference
-                        End If
-                    Next
-
-                    If IsNumeric(leftPart) AndAlso IsNumeric(rightPart) Then
-                        Select Case operatorSymbol
-                            Case operatorSymbols(0) '^
-                                newPart = Val(leftPart) ^ Val(rightPart)
-                            Case operatorSymbols(1) '/
-                                newPart = Val(leftPart) / Val(rightPart)
-                            Case operatorSymbols(2) '*
-                                newPart = Val(leftPart) * Val(rightPart)
-                            Case operatorSymbols(3) '+
-                                newPart = Val(leftPart) + Val(rightPart)
-                            Case operatorSymbols(4) '-
-                                newPart = Val(leftPart) - Val(rightPart)
-                            Case Else
-                                newPart = leftPart & rightPart
-                        End Select
-
-                        parts(operatorIndex) = newPart
-                        For index As Integer = operatorIndex To UBound(operatorsUsed) - 1
-                            operatorsUsed(index) = operatorsUsed(index + 1)
-                        Next
-                        ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
-                        For index As Integer = operatorIndex + 1 To UBound(parts) - 1
-                            parts(index) = parts(index + 1)
-                        Next
-                        ReDim Preserve parts(UBound(parts) - 1)
-                    Else
-                        operatorIndex += 1
-                    End If
-                Else
-                    operatorIndex += 1
-                End If
-            Loop Until operatorIndex >= UBound(parts)
-        Next
-
-        Return parts(0)
     End Function
 
 #End Region

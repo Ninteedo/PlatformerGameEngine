@@ -159,7 +159,7 @@ Public Class FrmGame
         'broadcasts the key held event for each key currently held
         For keyIndex As Integer = 0 To UBound(keysHeld)
             If keysHeld(keyIndex) <> Keys.None Then
-                TagEvents.BroadcastEvent(New Tag("event", ArrayToString(New Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom.instances, renderer)
+                TagEvents.BroadcastEvent(New Tag("event", ArrayToString(New Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))))), currentRoom, renderer)
             End If
         Next keyIndex
 
@@ -194,15 +194,15 @@ Public Class FrmGame
         Dim result As Object = defaultResult
 
         If Not IsNothing(tag.GetArgument) Then ' AndAlso argIndex <= UBound(tag.args) Then
-            Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True).ToString
-            Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
+            Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
+            'Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
 
             If IsNothing(rawArg) Then           'is not anything
                 result = Nothing
                 'ElseIf HasQuotes(rawArg) Then        'is a string
                 '    result = RemoveQuotes(rawArg)
-            ElseIf IsNumeric(argCalculated) Then    'is a calculation
-                result = argCalculated
+                'ElseIf IsNumeric(argCalculated) Then    'is a calculation
+                '    result = argCalculated
             Else
                 result = rawArg
             End If
@@ -230,10 +230,12 @@ Public Class FrmGame
 
     Public Shared Function FindReference(ent As Entity, refString As String, currentRoom As Room)
         'finds what a reference is referring to
-        'ExampleEntity.velocity(0)
+        'ExampleEntity.velocity[0]
+        'TODO: clean this up
 
         Dim parts() As String = JSONSplit(refString, 0, ".")
         Dim result As Object = Nothing
+        Dim arrayBoundsCharacters() As String = {"[", "]"}
 
         'find object (entity or room) which the reference is coming from
         Select Case LCase(parts(0))
@@ -241,7 +243,12 @@ Public Class FrmGame
                 result = ent
 
                 If UBound(parts) >= 1 Then
-                    result = ent.FindTag(parts(1))
+                    If parts(1).Contains(arrayBoundsCharacters(0)) Then
+                        Dim temp As String = parts(1).Remove(parts(1).IndexOf(arrayBoundsCharacters(0)))
+                        result = ent.FindTag(temp)
+                    Else
+                        result = ent.FindTag(parts(1))
+                    End If
                 End If
             Case "room"
                 result = currentRoom.FindParam(parts(1))
@@ -253,15 +260,25 @@ Public Class FrmGame
                 Next
         End Select
 
-        If UBound(parts) >= 2 Then
+        If UBound(parts) > 1 Then
             For index As Integer = 1 To UBound(parts)
-                If parts(index).Contains("(") Then
-                    Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf("(") + 1, parts(index).IndexOf(")") - parts(index).IndexOf(")")), ent, currentRoom)
-                    result = result.GetArgument(parts(index).Remove(parts(index).IndexOf("(")))(arrayIndex)
+                If parts(index).Contains(arrayBoundsCharacters(0)) Then
+                    Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf(arrayBoundsCharacters(0)) + 1, parts(index).IndexOf(arrayBoundsCharacters(1)) - parts(index).IndexOf(arrayBoundsCharacters(0))), ent, currentRoom)
+                    result = result.GetArgument(parts(index).Remove(parts(index).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
                 Else
                     result = result.GetArgument(parts(index))
                 End If
             Next
+        ElseIf UBound(parts) = 1 Then
+            If parts(1).Contains(arrayBoundsCharacters(0)) Then
+                Dim start As Integer = parts(1).IndexOf(arrayBoundsCharacters(0)) + 2
+                Dim length As Integer = parts(1).IndexOf(arrayBoundsCharacters(1)) - parts(1).IndexOf(arrayBoundsCharacters(0)) - 1
+                Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), ent, currentRoom))
+                'result = result.GetArgument(parts(1).Remove(parts(1).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
+                result = result.GetArgument()(arrayIndex)
+            Else
+                result = result.GetArgument()
+            End If
         End If
 
         Return result
