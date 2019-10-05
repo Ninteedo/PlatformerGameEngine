@@ -32,7 +32,7 @@ Public Module SpriteStringHandler
         Return result
     End Function
 
-    Public Function CreateString(sprite As PanelRenderEngine2.Sprite) As String
+    Public Function CreateString(sprite As Sprite) As String
         'returns a string created from a given sprite
 
         'adds line for size

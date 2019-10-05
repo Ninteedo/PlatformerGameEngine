@@ -36,6 +36,7 @@ Public Class FrmGame
 
     Protected Overrides Sub OnFormClosed(ByVal e As FormClosedEventArgs)
         frameTimer.Stop()
+        frameTimer.Dispose()
         renderer = Nothing
         MyBase.OnFormClosed(e)
     End Sub
@@ -315,8 +316,8 @@ Public Class FrmGame
 
         If Not IsNothing(otherNames) Then
             Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
-            Dim nameUnique As Boolean = False
             Dim generatedName As String = name
+            Dim nameUnique As Boolean
 
             Do
                 copyNumber += 1

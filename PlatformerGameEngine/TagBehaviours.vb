@@ -6,12 +6,8 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Module TagBehaviours
 
-    Dim errorMessageArgumentInvalid As String = " has an invalid argument"
-    Const collisionTagName As String = "collision"
-    Const collisionTypeTagName As String = "collisionType"
-    Const vulnerableTagName As String = "vulnerable"
-    Const effectTagName As String = "effect"
-    Const solidTagName As String = "solid"
+    'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
+
 
     Public Sub ProcessTag(tag As Tag, ByRef ent As Entity, ByRef room As Room, renderEngine As PRE2)
         'processes a single tag and modifies the entity accordingly
@@ -69,6 +65,12 @@ Public Module TagBehaviours
 #Region "Collision Detection"
 
     Private Sub VelocityHandling(ByRef ent As Entity, ByRef velocity As Vector, ByRef room As Room)
+        Const collisionTagName As String = "collision"
+        Const collisionTypeTagName As String = "collisionType"
+        Const vulnerableTagName As String = "vulnerable"
+        Const effectTagName As String = "effect"
+        Const solidTagName As String = "solid"
+
         If ent.HasTag(collisionTagName) Then
             For Each otherEnt As Entity In room.instances
                 If ent.name <> otherEnt.name Then
@@ -219,8 +221,8 @@ Public Module TagBehaviours
         Public Sub CalculateEdges()
             'creates the edges array using the points array
 
-            Dim point1 As Vector = Nothing
-            Dim point2 As Vector = Nothing
+            Dim point1 As Vector
+            Dim point2 As Vector
 
             If Not IsNothing(points) Then
                 ReDim edges(UBound(points))
@@ -321,7 +323,7 @@ Public Module TagBehaviours
 
         'loops through each edge for poly1 and poly2
         For edgeIndex As Integer = 0 To UBound(poly1.edges) + UBound(poly2.edges)
-            Dim edge As Vector = Nothing
+            Dim edge As Vector
 
             If edgeIndex <= UBound(poly1.edges) Then
                 edge = poly1.edges(edgeIndex)
@@ -476,7 +478,7 @@ Public Module TagBehaviours
         ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
 
         'goes in order using BODMAS of each operator finding each calculation it is used in
-        Dim currentPartIndex As Integer = 0
+        'Dim currentPartIndex As Integer = 0
         For Each operatorSymbol As String In operatorSymbols
             Dim operatorIndex As Integer = 0
             Do

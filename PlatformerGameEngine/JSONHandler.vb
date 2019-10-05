@@ -274,5 +274,36 @@ Public Module JSONHandler
 
         Return result
     End Function
+
+    Public Function RemoveSubStrings(jsonInput As String) As String
+        'returns the input with anything surrounding by quotation marks removed
+        'eg {"exampleTag":[{"exampleSubTagA":1}]} to {:[{:1}]}
+
+        Dim result As String = ""
+        Dim escaped As Boolean = False      'escaped when a \ is used
+        Dim inString As Boolean = False
+
+        For Each c As String In jsonInput
+            If Not inString Then
+                If c = """" Then
+                    inString = True
+                End If
+            Else
+                If Not escaped Then
+                    If c = "\" Then
+                        escaped = True
+                    ElseIf c = """" Then
+                        inString = False
+                    Else
+                        result += c
+                    End If
+                Else
+                    escaped = False
+                End If
+            End If
+        Next
+
+        Return result
+    End Function
 #End Region
 End Module
