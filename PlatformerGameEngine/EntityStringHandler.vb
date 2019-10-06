@@ -58,7 +58,7 @@ Module EntityStringHandler
             'loads the tags
             'Dim tagStrings() As String = JSONSplit(entityString, 0)
             'Dim temp As Object = JSONToTag(tagStrings(0)).GetArgument()
-            Dim temp As Object = New Tag(entityString).GetArgument()
+            Dim temp As Object = New Tag(entityString).InterpretArgument()
             For index As Integer = 0 To UBound(temp)
                 result.AddTag(New Tag(temp(index).ToString))
             Next

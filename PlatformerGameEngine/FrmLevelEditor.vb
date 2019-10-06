@@ -224,7 +224,7 @@ Public Class FrmLevelEditor
                             Do
                                 Dim currentInstance As Entity = currentRoom.instances(instanceIndex)
 
-                                If currentInstance.FindTag("templateName").GetArgument = templateName Then
+                                If currentInstance.FindTag("templateName").InterpretArgument = templateName Then
                                     'removes current instance if the templateName matches
                                     RemoveEntityInstance(instanceIndex)
 

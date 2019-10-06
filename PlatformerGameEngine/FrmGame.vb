@@ -194,7 +194,7 @@ Public Class FrmGame
 
         Dim result As Object = defaultResult
 
-        If Not IsNothing(tag.GetArgument) Then ' AndAlso argIndex <= UBound(tag.args) Then
+        If Not IsNothing(tag.InterpretArgument) Then ' AndAlso argIndex <= UBound(tag.args) Then
             Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
             'Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
 
@@ -374,7 +374,7 @@ Public Structure Room
     Dim parameters() As Tag
 
     Public Sub New(roomTag As Tag, renderEngine As PRE2)
-        Dim tagStrings() As Object = roomTag.GetArgument
+        Dim tagStrings() As Object = roomTag.InterpretArgument
         If Not IsNothing(tagStrings) Then
             Dim tags(UBound(tagStrings)) As Tag
             For tagIndex As Integer = 0 To UBound(tags)
@@ -385,7 +385,7 @@ Public Structure Room
                 If Not IsNothing(thisTag) Then
                     Select Case thisTag.name
                         Case "instances"
-                            Dim temp() As Object = thisTag.GetArgument
+                            Dim temp() As Object = thisTag.InterpretArgument
                             If Not IsNothing(temp) Then
                                 ReDim instances(UBound(temp))
                                 For index As Integer = 0 To UBound(temp)
@@ -393,7 +393,7 @@ Public Structure Room
                                 Next
                             End If
                         Case "parameters"
-                            Dim temp() As Object = thisTag.GetArgument
+                            Dim temp() As Object = thisTag.InterpretArgument
                             If Not IsNothing(temp) Then
                                 ReDim parameters(UBound(temp))
                                 For index As Integer = 0 To UBound(temp)
@@ -437,7 +437,7 @@ Public Structure Room
                 Dim templateOfInstance As Entity = Nothing           'used so that tags can be compared and identical ones can be ignored
                 Dim templateName As String = Nothing
                 If instance.HasTag("templateName") Then
-                    templateName = instance.FindTag("templateName").GetArgument()
+                    templateName = instance.FindTag("templateName").InterpretArgument()
                     For Each template As Entity In levelOfRoom.templates
                         If template.name = templateName Then
                             templateOfInstance = template
@@ -542,7 +542,7 @@ Public Structure Room
     Public Property Name As String
         Get
             If HasParam("name") Then
-                Return FindParam("name").GetArgument()
+                Return FindParam("name").InterpretArgument()
             Else
                 Return "UnnamedRoom"
             End If
@@ -555,7 +555,7 @@ Public Structure Room
     Public Property Coords As Point     'need to implement a proper coords system
         Get
             If HasParam("coords") Then
-                Return New Point(Val(FindParam("coords").GetArgument(0)), Val(FindParam("coords").GetArgument(1)))
+                Return New Point(Val(FindParam("coords").InterpretArgument(0)), Val(FindParam("coords").InterpretArgument(1)))
             Else
                 Return New Point(0, 0)
             End If
@@ -582,7 +582,7 @@ Public Structure Level
         globalParameters = Nothing
         rooms = Nothing
 
-        Dim tagStrings() As Object = New Tag(levelString).GetArgument 'JSONSplit(levelString, 0)
+        Dim tagStrings() As Object = New Tag(levelString).InterpretArgument 'JSONSplit(levelString, 0)
         If Not IsNothing(tagStrings) Then
             Dim tags(UBound(tagStrings)) As Tag
 
@@ -594,7 +594,7 @@ Public Structure Level
                 If Not IsNothing(thisTag) Then
                     Select Case thisTag.name
                         Case "parameters"
-                            Dim temp() As Object = thisTag.GetArgument
+                            Dim temp() As Object = thisTag.InterpretArgument
                             If Not IsNothing(temp) Then
                                 ReDim globalParameters(UBound(temp))
                                 For index As Integer = 0 To UBound(temp)
@@ -602,7 +602,7 @@ Public Structure Level
                                 Next
                             End If
                         Case "templates"
-                            Dim temp() As Object = thisTag.GetArgument
+                            Dim temp() As Object = thisTag.InterpretArgument
                             If Not IsNothing(temp) Then
                                 ReDim templates(UBound(temp))
                                 For index As Integer = 0 To UBound(temp)
@@ -610,7 +610,7 @@ Public Structure Level
                                 Next
                             End If
                         Case "rooms"
-                            Dim temp() As Object = thisTag.GetArgument
+                            Dim temp() As Object = thisTag.InterpretArgument
                             If Not IsNothing(temp) Then
                                 ReDim rooms(UBound(temp))
                                 For index As Integer = 0 To UBound(temp)
@@ -642,7 +642,7 @@ Public Structure Level
         If Not IsNothing(templates) Then
             For Each template As Entity In templates
                 If template.HasTag("fileName") = True Then
-                    Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").GetArgument() & levelDelimiters(1) & template.name
+                    Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").InterpretArgument() & levelDelimiters(1) & template.name
 
                     'adds each tag
                     For Each thisTag As Tag In template.tags
@@ -776,7 +776,7 @@ Public Structure Level
     Public Property Name As String
         Get
             If HasParam("name") Then
-                Return FindParam("name").GetArgument()
+                Return FindParam("name").InterpretArgument()
             Else
                 Return "UnnamedLevel"
             End If

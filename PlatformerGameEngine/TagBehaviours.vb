@@ -17,7 +17,7 @@ Public Module TagBehaviours
         Select Case LCase(tag.name)
             'basic movement
             Case "velocity"     '[xChange,yChange]
-                Dim velocityTemp As Object = tag.GetArgument
+                Dim velocityTemp As Object = tag.InterpretArgument
                 Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
                 VelocityHandling(ent, velocity, room)
@@ -27,9 +27,9 @@ Public Module TagBehaviours
                 Dim newTag As New Tag(FrmGame.GetArgument(tag, ent, room))
                 ent.AddTag(newTag, True)
             Case LCase("removeTag")
-                ent.RemoveTag(tag.GetArgument())
+                ent.RemoveTag(tag.InterpretArgument())
             Case "execute"
-                ProcessTag(New Tag(tag.GetArgument.ToString), ent, room, renderEngine)
+                ProcessTag(New Tag(tag.InterpretArgument.ToString), ent, room, renderEngine)
         End Select
         'End If
     End Sub
@@ -57,7 +57,7 @@ Public Module TagBehaviours
 
                         If collisionResult.intersecting Or collisionResult.willIntersect Then
 
-                            Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).GetArgument(collisionTypeTagName).GetArgument()
+                            Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).GetArgument()
                             Dim entVulnerable As Boolean = False        'stores whether the entity is vulnerable
                             If Not IsNothing(entCollisionTypesTemp) Then
                                 If IsArray(entCollisionTypesTemp) Then
@@ -72,7 +72,7 @@ Public Module TagBehaviours
                                 End If
                             End If
 
-                            Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).GetArgument(collisionTypeTagName).GetArgument()
+                            Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).GetArgument()
                             Dim otherEntEffect As Tag = Nothing
                             Dim otherEntSolid As Boolean = False
                             If Not IsNothing(otherEntCollisionTypesTemp) Then
@@ -384,11 +384,11 @@ Public Module TagBehaviours
         Dim result As RectangleF = Nothing
 
         If Not IsNothing(rectangleTag) Then
-            Dim originTag As Tag = rectangleTag.GetArgument("origin")
-            Dim sizeTag As Tag = rectangleTag.GetArgument("size")
+            Dim originTag As Tag = rectangleTag.InterpretArgument("origin")
+            Dim sizeTag As Tag = rectangleTag.InterpretArgument("size")
 
-            result = New RectangleF(New PointF(originTag.GetArgument()(0) * scale + relativeLocation.X, originTag.GetArgument()(1) * scale + relativeLocation.Y),
-                                    New SizeF(sizeTag.GetArgument()(0) * scale, sizeTag.GetArgument()(1) * scale))
+            result = New RectangleF(New PointF(originTag.InterpretArgument()(0) * scale + relativeLocation.X, originTag.InterpretArgument()(1) * scale + relativeLocation.Y),
+                                    New SizeF(sizeTag.InterpretArgument()(0) * scale, sizeTag.InterpretArgument()(1) * scale))
         End If
 
         Return result

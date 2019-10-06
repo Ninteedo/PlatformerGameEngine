@@ -377,7 +377,7 @@ Public Structure Tag
         Return TagToJSON(Me)
     End Function
 
-    Public Function GetArgument(Optional subTagName As String = Nothing) As Object
+    Public Function InterpretArgument(Optional subTagName As String = Nothing) As Object
         Dim temp As Object = InterpretValue(argument)
 
         'if subTagName is provided then searches the argument for a tag with the same name
@@ -532,7 +532,7 @@ Public Structure Entity
     Public Sub RefreshFramesList()
         'changes what is stored in framesList() using the "frames" tag
 
-        Dim framesArgument() As Object = FindTag("frames").GetArgument()
+        Dim framesArgument() As Object = FindTag("frames").InterpretArgument()
 
         If Not IsNothing(framesArgument) Then
             Dim newFrames(UBound(framesArgument)) As Frame
@@ -664,7 +664,7 @@ Public Structure Entity
     Property name As String
         Get
             If HasTag("name") Then
-                Return FindTag("name").GetArgument()
+                Return FindTag("name").InterpretArgument()
             Else
                 Return "unnamed"
             End If
@@ -680,7 +680,7 @@ Public Structure Entity
                 'Dim textForm As String = FindTag("location").GetArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
                 'Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
                 '                        Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
-                Return New Point(Val(FindTag("location").GetArgument()(0)), Val(FindTag("location").GetArgument()(1)))
+                Return New Point(Val(FindTag("location").InterpretArgument()(0)), Val(FindTag("location").InterpretArgument()(1)))
             Else
                 Return New PointF(0, 0)
             End If
@@ -693,7 +693,7 @@ Public Structure Entity
     Property layer As Integer
         Get
             If HasTag("layer") Then
-                Return FindTag("layer").GetArgument()
+                Return FindTag("layer").InterpretArgument()
             Else
                 Return 0
             End If
@@ -706,7 +706,7 @@ Public Structure Entity
     Property scale As Single
         Get
             If HasTag("scale") Then
-                Return FindTag("scale").GetArgument()
+                Return FindTag("scale").InterpretArgument()
             Else
                 Return 1
             End If
@@ -719,7 +719,7 @@ Public Structure Entity
     Property rotation As Single
         Get
             If HasTag("rotation") Then
-                Return FindTag("rotation").GetArgument()
+                Return FindTag("rotation").InterpretArgument()
             Else
                 Return 0
             End If
@@ -732,7 +732,7 @@ Public Structure Entity
     Property rotationAnchor As PointF
         Get
             If HasTag("rotationAnchor") Then
-                Dim argStrings() As String = {FindTag("rotationAnchor").GetArgument()(0), FindTag("rotationAnchor").GetArgument()(1)}
+                Dim argStrings() As String = {FindTag("rotationAnchor").InterpretArgument()(0), FindTag("rotationAnchor").InterpretArgument()(1)}
 
                 If Not IsNothing(argStrings(0)) AndAlso IsNumeric(argStrings(0)) AndAlso
                     Not IsNothing(argStrings(1)) AndAlso IsNumeric(argStrings(1)) Then
@@ -750,7 +750,7 @@ Public Structure Entity
     Property opacity As Single
         Get
             If HasTag("opacity") Then
-                Return FindTag("opacity").GetArgument()
+                Return FindTag("opacity").InterpretArgument()
             Else
                 Return 1.0
             End If
@@ -768,7 +768,7 @@ Public Structure Entity
     Property currentFrame As UInteger
         Get
             If HasTag("currentFrame") Then
-                Return FindTag("currentFrame").GetArgument()
+                Return FindTag("currentFrame").InterpretArgument()
             Else
                 Return 0
             End If
@@ -898,13 +898,13 @@ Public Structure Frame
     Public Sub New(frameTag As Tag, spriteFolderLocation As String)
         'creates a new frame from a frame tag
 
-        Dim spriteTagStrings() As Object = frameTag.GetArgument()
+        Dim spriteTagStrings() As Object = frameTag.InterpretArgument()
         'ReDim sprites(UBound(spriteTagStrings))
         'ReDim offsets(UBound(spriteTagStrings))
         If Not IsNothing(spriteTagStrings) Then
             For index As Integer = 0 To UBound(spriteTagStrings)
                 Dim spriteTag As New Tag(spriteTagStrings(index).ToString)
-                Dim offsetArg As Object = spriteTag.GetArgument
+                Dim offsetArg As Object = spriteTag.InterpretArgument
                 AddSprite(New Sprite(spriteFolderLocation & spriteTag.name), New Point(Val(offsetArg(0)), Val(offsetArg(1))))
             Next
         End If

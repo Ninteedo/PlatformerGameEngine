@@ -159,13 +159,13 @@ Public Class FrmTagMaker
     Public Sub AddArgument(argument As Object)
         'adds the given argument to the user's created tag's arguments
 
-        If IsNothing(tagInCreation.GetArgument()) = False Then
+        If IsNothing(tagInCreation.InterpretArgument()) = False Then
             ReDim Preserve arguments(UBound(arguments) + 1)
         Else
             ReDim arguments(0)
         End If
 
-        tagInCreation.GetArgument()(UBound(arguments)) = argument
+        tagInCreation.InterpretArgument()(UBound(arguments)) = argument
         RefreshArgumentsList()
     End Sub
 
