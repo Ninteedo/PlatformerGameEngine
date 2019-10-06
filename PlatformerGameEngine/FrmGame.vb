@@ -267,9 +267,9 @@ Public Class FrmGame
                 For index As Integer = 1 To UBound(parts)
                     If parts(index).Contains(arrayBoundsCharacters(0)) Then
                         Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf(arrayBoundsCharacters(0)) + 1, parts(index).IndexOf(arrayBoundsCharacters(1)) - parts(index).IndexOf(arrayBoundsCharacters(0))), ent, currentRoom)
-                        result = result.GetArgument(parts(index).Remove(parts(index).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
+                        result = result.InterpretArgument(parts(index).Remove(parts(index).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
                     Else
-                        result = result.GetArgument(parts(index))
+                        result = result.InterpretArgument(parts(index))
                     End If
                 Next
             ElseIf UBound(parts) = 1 Then
@@ -278,10 +278,10 @@ Public Class FrmGame
                     Dim start As Integer = parts(1).IndexOf(arrayBoundsCharacters(0)) + 2
                     Dim length As Integer = parts(1).IndexOf(arrayBoundsCharacters(1)) - parts(1).IndexOf(arrayBoundsCharacters(0)) - 1
                     Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), ent, currentRoom))
-                    'result = result.GetArgument(parts(1).Remove(parts(1).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
-                    result = result.GetArgument()(arrayIndex)
+                    'result = result.InterpretArgument(parts(1).Remove(parts(1).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
+                    result = result.InterpretArgument()(arrayIndex)
                 Else
-                    result = result.GetArgument()
+                    result = result.InterpretArgument()
                 End If
             End If
         End If

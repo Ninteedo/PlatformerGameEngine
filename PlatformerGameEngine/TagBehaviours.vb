@@ -46,7 +46,7 @@ Public Module TagBehaviours
         If ent.HasTag(collisionTagName) Then
             For Each otherEnt As Entity In room.instances
                 If ent.name <> otherEnt.name Then
-                    'Dim velocity2Temp As Object = otherEnt.FindTag("velocity").GetArgument
+                    'Dim velocity2Temp As Object = otherEnt.FindTag("velocity").InterpretArgument
                     'Dim velocity2 As New Vector(0, 0)
                     'If Not IsNothing(velocity2Temp) Then
                     '    velocity2 = New Vector(velocity2Temp(0), velocity2Temp(1))
@@ -57,7 +57,7 @@ Public Module TagBehaviours
 
                         If collisionResult.intersecting Or collisionResult.willIntersect Then
 
-                            Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).GetArgument()
+                            Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
                             Dim entVulnerable As Boolean = False        'stores whether the entity is vulnerable
                             If Not IsNothing(entCollisionTypesTemp) Then
                                 If IsArray(entCollisionTypesTemp) Then
@@ -72,7 +72,7 @@ Public Module TagBehaviours
                                 End If
                             End If
 
-                            Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).GetArgument()
+                            Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
                             Dim otherEntEffect As Tag = Nothing
                             Dim otherEntSolid As Boolean = False
                             If Not IsNothing(otherEntCollisionTypesTemp) Then
@@ -300,6 +300,8 @@ Public Module TagBehaviours
     End Function
 
     Public Function PolygonCollision(poly1 As Polygon, poly2 As Polygon, velocity As Vector) As PolygonCollisionResult
+        'https://www.codeproject.com/Articles/15573/2D-Polygon-Collision-Detection
+
         Dim result As New PolygonCollisionResult
 
         Dim minInterval As Single = Single.PositiveInfinity     'infinity so it will always be greater than the interval distance

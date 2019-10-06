@@ -113,11 +113,9 @@ Public Class PanelRenderEngine2
                                 currentEntity.scale * RenderScale.Width,
                                 currentEntity.scale * RenderScale.Height)
 
-                                    'Dim pixelCentre As New PointF(currentEntity.location.X + x * Math.Sin(angle) * scale, currentEntity.location.Y + y * Math.Cos(angle) * scale)
-                                    'Dim pixelCentre As New PointF(currentEntity.location.X + ((x - rotationAnchor.X) * Math.Sin((90 - rotation) * Math.PI / 180)), currentEntity.location.Y + ((y - rotationAnchor.Y) * Math.Cos(rotation * Math.PI / 180) * scale * 2))
                                     Dim pixelCentre As New PointF(
-                                (currentEntity.location.X * RenderScale.Width) + ((pixelX - currentEntity.rotationAnchor.X) * scale.Width * 2 / 3),
-                                (currentEntity.location.Y * RenderScale.Height) + ((pixelY - currentEntity.rotationAnchor.Y) * scale.Height * 2 / 3))
+                                    (currentEntity.location.X * RenderScale.Width) + ((pixelX - currentEntity.rotationAnchor.X) * scale.Width * 2 / 3),
+                                    (currentEntity.location.Y * RenderScale.Height) + ((pixelY - currentEntity.rotationAnchor.Y) * scale.Height * 2 / 3))
 
                                     DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
                                 Next pixelX
@@ -354,8 +352,6 @@ End Class
 
 Public Structure Tag
     Dim name As String
-    'Dim args() As Object        'does this need to be object?
-    'Dim args() As String
     Dim argument As String
 
     Public Sub New(tagName As String, Optional argument As String = Nothing)
@@ -406,56 +402,6 @@ Public Structure Tag
             argument = newValue
         End If
     End Sub
-
-    'Public Function GetArgument(argIndex As Integer, Optional defaultVal As String = Nothing,
-    '                            Optional text As Boolean = False, Optional numeric As Boolean = False,
-    '                            Optional subTag As Boolean = False) As String
-    '    'returns a slightly interpreted value of the argument at the given index
-
-    '    'If numeric And text Or Not IsNothing(subTag) And numeric Or text And Not IsNothing(subTag) Then   'checks that multiple data types aren't being requested
-    '    '    PanelRenderEngine2.DisplayError("Can only request argument as a single data type")
-    '    '    Return Nothing
-    '    'Else
-    '    If Not IsNothing(argument) Then ' AndAlso argIndex >= 0 And argIndex <= UBound(argument) Then
-    '        Dim result As String = argument(argIndex)
-
-    '        If Not IsNothing(result) Then
-    '            'checks if the argument is a string
-    '            If Len(result) >= 2 AndAlso Mid(result, 1, 1) = """" AndAlso Mid(result, Len(result), 1) = """" Then
-    '                result = Mid(result, 2, Len(result) - 2)
-    '            ElseIf False Then    'TODO: condition for tag
-
-    '            End If
-    '        End If
-
-    '        '                If numeric Then
-    '        '                    If IsNumeric(result) Then
-    '        '                        result = result
-    '        '                    Else
-    '        '                        PanelRenderEngine2.DisplayError(result.ToString & " is not a number")
-    '        '                    End If
-    '        '                ElseIf text Then
-    '        '                    Dim stringVer As String = result.ToString
-    '        '                    If stringVer(0) = """" And stringVer(Len(stringVer) - 1) = """" Then        'strings in arguments should have quotes in them
-    '        '                        result = Mid(stringVer, 2, Len(stringVer) - 2)
-    '        '                    Else
-    '        '                        PanelRenderEngine2.DisplayError("Argument " & result & " is meant to be a string but is missing quotations")
-    '        '                    End If
-    '        '                ElseIf Not IsNothing(subTag) Then
-    '        'TODO:               add searching for sub tags in tags
-
-    '        '                    result = New Tag(result)
-    '        '                End If
-
-    '        Return result
-    '    Else
-    '        PanelRenderEngine2.DisplayError("ArgIndex " & argIndex & " is not valid for tag " & Me.ToString)
-    '        Return Nothing
-    '    End If
-    '    'End If
-    'End Function
-
-
 
     Public Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
         'used for = and <> operators
@@ -519,11 +465,12 @@ Public Structure Entity
     Public Function Clone() As Entity
         'returns a clone of this entity
 
-        Dim newClone As Entity = Nothing
+        Dim newClone As New Entity
 
-        newClone.spriteFolderLocation = spriteFolderLocation
-        newClone.Frames = Frames
-        newClone.tags = tags
+        newClone.spriteFolderLocation = spriteFolderLocation.Clone
+        'newClone.Frames = Frames
+        newClone.tags = tags.Clone
+        RefreshFramesList()
 
         Return newClone
     End Function
@@ -677,7 +624,7 @@ Public Structure Entity
     Property location As PointF
         Get
             If HasTag("location") Then
-                'Dim textForm As String = FindTag("location").GetArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
+                'Dim textForm As String = FindTag("location").InterpretArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
                 'Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
                 '                        Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
                 Return New Point(Val(FindTag("location").InterpretArgument()(0)), Val(FindTag("location").InterpretArgument()(1)))

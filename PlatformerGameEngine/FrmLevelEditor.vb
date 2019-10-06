@@ -321,7 +321,7 @@ Public Class FrmLevelEditor
 
 #Region "Instances"
 
-    Private Sub AddEntityInstance(template As Entity)
+    Private Sub AddEntityInstance(ByVal template As Entity)
         'creates a new instance from the given entity
 
         'Dim templateName As String = template.name
@@ -332,7 +332,7 @@ Public Class FrmLevelEditor
         End If
 
         'checks if there are any instances with the same name yet, and numbers the instance accordingly
-        If IsNothing(SelectedRoom.instances) = True Then
+        If IsNothing(SelectedRoom.instances) Then
             newInstance.name = RemoveQuotes(template.name) & "-1"
 
             ReDim thisLevel.rooms(lstRooms.SelectedIndex).instances(0)
