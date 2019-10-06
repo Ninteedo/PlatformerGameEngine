@@ -8,7 +8,6 @@ Public Module TagBehaviours
 
     'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
 
-
     Public Sub ProcessTag(tag As Tag, ByRef ent As Entity, ByRef room As Room, renderEngine As PRE2)
         'processes a single tag and modifies the entity accordingly
 
@@ -18,37 +17,10 @@ Public Module TagBehaviours
         Select Case LCase(tag.name)
             'basic movement
             Case "velocity"     '[xChange,yChange]
-                Dim velocity1Temp As Object = tag.GetArgument
-                Dim velocity1 As New Vector(velocity1Temp(0), velocity1Temp(1))
+                Dim velocityTemp As Object = tag.GetArgument
+                Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
-                VelocityHandling(ent, velocity1, room)
-
-
-                'Case "move"     '[xChange,yChange]
-                '    Dim moveTemp As Object = tag.GetArgument()
-                '    Dim frictionTag As Tag = ent.FindTag("friction")
-                '    Dim newCoords As New PointF(ent.location.X + moveTemp(0), ent.location.Y + moveTemp(1))
-                '    ent.AddTag(New Tag("lastMove", ArrayToString({moveTemp(0), moveTemp(1)})), True)       'used to reverse movement if necessary
-
-                '    If ent.HasTag("hitbox") Then
-                '        CheckForOverlaps(ent, room, renderEngine)
-                '    End If
-
-                '    ent.location = newCoords
-                'Case LCase("xVel")
-                '    'TagXVel(ent, tagIndex)
-                '    ent.location = New PointF(ent.location.X + FrmGame.GetEntityArgument(tag, ent, room, 0), ent.location.Y)
-                'Case LCase("yVel")
-                '    'TagYVel(ent, tagIndex)
-                '    ent.location = New PointF(ent.location.X, ent.location.Y + FrmGame.GetEntityArgument(tag, ent, room, 0))
-                'Case "xacc"
-
-
-                'Case LCase("gravity")
-                '    'TagGravity(ent, tagIndex)
-                '    ent.AddTag(New Tag("yVel", FrmGame.GetEntityArgument(tag, ent, room, 0) * -1 +
-                '                            FrmGame.GetEntityArgument(ent.FindTag("yVel"), ent, room, 0)))
-
+                VelocityHandling(ent, velocity, room)
 
                 'meta
             Case LCase("addTag")
@@ -83,70 +55,82 @@ Public Module TagBehaviours
                     If otherEnt.HasTag(collisionTagName) Then
                         Dim collisionResult As PolygonCollisionResult = CheckPolygons(ent, otherEnt, velocity) ' + velocity2)
 
-                        Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).GetArgument(collisionTypeTagName).GetArgument()
-                        Dim entVulnerable As Boolean = False        'stores whether the entity is vulnerable
-                        If Not IsNothing(entCollisionTypesTemp) Then
-                            If IsArray(entCollisionTypesTemp) Then
-                                For index As Integer = 0 To UBound(entCollisionTypesTemp)
-                                    If entCollisionTypesTemp(index).name = vulnerableTagName Then
-                                        entVulnerable = True
-                                        Exit For
-                                    End If
-                                Next
-                            Else
-                                entVulnerable = entCollisionTypesTemp.name = vulnerableTagName   'compares the collision type to the stored vulnerable name
-                            End If
-                        End If
+                        If collisionResult.intersecting Or collisionResult.willIntersect Then
 
-                        Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).GetArgument(collisionTypeTagName).GetArgument()
-                        Dim otherEntEffect As Tag = Nothing
-                        Dim otherEntSolid As Boolean = False
-                        If Not IsNothing(otherEntCollisionTypesTemp) Then
-                            If IsArray(otherEntCollisionTypesTemp) Then
-                                For index As Integer = 0 To UBound(otherEntCollisionTypesTemp)
-                                    If otherEntCollisionTypesTemp(index).name = effectTagName Then
-                                        otherEntEffect = otherEntCollisionTypesTemp(index)
-                                    ElseIf otherEntCollisionTypesTemp(index).name = solidTagName Then
-                                        otherEntSolid = True
-                                    End If
-                                Next
-                            Else
-                                If otherEntCollisionTypesTemp.name = effectTagName Then
-                                    otherEntEffect = otherEntCollisionTypesTemp
-                                ElseIf otherEntCollisionTypesTemp.name = solidTagName Then
-                                    otherEntSolid = True
+                            Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).GetArgument(collisionTypeTagName).GetArgument()
+                            Dim entVulnerable As Boolean = False        'stores whether the entity is vulnerable
+                            If Not IsNothing(entCollisionTypesTemp) Then
+                                If IsArray(entCollisionTypesTemp) Then
+                                    For index As Integer = 0 To UBound(entCollisionTypesTemp)
+                                        If entCollisionTypesTemp(index).name = vulnerableTagName Then
+                                            entVulnerable = True
+                                            Exit For
+                                        End If
+                                    Next
+                                Else
+                                    entVulnerable = entCollisionTypesTemp.name = vulnerableTagName   'compares the collision type to the stored vulnerable name
                                 End If
                             End If
-                        End If
 
-                        If otherEntSolid And collisionResult.willIntersect Then
-                            'adjusts velocity to prevent penetration
-                            velocity += collisionResult.minTranslationVect
-                        End If
+                            Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).GetArgument(collisionTypeTagName).GetArgument()
+                            Dim otherEntEffect As Tag = Nothing
+                            Dim otherEntSolid As Boolean = False
+                            If Not IsNothing(otherEntCollisionTypesTemp) Then
+                                If IsArray(otherEntCollisionTypesTemp) Then
+                                    For index As Integer = 0 To UBound(otherEntCollisionTypesTemp)
+                                        If otherEntCollisionTypesTemp(index).name = effectTagName Then
+                                            otherEntEffect = otherEntCollisionTypesTemp(index)
+                                        ElseIf otherEntCollisionTypesTemp(index).name = solidTagName Then
+                                            otherEntSolid = True
+                                        End If
+                                    Next
+                                Else
+                                    If otherEntCollisionTypesTemp.name = effectTagName Then
+                                        otherEntEffect = otherEntCollisionTypesTemp
+                                    ElseIf otherEntCollisionTypesTemp.name = solidTagName Then
+                                        otherEntSolid = True
+                                    End If
+                                End If
+                            End If
 
-                        If entVulnerable And Not IsNothing(otherEntEffect) Then
-                            'executes the effect of the other entity
+                            If otherEntSolid And collisionResult.willIntersect Then
+                                'adjusts velocity to prevent penetration
+                                velocity += collisionResult.minTranslationVect
+                            End If
+
+                            If entVulnerable And Not IsNothing(otherEntEffect) Then
+                                'executes the effect of the other entity
+                            End If
                         End If
                     End If
 
                 End If
             Next
+            ent.AddTag(New Tag("velocity", ArrayToString({velocity.X, velocity.Y})), True)      'changes the ent's velocity
         End If
 
         ent.location = New PointF(ent.location.X + velocity.X, ent.location.Y + velocity.Y)
     End Sub
 
+    Public Function RectanglesOverlapping(rect1 As RectangleF, rect2 As RectangleF) As Boolean
+        Return Not (rect1.Left > rect2.Right Or rect1.Right < rect2.Left Or rect1.Top > rect2.Bottom Or rect1.Bottom < rect2.Top)
+    End Function
 
     Public Function CheckPolygons(ent1 As Entity, ent2 As Entity, velocity As Vector) As PolygonCollisionResult
-        Dim ent1Poly As New Polygon(ent1.GetEntityHitbox())
-        Dim ent2Poly As New Polygon(ent2.GetEntityHitbox())
+        Dim ent1Rect As RectangleF = ent1.GetEntityHitbox()
+        Dim ent2Rect As RectangleF = ent2.GetEntityHitbox()
+        Dim ent1RectMoved As New RectangleF(New PointF(ent1Rect.X + velocity.X, ent2Rect.Y + velocity.Y), ent1Rect.Size)
+        Dim ent1Poly As New Polygon(ent1Rect)
+        Dim ent2Poly As New Polygon(ent2Rect)
 
-        Dim poly1Translation As New Vector
-        Dim collisionResult As PolygonCollisionResult = PolygonCollision(ent1Poly, ent2Poly, velocity)
+        Dim collisionResult As PolygonCollisionResult
 
-
-
-        'poly1.ChangeLocation(poly1Translation)
+        'Dim poly1Translation As New Vector
+        If RectanglesOverlapping(ent1Rect, ent2Rect) OrElse RectanglesOverlapping(ent1RectMoved, ent2Rect) Then
+            collisionResult = PolygonCollision(ent1Poly, ent2Poly, velocity)
+        Else
+            collisionResult = New PolygonCollisionResult With {.intersecting = False, .willIntersect = False, .minTranslationVect = New Vector(0, 0)}
+        End If
         Return collisionResult
     End Function
 

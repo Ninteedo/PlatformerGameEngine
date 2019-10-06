@@ -10,7 +10,7 @@ Public Module TagEvents
         'broadcasts a single event to all entities with a listener for the event
 
         For index As Integer = 0 To UBound(thisRoom.instances)
-            Dim ent As Entity = thisRoom.instances(index).Clone
+            Dim ent As Entity = thisRoom.instances(index)
             If Not IsNothing(ent.tags) Then
                 For tagIndex As Integer = 0 To UBound(ent.tags)
                     If LCase(ent.tags(tagIndex).name) = "listener" AndAlso ent.tags(tagIndex).GetArgument("name") = eventTag.GetArgument("name") Then   'TODO: fix this condition
@@ -19,7 +19,7 @@ Public Module TagEvents
                 Next
             End If
 
-            thisRoom.instances(index) = ent.Clone
+            thisRoom.instances(index) = ent
         Next
     End Sub
 
