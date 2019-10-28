@@ -151,7 +151,7 @@ Public Class FrmGame
     Dim renderer As PRE2            'panel render engine 2
 
     Public currentLevel As Level
-    Public currentRoom As Room
+    Public currentRoom As Room		'should probably make this a property
     'Public playerEntity As Entity
     Dim frameTimer As New Timer
 
@@ -194,7 +194,7 @@ Public Class FrmGame
 
         Dim result As Object = defaultResult
 
-        If Not IsNothing(tag.InterpretArgument) Then ' AndAlso argIndex <= UBound(tag.args) Then
+        If Not IsNothing(tag.argument) Then ' AndAlso argIndex <= UBound(tag.args) Then
             Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
             'Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
 
@@ -255,7 +255,7 @@ Public Class FrmGame
                 result = currentRoom.FindParam(parts(1))
             Case Else
                 For index As Integer = 0 To UBound(currentRoom.instances)
-                    If currentRoom.instances(index).name = parts(0) Then
+                    If currentRoom.instances(index).Name = parts(0) Then
                         result = currentRoom.instances(index)
                     End If
                 Next
@@ -439,7 +439,7 @@ Public Structure Room
                 If instance.HasTag("templateName") Then
                     templateName = instance.FindTag("templateName").InterpretArgument()
                     For Each template As Entity In levelOfRoom.templates
-                        If template.name = templateName Then
+                        If template.Name = templateName Then
                             templateOfInstance = template
                             Exit For
                         End If
@@ -447,7 +447,7 @@ Public Structure Room
                 End If
 
                 If IsNothing(templateOfInstance) Then
-                    PRE2.DisplayError("Could not find a template called " & templateName & " for instance " & instance.name)
+                    PRE2.DisplayError("Could not find a template called " & templateName & " for instance " & instance.Name)
                 Else
                     'Dim line As String = "addEnt" & roomDelimiters(0) & templateName & roomDelimiters(1) & instance.name        'this looks wrong
                     Dim line As String = "addEnt" & roomDelimiters(0) & templateName
@@ -642,7 +642,7 @@ Public Structure Level
         If Not IsNothing(templates) Then
             For Each template As Entity In templates
                 If template.HasTag("fileName") = True Then
-                    Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").InterpretArgument() & levelDelimiters(1) & template.name
+                    Dim line As String = "loadEnt" & levelDelimiters(0) & template.FindTag("fileName").InterpretArgument() & levelDelimiters(1) & template.Name
 
                     'adds each tag
                     For Each thisTag As Tag In template.tags
@@ -651,7 +651,7 @@ Public Structure Level
 
                     levelString += line & levelDelimiters(2)
                 Else
-                    PRE2.DisplayError("Template " & template.name & " is missing tag 'fileName' so couldn't be saved")
+                    PRE2.DisplayError("Template " & template.Name & " is missing tag 'fileName' so couldn't be saved")
                 End If
             Next
         End If

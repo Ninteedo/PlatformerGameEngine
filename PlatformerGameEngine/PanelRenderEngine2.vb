@@ -20,8 +20,8 @@ Public Class PanelRenderEngine2
 
 #Region "Rendering"
 
-    Public Sub DoGameRender(ByRef entityList() As Entity)
-        'renders everything
+    Public Sub DoGameRender(ByVal entityList() As Entity)
+        'renders a list of entities
 
         Using canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
             'canvas.Graphics.Clear(Color.White)
@@ -44,8 +44,8 @@ Public Class PanelRenderEngine2
             If IsNothing(entityList) = False Then
                 For entityIndex As Integer = 0 To UBound(entityList)
                     Dim currentEntity As Entity = entityList(entityIndex)
-                    If IsNothing(currentEntity.Frames) = False AndAlso currentEntity.currentFrame <= UBound(currentEntity.Frames) And currentEntity.currentFrame >= 0 Then
-                        Dim renderFrame As Frame = currentEntity.Frames(currentEntity.currentFrame)
+                    If IsNothing(currentEntity.Frames) = False AndAlso currentEntity.CurrentFrame <= UBound(currentEntity.Frames) And currentEntity.CurrentFrame >= 0 Then
+                        Dim renderFrame As Frame = currentEntity.Frames(currentEntity.CurrentFrame)
                         Dim renderPixels(,) As Color = renderFrame.ToColourArray
 
                         Dim renderLayer As BufferedGraphics
@@ -53,14 +53,14 @@ Public Class PanelRenderEngine2
                         If altLayerMode Then
                             'selects the correct layer to draw to for this entity
                             If IsNothing(renderLayers) = False Then
-                                If renderLayerNumbers.Contains(currentEntity.layer) = True Then
-                                    renderLayer = renderLayers(Array.IndexOf(renderLayerNumbers, currentEntity.layer))
+                                If renderLayerNumbers.Contains(currentEntity.Layer) = True Then
+                                    renderLayer = renderLayers(Array.IndexOf(renderLayerNumbers, currentEntity.Layer))
                                 Else
                                     ReDim Preserve renderLayers(UBound(renderLayers) + 1)
                                     ReDim Preserve renderLayerNumbers(UBound(renderLayers))
 
                                     renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
-                                    renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
+                                    renderLayerNumbers(UBound(renderLayers)) = currentEntity.Layer
                                     renderLayer = renderLayers(UBound(renderLayers))
                                     'renderLayer.Graphics.Clear(Color.Transparent)
                                     renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
@@ -69,7 +69,7 @@ Public Class PanelRenderEngine2
                                 ReDim renderLayers(0)
                                 ReDim renderLayerNumbers(0)
 
-                                renderLayerNumbers(UBound(renderLayers)) = currentEntity.layer
+                                renderLayerNumbers(UBound(renderLayers)) = currentEntity.Layer
                                 renderLayers(UBound(renderLayers)) = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
                                 renderLayer = renderLayers(UBound(renderLayers))
                                 renderLayer.Graphics.Clear(Color.White)
@@ -87,21 +87,21 @@ Public Class PanelRenderEngine2
                             End If
                         End If
 
-                        Dim rotationAnchor As PointF = currentEntity.rotationAnchor       'the point where the entity is rotated from
-                        Dim rotation As Single = If(rotationEnabled, currentEntity.rotation, 0)
+                        Dim rotationAnchor As PointF = currentEntity.RotationAnchor       'the point where the entity is rotated from
+                        Dim rotation As Single = If(rotationEnabled, currentEntity.Rotation, 0)
 
                         'draws the pixels of the entity to the correct layer
                         If bitmapMode Then
                             If IsNothing(renderFrame.bitmapVersion) Then
-                                renderFrame.bitmapVersion = renderFrame.ToBitmap(currentEntity.opacity)
-                                entityList(entityIndex).Frames(currentEntity.currentFrame).bitmapVersion = renderFrame.bitmapVersion
+                                renderFrame.bitmapVersion = renderFrame.ToBitmap(currentEntity.Opacity)
+                                entityList(entityIndex).Frames(currentEntity.CurrentFrame).bitmapVersion = renderFrame.bitmapVersion
                             End If
 
                             Dim renderSize As SizeF = New SizeF(
-                                        currentEntity.scale * RenderScale.Width * (renderFrame.Dimensions.Width + 0.5),
-                                        currentEntity.scale * RenderScale.Height * (renderFrame.Dimensions.Height + 0.5))
-                            Dim renderArea As New RectangleF(New PointF((currentEntity.location.X - currentEntity.rotationAnchor.X - 0.5) * RenderScale.Width,
-                                                                        (currentEntity.location.Y - currentEntity.rotationAnchor.Y - 0.5) * RenderScale.Height), renderSize)
+                                        currentEntity.Scale * RenderScale.Width * (renderFrame.Dimensions.Width + 0.5),
+                                        currentEntity.Scale * RenderScale.Height * (renderFrame.Dimensions.Height + 0.5))
+                            Dim renderArea As New RectangleF(New PointF((currentEntity.Location.X - currentEntity.RotationAnchor.X - 0.5) * RenderScale.Width,
+                                                                        (currentEntity.Location.Y - currentEntity.RotationAnchor.Y - 0.5) * RenderScale.Height), renderSize)
                             Dim imageToRender As Image = renderFrame.bitmapVersion
 
                             renderLayer.Graphics.DrawImage(imageToRender, renderArea)
@@ -110,12 +110,12 @@ Public Class PanelRenderEngine2
                                 For pixelX As Integer = 0 To renderFrame.Dimensions.Width - 1
                                     Dim angle As Single = Math.Atan((pixelY - rotationAnchor.Y) / (pixelX - rotationAnchor.X)) + rotation * Math.PI / 180
                                     Dim scale As SizeF = New SizeF(
-                                currentEntity.scale * RenderScale.Width,
-                                currentEntity.scale * RenderScale.Height)
+                                currentEntity.Scale * RenderScale.Width,
+                                currentEntity.Scale * RenderScale.Height)
 
                                     Dim pixelCentre As New PointF(
-                                    (currentEntity.location.X * RenderScale.Width) + ((pixelX - currentEntity.rotationAnchor.X) * scale.Width * 2 / 3),
-                                    (currentEntity.location.Y * RenderScale.Height) + ((pixelY - currentEntity.rotationAnchor.Y) * scale.Height * 2 / 3))
+                                    (currentEntity.Location.X * RenderScale.Width) + ((pixelX - currentEntity.RotationAnchor.X) * scale.Width * 2 / 3),
+                                    (currentEntity.Location.Y * RenderScale.Height) + ((pixelY - currentEntity.RotationAnchor.Y) * scale.Height * 2 / 3))
 
                                     DrawPixel(canvas.Graphics, pixelCentre, renderPixels(pixelX, pixelY), rotation, scale)
                                 Next pixelX
@@ -169,6 +169,7 @@ Public Class PanelRenderEngine2
 
     Public Sub ResizeRenderWindow()
         'resizes the render window in accordance with the parameters provided
+        'TODO: this is probably unnecessary
 
         If renderPixelPerfect Then    'sets panel size to game resolution
             renderPanel.Size = renderResolution
@@ -343,7 +344,7 @@ Public Class PanelRenderEngine2
             End If
         Next line
 
-        DisplayError("Couldn't find property " & propertyName)
+        'DisplayError("Couldn't find property " & propertyName)
 
         Return Nothing
     End Function
@@ -437,10 +438,10 @@ Public Structure Entity
         Frames = startFrames
         tags = startTags
 
-        currentFrame = 0
-        location = startLocation
-        rotation = startRotation
-        scale = startScale
+        CurrentFrame = 0
+        Location = startLocation
+        Rotation = startRotation
+        Scale = startScale
     End Sub
 
     Public Sub New(entityString As String, renderEngine As PanelRenderEngine2)
@@ -465,11 +466,11 @@ Public Structure Entity
     Public Function Clone() As Entity
         'returns a clone of this entity
 
-        Dim newClone As New Entity
-
-        newClone.spriteFolderLocation = spriteFolderLocation.Clone
         'newClone.Frames = Frames
-        newClone.tags = tags.Clone
+        Dim newClone As New Entity With {
+            .spriteFolderLocation = spriteFolderLocation.Clone,
+            .tags = tags.Clone
+        }
         RefreshFramesList()
 
         Return newClone
@@ -594,7 +595,7 @@ Public Structure Entity
 
             CheckSpecialTagModified(newTag)
         Else
-            PanelRenderEngine2.DisplayError("Tried to change tag for entity " & name & " but index (" & tagIndex & ") was out of bounds")
+            PanelRenderEngine2.DisplayError("Tried to change tag for entity " & Name & " but index (" & tagIndex & ") was out of bounds")
         End If
     End Sub
 
@@ -608,7 +609,7 @@ Public Structure Entity
     End Sub
 
 
-    Property name As String
+    Property Name As String
         Get
             If HasTag("name") Then
                 Return FindTag("name").InterpretArgument()
@@ -621,7 +622,7 @@ Public Structure Entity
         End Set
     End Property
 
-    Property location As PointF
+    Property Location As PointF
         Get
             If HasTag("location") Then
                 'Dim textForm As String = FindTag("location").InterpretArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
@@ -637,7 +638,7 @@ Public Structure Entity
         End Set
     End Property
 
-    Property layer As Integer
+    Property Layer As Integer
         Get
             If HasTag("layer") Then
                 Return FindTag("layer").InterpretArgument()
@@ -650,7 +651,7 @@ Public Structure Entity
         End Set
     End Property
 
-    Property scale As Single
+    Property Scale As Single
         Get
             If HasTag("scale") Then
                 Return FindTag("scale").InterpretArgument()
@@ -663,7 +664,7 @@ Public Structure Entity
         End Set
     End Property
 
-    Property rotation As Single
+    Property Rotation As Single
         Get
             If HasTag("rotation") Then
                 Return FindTag("rotation").InterpretArgument()
@@ -676,7 +677,7 @@ Public Structure Entity
         End Set
     End Property
 
-    Property rotationAnchor As PointF
+    Property RotationAnchor As PointF
         Get
             If HasTag("rotationAnchor") Then
                 Dim argStrings() As String = {FindTag("rotationAnchor").InterpretArgument()(0), FindTag("rotationAnchor").InterpretArgument()(1)}
@@ -687,14 +688,14 @@ Public Structure Entity
                 End If
             End If
 
-            Return New PointF(Frames(currentFrame).Dimensions.Width / 2, Frames(currentFrame).Dimensions.Height / 2)
+            Return New PointF(Frames(CurrentFrame).Dimensions.Width / 2, Frames(CurrentFrame).Dimensions.Height / 2)
         End Get
         Set(value As PointF)
             AddTag(New Tag("rotationAnchor", "[" & value.X & "," & value.Y & "]"), True)
         End Set
     End Property
 
-    Property opacity As Single
+    Property Opacity As Single
         Get
             If HasTag("opacity") Then
                 Return FindTag("opacity").InterpretArgument()
@@ -712,7 +713,7 @@ Public Structure Entity
         End Set
     End Property
 
-    Property currentFrame As UInteger
+    Property CurrentFrame As UInteger
         Get
             If HasTag("currentFrame") Then
                 Return FindTag("currentFrame").InterpretArgument()
@@ -745,10 +746,10 @@ Public Structure Entity
     End Function
 
     Public Function GetEntityHitbox() As RectangleF
-        Return New RectangleF(New PointF((location.X - rotationAnchor.X),
-                                            (location.Y - rotationAnchor.Y)),
-                                    New SizeF(scale * (Frames(currentFrame).Dimensions.Width - 0),
-                                            scale * (Frames(currentFrame).Dimensions.Height - 0)))
+        Return New RectangleF(New PointF((Location.X - RotationAnchor.X),
+                                            (Location.Y - RotationAnchor.Y)),
+                                    New SizeF(Scale * (Frames(CurrentFrame).Dimensions.Width - 0),
+                                            Scale * (Frames(CurrentFrame).Dimensions.Height - 0)))
     End Function
 End Structure
 
@@ -937,26 +938,26 @@ Public Structure Frame
         End Get
     End Property
 
-    Public Sub Trim()
-        'removes any outermost rows or columns which only have transparent pixels in them
-        'unfinished
+    'Public Sub Trim()
+    '    'removes any outermost rows or columns which only have transparent pixels in them
+    '    'unfinished
 
-        MsgBox("Trimming for frames isn't ready yet")
-        Dim trimmedSides(3) As Boolean
+    '    MsgBox("Trimming for frames isn't ready yet")
+    '    Dim trimmedSides(3) As Boolean
 
-        For side As Integer = 1 To trimmedSides.Length
-            Do Until trimmedSides(side) = True
-                Dim x As Integer = 0
-                Dim y As Integer = 0
+    '    For side As Integer = 1 To trimmedSides.Length
+    '        Do Until trimmedSides(side) = True
+    '            Dim x As Integer = 0
+    '            Dim y As Integer = 0
 
-                If side = 1 Or side = 2 Then      'for 1 and 2: top and bottom
-                    Dim rowEmpty As Boolean = True
-                ElseIf side = 3 Or side = 4 Then  'for 3 and 4: left and right
-                    Dim colEmpty As Boolean = True
-                End If
-            Loop
-        Next
-    End Sub
+    '            If side = 1 Or side = 2 Then      'for 1 and 2: top and bottom
+    '                Dim rowEmpty As Boolean = True
+    '            ElseIf side = 3 Or side = 4 Then  'for 3 and 4: left and right
+    '                Dim colEmpty As Boolean = True
+    '            End If
+    '        Loop
+    '    Next
+    'End Sub
 
     Public Shared Operator =(frame1 As Frame, frame2 As Frame)
         Return AreFramesEqual(frame1, frame2)

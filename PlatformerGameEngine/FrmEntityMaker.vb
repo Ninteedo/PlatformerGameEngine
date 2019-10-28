@@ -116,7 +116,7 @@ Public Class FrmEntityMaker
             ent = EntityStringHandler.ReadEntityString(fileText, renderer, successfulLoad)
 
             If successfulLoad = True Then
-                txtName.Text = ent.name
+                txtName.Text = ent.Name
                 saveLocation = fileLocation
             Else
                 saveLocation = ""
@@ -204,7 +204,7 @@ Public Class FrmEntityMaker
         If IsNothing(frameToDraw.sprites) = False Then
             Dim previewTags() As Tag = {New Tag("name", "FramePreviewEntity")} '= {New Tag("location", {frameToDraw.Centre.ToString})}
             Dim previewEntity As New Entity({frameToDraw}, previewTags, renderer.spriteFolderLocation, New PointF(0, 0)) With {
-                .location = New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
+                .Location = New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
             } 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
             'New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
 
@@ -413,10 +413,10 @@ Public Class FrmEntityMaker
         Dim newName As String = txtName.Text
 
         If Not IsNothing(newName) Then
-            ent.name = AddQuotes(newName)
+            ent.Name = AddQuotes(newName)
             RefreshTagsList()
         Else    'no name provided so restores previous name
-            txtName.Text = RemoveQuotes(ent.name)
+            txtName.Text = RemoveQuotes(ent.Name)
         End If
     End Sub
 

@@ -30,6 +30,10 @@ Public Module TagBehaviours
                 ent.RemoveTag(tag.InterpretArgument())
             Case "execute"
                 ProcessTag(New Tag(tag.InterpretArgument.ToString), ent, room, renderEngine)
+
+                'broadcast event
+            Case LCase("broadcast")
+                BroadcastEvent(New Tag(tag.InterpretArgument.ToString), room, renderEngine)
         End Select
         'End If
     End Sub
@@ -45,7 +49,7 @@ Public Module TagBehaviours
 
         If ent.HasTag(collisionTagName) Then
             For Each otherEnt As Entity In room.instances
-                If ent.name <> otherEnt.name Then
+                If ent.Name <> otherEnt.Name Then
                     'Dim velocity2Temp As Object = otherEnt.FindTag("velocity").InterpretArgument
                     'Dim velocity2 As New Vector(0, 0)
                     'If Not IsNothing(velocity2Temp) Then
@@ -109,7 +113,7 @@ Public Module TagBehaviours
             ent.AddTag(New Tag("velocity", ArrayToString({velocity.X, velocity.Y})), True)      'changes the ent's velocity
         End If
 
-        ent.location = New PointF(ent.location.X + velocity.X, ent.location.Y + velocity.Y)
+        ent.Location = New PointF(ent.Location.X + velocity.X, ent.Location.Y + velocity.Y)
     End Sub
 
     Public Function RectanglesOverlapping(rect1 As RectangleF, rect2 As RectangleF) As Boolean
@@ -550,6 +554,25 @@ Public Module TagBehaviours
             Return parts(0)
         Else
             Return calc
+        End If
+    End Function
+
+    Public Function AssessCondition(condition As String, Optional ent As Entity = Nothing, Optional thisRoom As Room = Nothing) As Boolean
+        If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
+            Dim comparisonOperators() As String = {"=", "<>", ">", ">=", "<", "<="}
+            Dim logicOperators() As String = {"and", "or"}
+            Dim notOperator As String = "not"
+
+            Dim individualComparisons() As String = Nothing      'list of comparisons split by logic operators
+
+
+            For comparisonIndex As Integer = 0 To UBound(individualComparisons)
+
+            Next
+
+
+        Else        'default false
+            Return False
         End If
     End Function
 
