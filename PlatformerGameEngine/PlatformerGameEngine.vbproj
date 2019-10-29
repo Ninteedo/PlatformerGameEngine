@@ -72,10 +72,10 @@
   <ItemGroup>
     <Compile Include="Actor.vb" />
     <Compile Include="EntityStringHandler.vb" />
-    <Compile Include="FrmEntityMaker.Designer.vb">
-      <DependentUpon>FrmEntityMaker.vb</DependentUpon>
+    <Compile Include="FrmActorMaker.Designer.vb">
+      <DependentUpon>FrmActorMaker.vb</DependentUpon>
     </Compile>
-    <Compile Include="FrmEntityMaker.vb">
+    <Compile Include="FrmActorMaker.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FrmGame.Designer.vb">
@@ -142,8 +142,8 @@
     <Compile Include="TagEvents.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="FrmEntityMaker.resx">
-      <DependentUpon>FrmEntityMaker.vb</DependentUpon>
+    <EmbeddedResource Include="FrmActorMaker.resx">
+      <DependentUpon>FrmActorMaker.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmGame.resx">
       <DependentUpon>FrmGame.vb</DependentUpon>

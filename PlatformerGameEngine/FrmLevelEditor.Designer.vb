@@ -763,7 +763,7 @@ Partial Class FrmLevelEditor
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlDark
-        Me.ClientSize = New System.Drawing.Size(1604, 882)
+        Me.ClientSize = New System.Drawing.Size(1604, 946)
         Me.Controls.Add(Me.tblControlsOverall)
         Me.Controls.Add(Me.pnlRender)
         Me.DoubleBuffered = True

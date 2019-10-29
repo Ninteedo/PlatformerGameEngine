@@ -7,7 +7,7 @@
 Public Class PanelRenderEngine2
 
     Public renderPanel As Panel
-    Public loadedSprites() As Sprite
+    'Public loadedSprites() As Sprite
 
     'Public renderScaleFactor As Single = 10                 'the overall custom render scaling of the game (might be unnecessary)
     Public renderResolution As Size = New Size(640, 480)      'the intended size for the game
@@ -75,41 +75,41 @@ Public Class PanelRenderEngine2
 
 #End Region
 
-#Region "Sprite Loading"
+    '#Region "Sprite Loading"
 
-    Public Sub LoadSprite(fileLocation As String)
-        'loads a sprite from a given location
+    '    Public Sub LoadSprite(fileLocation As String)
+    '        'loads a sprite from a given location
 
-        If IO.File.Exists(fileLocation) Then
-            Dim newSprite As New Sprite(fileLocation)
-            'Dim fileName As String = newSprite.fileName
+    '        If IO.File.Exists(fileLocation) Then
+    '            Dim newSprite As New Sprite(fileLocation)
+    '            'Dim fileName As String = newSprite.fileName
 
-            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) Then      'checks that the same sprite isn't already loaded
-                If IsNothing(loadedSprites) = True Then
-                    ReDim loadedSprites(0)
-                Else
-                    ReDim Preserve loadedSprites(UBound(loadedSprites) + 1)
-                End If
-                loadedSprites(UBound(loadedSprites)) = newSprite
-            End If
-        End If
-    End Sub
+    '            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) Then      'checks that the same sprite isn't already loaded
+    '                If IsNothing(loadedSprites) = True Then
+    '                    ReDim loadedSprites(0)
+    '                Else
+    '                    ReDim Preserve loadedSprites(UBound(loadedSprites) + 1)
+    '                End If
+    '                loadedSprites(UBound(loadedSprites)) = newSprite
+    '            End If
+    '        End If
+    '    End Sub
 
-    Public Function FindLoadedSprite(fileLocation As String) As Sprite
-        'returns a loaded sprite with the given file name if it is already loaded
+    '    Public Function FindLoadedSprite(fileLocation As String) As Sprite
+    '        'returns a loaded sprite with the given file name if it is already loaded
 
-        If IsNothing(loadedSprites) = False Then
-            For index As Integer = 0 To UBound(loadedSprites)
-                If loadedSprites(index).fileName = fileLocation Then
-                    Return loadedSprites(index)
-                End If
-            Next index
-        End If
+    '        If IsNothing(loadedSprites) = False Then
+    '            For index As Integer = 0 To UBound(loadedSprites)
+    '                If loadedSprites(index).fileName = fileLocation Then
+    '                    Return loadedSprites(index)
+    '                End If
+    '            Next index
+    '        End If
 
-        Return Nothing
-    End Function
+    '        Return Nothing
+    '    End Function
 
-#End Region
+    '#End Region
 
 #Region "Error Handling"
 
@@ -126,49 +126,49 @@ Public Class PanelRenderEngine2
 
 #End Region
 
-#Region "Array Modding"
+    '#Region "Array Modding"
 
-    Public Shared Function ModArrayLength(arrayToMod() As Object, lengthChange As Integer) As Object()
-        'changes the length of the given array by the given amount
+    '    Public Shared Function ModArrayLength(arrayToMod() As Object, lengthChange As Integer) As Object()
+    '        'changes the length of the given array by the given amount
 
-        Dim result() As Object = arrayToMod
+    '        Dim result() As Object = arrayToMod
 
-        If IsNothing(arrayToMod) = False Then
-            If UBound(result) + lengthChange >= 0 Then
-                ReDim Preserve result(UBound(result) + lengthChange)
-            Else
-                result = Nothing
-            End If
-        Else
-            If lengthChange >= 0 Then
-                ReDim result(lengthChange)
-            End If
-        End If
+    '        If IsNothing(arrayToMod) = False Then
+    '            If UBound(result) + lengthChange >= 0 Then
+    '                ReDim Preserve result(UBound(result) + lengthChange)
+    '            Else
+    '                result = Nothing
+    '            End If
+    '        Else
+    '            If lengthChange >= 0 Then
+    '                ReDim result(lengthChange)
+    '            End If
+    '        End If
 
-        Return result
-    End Function
+    '        Return result
+    '    End Function
 
-    Public Shared Function RemoveElementFromArray(oldArray() As Object, indexToRemove As Integer) As Object
-        'returns the given array but with an element removed
+    '    Public Shared Function RemoveElementFromArray(oldArray() As Object, indexToRemove As Integer) As Object
+    '        'returns the given array but with an element removed
 
-        If indexToRemove >= 0 And indexToRemove <= UBound(oldArray) Then
-            Dim result() As Object = oldArray
+    '        If indexToRemove >= 0 And indexToRemove <= UBound(oldArray) Then
+    '            Dim result() As Object = oldArray
 
-            For index As Integer = indexToRemove To UBound(result) - 1
-                result(index) = result(index + 1)
-            Next index
+    '            For index As Integer = indexToRemove To UBound(result) - 1
+    '                result(index) = result(index + 1)
+    '            Next index
 
-            ReDim Preserve result(UBound(result) - 1)
+    '            ReDim Preserve result(UBound(result) - 1)
 
-            Return result
-        Else
-            DisplayError("Tried to remove an element at index " & indexToRemove & " in an array with a max index of " & UBound(oldArray))
+    '            Return result
+    '        Else
+    '            DisplayError("Tried to remove an element at index " & indexToRemove & " in an array with a max index of " & UBound(oldArray))
 
-            Return oldArray
-        End If
-    End Function
+    '            Return oldArray
+    '        End If
+    '    End Function
 
-#End Region
+    '#End Region
 
 #Region "File Handling"
 
@@ -188,6 +188,8 @@ Public Class PanelRenderEngine2
     End Function
 
     Public Shared Sub WriteFile(fileLocation As String, message As String)
+        'writes a message to a file
+
         Dim writer As New IO.StreamWriter(fileLocation)
 
         For Each c As Char In message
