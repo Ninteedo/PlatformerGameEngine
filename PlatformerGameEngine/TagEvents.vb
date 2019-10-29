@@ -7,10 +7,10 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 Public Module TagEvents
 
     Public Sub BroadcastEvent(eventTag As Tag, ByRef thisRoom As Room, renderEngine As PRE2)
-        'broadcasts a single event to all entities with a listener for the event
+        'broadcasts a single event to all actors with a listener for the event
 
         For index As Integer = 0 To UBound(thisRoom.instances)
-            Dim ent As Entity = thisRoom.instances(index)
+            Dim ent As Actor = thisRoom.instances(index)
             If Not IsNothing(ent.tags) Then
                 For tagIndex As Integer = 0 To UBound(ent.tags)
                     If LCase(ent.tags(tagIndex).name) = "listener" AndAlso ent.tags(tagIndex).InterpretArgument("name") = eventTag.InterpretArgument("name") Then   'TODO: fix this condition
@@ -23,7 +23,7 @@ Public Module TagEvents
         Next
     End Sub
 
-    Public Sub ReceiveEvent(ByRef ent As Entity, listenerTag As Tag, renderEngine As PRE2, Optional room As Room = Nothing)
+    Public Sub ReceiveEvent(ByRef ent As Actor, listenerTag As Tag, renderEngine As PRE2, Optional room As Room = Nothing)
         'processes a received event
 
         Dim temp As Object = listenerTag.InterpretArgument("behaviour")

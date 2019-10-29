@@ -25,7 +25,7 @@ Partial Class FrmLevelEditor
         Me.pnlRender = New System.Windows.Forms.Panel()
         Me.lblTemplatesList = New System.Windows.Forms.Label()
         Me.lstTemplates = New System.Windows.Forms.ListBox()
-        Me.btnLoadEntity = New System.Windows.Forms.Button()
+        Me.btnLoadActor = New System.Windows.Forms.Button()
         Me.lstInstances = New System.Windows.Forms.ListBox()
         Me.lblInstancesList = New System.Windows.Forms.Label()
         Me.lblTags = New System.Windows.Forms.Label()
@@ -42,11 +42,11 @@ Partial Class FrmLevelEditor
         Me.lblTagName = New System.Windows.Forms.Label()
         Me.txtTagName = New System.Windows.Forms.TextBox()
         Me.btnInstanceCreate = New System.Windows.Forms.Button()
-        Me.tblEntities = New System.Windows.Forms.TableLayoutPanel()
-        Me.btnRemoveEntity = New System.Windows.Forms.Button()
+        Me.tblActors = New System.Windows.Forms.TableLayoutPanel()
+        Me.btnRemoveActor = New System.Windows.Forms.Button()
         Me.btnInstanceDuplicate = New System.Windows.Forms.Button()
         Me.btnInstanceDelete = New System.Windows.Forms.Button()
-        Me.btnCreateEntity = New System.Windows.Forms.Button()
+        Me.btnCreateActor = New System.Windows.Forms.Button()
         Me.lstTags = New System.Windows.Forms.ListBox()
         Me.tblTagsDetailed = New System.Windows.Forms.TableLayoutPanel()
         Me.btnTagAdd = New System.Windows.Forms.Button()
@@ -83,7 +83,7 @@ Partial Class FrmLevelEditor
         CType(Me.numTagScale, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.flwRoomSaveLoad.SuspendLayout()
         Me.tblTagsSummary.SuspendLayout()
-        Me.tblEntities.SuspendLayout()
+        Me.tblActors.SuspendLayout()
         Me.tblTagsDetailed.SuspendLayout()
         Me.tblControlsOverall.SuspendLayout()
         Me.tblLevel.SuspendLayout()
@@ -121,15 +121,15 @@ Partial Class FrmLevelEditor
         Me.lstTemplates.Size = New System.Drawing.Size(140, 300)
         Me.lstTemplates.TabIndex = 15
         '
-        'btnLoadEntity
+        'btnLoadActor
         '
-        Me.btnLoadEntity.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnLoadEntity.Location = New System.Drawing.Point(3, 334)
-        Me.btnLoadEntity.Name = "btnLoadEntity"
-        Me.btnLoadEntity.Size = New System.Drawing.Size(140, 69)
-        Me.btnLoadEntity.TabIndex = 16
-        Me.btnLoadEntity.Text = "Load Entity..."
-        Me.btnLoadEntity.UseVisualStyleBackColor = True
+        Me.btnLoadActor.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnLoadActor.Location = New System.Drawing.Point(3, 334)
+        Me.btnLoadActor.Name = "btnLoadActor"
+        Me.btnLoadActor.Size = New System.Drawing.Size(140, 69)
+        Me.btnLoadActor.TabIndex = 16
+        Me.btnLoadActor.Text = "Load Actor..."
+        Me.btnLoadActor.UseVisualStyleBackColor = True
         '
         'lstInstances
         '
@@ -307,42 +307,42 @@ Partial Class FrmLevelEditor
         Me.btnInstanceCreate.Text = "Create Instance"
         Me.btnInstanceCreate.UseVisualStyleBackColor = True
         '
-        'tblEntities
+        'tblActors
         '
-        Me.tblEntities.ColumnCount = 2
-        Me.tblEntities.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-        Me.tblEntities.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
-        Me.tblEntities.Controls.Add(Me.btnRemoveEntity, 0, 4)
-        Me.tblEntities.Controls.Add(Me.btnLoadEntity, 0, 2)
-        Me.tblEntities.Controls.Add(Me.btnInstanceCreate, 1, 2)
-        Me.tblEntities.Controls.Add(Me.lstTemplates, 0, 1)
-        Me.tblEntities.Controls.Add(Me.lstInstances, 1, 1)
-        Me.tblEntities.Controls.Add(Me.lblInstancesList, 1, 0)
-        Me.tblEntities.Controls.Add(Me.lblTemplatesList, 0, 0)
-        Me.tblEntities.Controls.Add(Me.btnInstanceDuplicate, 1, 3)
-        Me.tblEntities.Controls.Add(Me.btnInstanceDelete, 1, 4)
-        Me.tblEntities.Controls.Add(Me.btnCreateEntity, 0, 3)
-        Me.tblEntities.Location = New System.Drawing.Point(3, 351)
-        Me.tblEntities.Name = "tblEntities"
-        Me.tblEntities.RowCount = 5
-        Me.tblControlsOverall.SetRowSpan(Me.tblEntities, 2)
-        Me.tblEntities.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblEntities.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblEntities.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblEntities.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblEntities.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblEntities.Size = New System.Drawing.Size(292, 555)
-        Me.tblEntities.TabIndex = 19
+        Me.tblActors.ColumnCount = 2
+        Me.tblActors.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.tblActors.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+        Me.tblActors.Controls.Add(Me.btnRemoveActor, 0, 4)
+        Me.tblActors.Controls.Add(Me.btnLoadActor, 0, 2)
+        Me.tblActors.Controls.Add(Me.btnInstanceCreate, 1, 2)
+        Me.tblActors.Controls.Add(Me.lstTemplates, 0, 1)
+        Me.tblActors.Controls.Add(Me.lstInstances, 1, 1)
+        Me.tblActors.Controls.Add(Me.lblInstancesList, 1, 0)
+        Me.tblActors.Controls.Add(Me.lblTemplatesList, 0, 0)
+        Me.tblActors.Controls.Add(Me.btnInstanceDuplicate, 1, 3)
+        Me.tblActors.Controls.Add(Me.btnInstanceDelete, 1, 4)
+        Me.tblActors.Controls.Add(Me.btnCreateActor, 0, 3)
+        Me.tblActors.Location = New System.Drawing.Point(3, 351)
+        Me.tblActors.Name = "tblActors"
+        Me.tblActors.RowCount = 5
+        Me.tblControlsOverall.SetRowSpan(Me.tblActors, 2)
+        Me.tblActors.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblActors.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblActors.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblActors.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblActors.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblActors.Size = New System.Drawing.Size(292, 555)
+        Me.tblActors.TabIndex = 19
         '
-        'btnRemoveEntity
+        'btnRemoveActor
         '
-        Me.btnRemoveEntity.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnRemoveEntity.Location = New System.Drawing.Point(3, 484)
-        Me.btnRemoveEntity.Name = "btnRemoveEntity"
-        Me.btnRemoveEntity.Size = New System.Drawing.Size(140, 69)
-        Me.btnRemoveEntity.TabIndex = 18
-        Me.btnRemoveEntity.Text = "Remove Template"
-        Me.btnRemoveEntity.UseVisualStyleBackColor = True
+        Me.btnRemoveActor.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnRemoveActor.Location = New System.Drawing.Point(3, 484)
+        Me.btnRemoveActor.Name = "btnRemoveActor"
+        Me.btnRemoveActor.Size = New System.Drawing.Size(140, 69)
+        Me.btnRemoveActor.TabIndex = 18
+        Me.btnRemoveActor.Text = "Remove Template"
+        Me.btnRemoveActor.UseVisualStyleBackColor = True
         '
         'btnInstanceDuplicate
         '
@@ -366,15 +366,15 @@ Partial Class FrmLevelEditor
         Me.btnInstanceDelete.Text = "Delete Instance"
         Me.btnInstanceDelete.UseVisualStyleBackColor = True
         '
-        'btnCreateEntity
+        'btnCreateActor
         '
-        Me.btnCreateEntity.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnCreateEntity.Location = New System.Drawing.Point(3, 409)
-        Me.btnCreateEntity.Name = "btnCreateEntity"
-        Me.btnCreateEntity.Size = New System.Drawing.Size(140, 69)
-        Me.btnCreateEntity.TabIndex = 17
-        Me.btnCreateEntity.Text = "Create Entity"
-        Me.btnCreateEntity.UseVisualStyleBackColor = True
+        Me.btnCreateActor.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnCreateActor.Location = New System.Drawing.Point(3, 409)
+        Me.btnCreateActor.Name = "btnCreateActor"
+        Me.btnCreateActor.Size = New System.Drawing.Size(140, 69)
+        Me.btnCreateActor.TabIndex = 17
+        Me.btnCreateActor.Text = "Create Actor"
+        Me.btnCreateActor.UseVisualStyleBackColor = True
         '
         'lstTags
         '
@@ -449,7 +449,7 @@ Partial Class FrmLevelEditor
         Me.tblControlsOverall.Controls.Add(Me.tblRoomParams, 2, 1)
         Me.tblControlsOverall.Controls.Add(Me.tblTagsDetailed, 1, 2)
         Me.tblControlsOverall.Controls.Add(Me.tblTagsSummary, 1, 1)
-        Me.tblControlsOverall.Controls.Add(Me.tblEntities, 0, 1)
+        Me.tblControlsOverall.Controls.Add(Me.tblActors, 0, 1)
         Me.tblControlsOverall.Location = New System.Drawing.Point(618, 12)
         Me.tblControlsOverall.Name = "tblControlsOverall"
         Me.tblControlsOverall.RowCount = 3
@@ -777,8 +777,8 @@ Partial Class FrmLevelEditor
         Me.flwRoomSaveLoad.PerformLayout()
         Me.tblTagsSummary.ResumeLayout(False)
         Me.tblTagsSummary.PerformLayout()
-        Me.tblEntities.ResumeLayout(False)
-        Me.tblEntities.PerformLayout()
+        Me.tblActors.ResumeLayout(False)
+        Me.tblActors.PerformLayout()
         Me.tblTagsDetailed.ResumeLayout(False)
         Me.tblControlsOverall.ResumeLayout(False)
         Me.tblLevel.ResumeLayout(False)
@@ -797,7 +797,7 @@ Partial Class FrmLevelEditor
     Friend WithEvents pnlRender As Panel
     Friend WithEvents lblTemplatesList As Label
     Friend WithEvents lstTemplates As ListBox
-    Friend WithEvents btnLoadEntity As Button
+    Friend WithEvents btnLoadActor As Button
     Friend WithEvents lstInstances As ListBox
     Friend WithEvents lblInstancesList As Label
     Friend WithEvents lblTags As Label
@@ -813,7 +813,7 @@ Partial Class FrmLevelEditor
     Friend WithEvents lblTagName As Label
     Friend WithEvents txtTagName As TextBox
     Friend WithEvents btnInstanceCreate As Button
-    Friend WithEvents tblEntities As TableLayoutPanel
+    Friend WithEvents tblActors As TableLayoutPanel
     Friend WithEvents btnInstanceDuplicate As Button
     Friend WithEvents btnInstanceDelete As Button
     Friend WithEvents lstTags As ListBox
@@ -823,14 +823,14 @@ Partial Class FrmLevelEditor
     Friend WithEvents btnTagRemove As Button
     Friend WithEvents lblRoomTitle As Label
     Friend WithEvents tblControlsOverall As TableLayoutPanel
-    Friend WithEvents btnCreateEntity As Button
+    Friend WithEvents btnCreateActor As Button
     Friend WithEvents tblRoomParams As TableLayoutPanel
     Friend WithEvents lblRoomParamsList As Label
     Friend WithEvents lstRoomParams As ListBox
     Friend WithEvents btnAddRoomParam As Button
     Friend WithEvents btnRemoveRoomParam As Button
     Friend WithEvents btnEditRoomParam As Button
-    Friend WithEvents btnRemoveEntity As Button
+    Friend WithEvents btnRemoveActor As Button
     Friend WithEvents tblLevel As TableLayoutPanel
     Friend WithEvents flwLevelSaveLoad As FlowLayoutPanel
     Friend WithEvents lblLevelTitle As Label

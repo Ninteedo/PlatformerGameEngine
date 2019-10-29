@@ -1,16 +1,16 @@
 ﻿'Richard Holmes
 '24/03/2019
-'Entity creator for platformer game engine
+'Actor creator for platformer game engine
 
 Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
-Public Class FrmEntityMaker
+Public Class FrmActorMaker
 
 #Region "Initialisation"
 
     Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
 
-    Private Sub FrmEntityMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    Private Sub FrmActorMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         AddHandler delayTimer.Tick, AddressOf Initialisation
         delayTimer.Start()
     End Sub
@@ -23,7 +23,7 @@ Public Class FrmEntityMaker
 
         LayoutInitialisation()
         GetFolderLocations()
-        ent = New Entity(Nothing, renderer)
+        ent = New Actor(Nothing, renderer)
     End Sub
 
     Private Sub LayoutInitialisation()
@@ -39,13 +39,13 @@ Public Class FrmEntityMaker
 
 #Region "Save/Load"
 
-    Dim ent As Entity          'the user's created entity
+    Dim ent As Actor          'the user's created actor
     Dim saveLocation As String = ""
     'Dim gameLocation As String = ""
 
-    Private ReadOnly Property EntityString
+    Private ReadOnly Property ActorString
         Get
-            'Return EntityStringHandler.CreateEntityString(ent, renderer.spriteFolderLocation)
+            'Return ActorStringHandler.CreateActorString(ent, renderer.spriteFolderLocation)
             Return ent.ToString(renderer.spriteFolderLocation)
         End Get
     End Property
@@ -60,7 +60,7 @@ Public Class FrmEntityMaker
                     Dim loaderText As String = PRE2.ReadFile(openDialog.FileName)
 
                     Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
-                    renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "entityFolder")
+                    renderer.actorFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "actorFolder")
                     renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "spriteFolder")
                 Else
                     PRE2.DisplayError("Couldn't find file " & openDialog.FileName)
@@ -75,9 +75,9 @@ Public Class FrmEntityMaker
     Private Sub BtnOpen_Click(sender As Button, e As EventArgs) Handles btnOpen.Click
         'asks the user to select a .sprt file and reads it
 
-        Using openDialog As New OpenFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .Multiselect = False, .CheckFileExists = True, .InitialDirectory = renderer.entityFolderLocation}
+        Using openDialog As New OpenFileDialog With {.Filter = "Actor file (*.ent)|*.ent", .Multiselect = False, .CheckFileExists = True, .InitialDirectory = renderer.actorFolderLocation}
             If openDialog.ShowDialog = DialogResult.OK Then
-                ReadEntityFromFile(openDialog.FileName)
+                ReadActorFromFile(openDialog.FileName)
             End If
         End Using
     End Sub
@@ -85,10 +85,10 @@ Public Class FrmEntityMaker
     Private Sub BtnSaveAs_Click(sender As Button, e As EventArgs) Handles btnSaveAs.Click
         'asks the user to select a save location, then saves the sprite there and enables the regular save button
 
-        Using saveDialog As New SaveFileDialog With {.Filter = "Entity file (*.ent)|*.ent", .InitialDirectory = renderer.entityFolderLocation}
+        Using saveDialog As New SaveFileDialog With {.Filter = "Actor file (*.ent)|*.ent", .InitialDirectory = renderer.actorFolderLocation}
             If saveDialog.ShowDialog = DialogResult.OK Then
                 saveLocation = saveDialog.FileName
-                PRE2.WriteFile(saveLocation, EntityString)
+                PRE2.WriteFile(saveLocation, ActorString)
 
                 btnSave.Enabled = True
             End If
@@ -99,21 +99,21 @@ Public Class FrmEntityMaker
         'saves the file to the already selected location
 
         If IO.File.Exists(saveLocation) Then
-            PRE2.WriteFile(saveLocation, EntityString)
+            PRE2.WriteFile(saveLocation, ActorString)
         Else
             PRE2.DisplayError("Couldn't find file at " & saveLocation)
         End If
     End Sub
 
-    Private Sub ReadEntityFromFile(fileLocation As String)
-        'reads the entity stored in a given file
+    Private Sub ReadActorFromFile(fileLocation As String)
+        'reads the actor stored in a given file
 
         If IO.File.Exists(fileLocation) = True Then
             Dim fileText As String = PRE2.ReadFile(fileLocation)
             Dim successfulLoad As Boolean = False
 
             renderer.loadedSprites = Nothing
-            ent = EntityStringHandler.ReadEntityString(fileText, renderer, successfulLoad)
+            ent = ActorStringHandler.ReadActorString(fileText, renderer, successfulLoad)
 
             If successfulLoad = True Then
                 txtName.Text = ent.Name
@@ -137,12 +137,12 @@ Public Class FrmEntityMaker
         Dim unsavedChanges As Boolean = False
 
         If Not IsNothing(saveLocation) AndAlso IO.File.Exists(saveLocation) Then
-            Dim savedEntityString As String = PRE2.ReadFile(saveLocation)
+            Dim savedActorString As String = PRE2.ReadFile(saveLocation)
 
-            If savedEntityString <> EntityString Then
+            If savedActorString <> ActorString Then
                 unsavedChanges = True
             End If
-        ElseIf Not IsNothing(renderer.entityFolderLocation) Then     'no level folder location if form isnt finished loading
+        ElseIf Not IsNothing(renderer.actorFolderLocation) Then     'no level folder location if form isnt finished loading
             unsavedChanges = True
         End If
 
@@ -198,12 +198,12 @@ Public Class FrmEntityMaker
 #Region "Render"
     Dim renderer As PRE2
 
-    Private Sub DrawFramePreview(frameToDraw As Frame)
+    Private Sub DrawFramePreview(frameToDraw As Sprite)
         'draws the given frame in the preview box
 
-        If IsNothing(frameToDraw.sprites) = False Then
-            Dim previewTags() As Tag = {New Tag("name", "FramePreviewEntity")} '= {New Tag("location", {frameToDraw.Centre.ToString})}
-            Dim previewEntity As New Entity({frameToDraw}, previewTags, renderer.spriteFolderLocation, New PointF(0, 0)) With {
+        If IsNothing(frameToDraw) = False Then
+            Dim previewTags() As Tag = {New Tag("name", "FramePreviewActor")} '= {New Tag("location", {frameToDraw.Centre.ToString})}
+            Dim previewActor As New Actor({frameToDraw}, previewTags, renderer.spriteFolderLocation, New PointF(0, 0)) With {
                 .Location = New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
             } 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
             'New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
@@ -214,7 +214,7 @@ Public Class FrmEntityMaker
             renderer.ResizeRenderWindow()
             LayoutInitialisation()
 
-            renderer.DoGameRender({previewEntity})
+            renderer.DoGameRender({previewActor})
         Else
             renderer.DoGameRender({})       'renders nothing
         End If
@@ -229,8 +229,8 @@ Public Class FrmEntityMaker
 
         lstFrames.Items.Clear()
 
-        If IsNothing(ent.Frames) = False Then
-            For frameIndex As Integer = 0 To UBound(ent.Frames)
+        If IsNothing(ent.Sprites) = False Then
+            For frameIndex As Integer = 0 To UBound(ent.Sprites)
                 lstFrames.Items.Add("Frame " & Trim(Str(frameIndex + 1)))
             Next frameIndex
         End If
@@ -241,13 +241,13 @@ Public Class FrmEntityMaker
     Private Sub BtnFrameNew_Click(sender As Object, e As EventArgs) Handles btnFrameNew.Click
         'adds a new, empty frame
 
-        If IsNothing(ent.Frames) = True Then
-            ReDim ent.Frames(0)
+        If IsNothing(ent.Sprites) = True Then
+            ReDim ent.Sprites(0)
         Else
-            ReDim Preserve ent.Frames(UBound(ent.Frames) + 1)
+            ReDim Preserve ent.Sprites(UBound(ent.Sprites) + 1)
         End If
 
-        ent.Frames(UBound(ent.Frames)) = New Frame(Nothing, renderer.spriteFolderLocation)
+        'ent.Sprites(UBound(ent.Sprites)) = New Frame(Nothing, renderer.spriteFolderLocation)
         RefreshFramesList()
     End Sub
 
@@ -256,15 +256,15 @@ Public Class FrmEntityMaker
 
         Dim removeIndex As Integer = lstFrames.SelectedIndex
 
-        For index As Integer = removeIndex + 1 To UBound(ent.Frames)
-            ent.Frames(index - 1) = ent.Frames(index)
+        For index As Integer = removeIndex + 1 To UBound(ent.Sprites)
+            ent.Sprites(index - 1) = ent.Sprites(index)
         Next index
 
         'reduces the ent.Frames array length by 1
-        If UBound(ent.Frames) > 0 Then
-            ReDim Preserve ent.Frames(UBound(ent.Frames) - 1)
+        If UBound(ent.Sprites) > 0 Then
+            ReDim Preserve ent.Sprites(UBound(ent.Sprites) - 1)
         Else
-            ent.Frames = Nothing
+            ent.Sprites = Nothing
         End If
 
         RefreshFramesList()
@@ -275,7 +275,7 @@ Public Class FrmEntityMaker
 
         If lstFrames.SelectedIndex > -1 Then
             btnFrameRemove.Enabled = True
-            DrawFramePreview(ent.Frames(lstFrames.SelectedIndex))
+            DrawFramePreview(ent.Sprites(lstFrames.SelectedIndex))
             'RefreshFramesList()
 
             If lstSprites.SelectedIndex > -1 Then
@@ -302,10 +302,10 @@ Public Class FrmEntityMaker
             If userInput <> "" Then
                 If inputSplit.Length = 2 AndAlso IsNumeric(Trim(inputSplit(0))) = True And IsNumeric(Trim(inputSplit(1))) = True Then
                     offset = New Point(Int(Trim(inputSplit(0))), Int(Trim(inputSplit(1))))
-                    ent.Frames(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
-                    ent.RefreshFramesTag()
+                    'ent.Sprites(frameIndex).AddSprite(renderer.loadedSprites(spriteIndex), offset)
+                    ent.RefreshSpritesTag()
 
-                    DrawFramePreview(ent.Frames(frameIndex))
+                    DrawFramePreview(ent.Sprites(frameIndex))
                 Else
                     PRE2.DisplayError("Offsets need to be provided in the form x,y e.g. 10,5")
                 End If
@@ -408,7 +408,7 @@ Public Class FrmEntityMaker
     End Sub
 
     Private Sub TxtName_TextChanged(sender As Object, e As EventArgs) Handles txtName.LostFocus
-        'changes the name of the entity if the name is valid
+        'changes the name of the actor if the name is valid
 
         Dim newName As String = txtName.Text
 
@@ -425,9 +425,9 @@ Public Class FrmEntityMaker
 #Region "Other Controls"
 
     Private Sub BtnRedraw_Click(sender As Object, e As EventArgs) Handles btnRedraw.Click
-        If IsNothing(ent.Frames) = False Then
-            If lstFrames.SelectedIndex > -1 AndAlso IsNothing(ent.Frames(lstFrames.SelectedIndex)) = False Then
-                DrawFramePreview(ent.Frames(lstFrames.SelectedIndex))
+        If IsNothing(ent.Sprites) = False Then
+            If lstFrames.SelectedIndex > -1 AndAlso IsNothing(ent.Sprites(lstFrames.SelectedIndex)) = False Then
+                DrawFramePreview(ent.Sprites(lstFrames.SelectedIndex))
             End If
         Else
             renderer.DoGameRender({})       'if there are no frames then clears the render

@@ -70,6 +70,7 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actor.vb" />
     <Compile Include="EntityStringHandler.vb" />
     <Compile Include="FrmEntityMaker.Designer.vb">
       <DependentUpon>FrmEntityMaker.vb</DependentUpon>
@@ -116,6 +117,7 @@
     </Compile>
     <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="JSONHandler.vb" />
+    <Compile Include="Level.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -132,7 +134,10 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="PanelRenderEngine2.vb" />
+    <Compile Include="Room.vb" />
+    <Compile Include="Sprite.vb" />
     <Compile Include="SpriteStringHandler.vb" />
+    <Compile Include="Tag.vb" />
     <Compile Include="TagBehaviours.vb" />
     <Compile Include="TagEvents.vb" />
   </ItemGroup>

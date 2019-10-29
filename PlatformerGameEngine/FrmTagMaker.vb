@@ -1,6 +1,6 @@
 ﻿'Richard Holmes
 '24/03/2019
-'Tag editor for entity maker
+'Tag editor for actor maker
 
 Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
@@ -9,7 +9,7 @@ Public Class FrmTagMaker
     'TODO: clean this all up
 
     Public dataTypes() As String = {"number", "text", "tag"}
-    Private tagInCreation As New Tag
+    Private tagInCreation As New Tag("NewTag")
     Public arguments As Object
     Public userFinished As Boolean = False
 

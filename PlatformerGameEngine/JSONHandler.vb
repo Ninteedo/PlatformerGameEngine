@@ -125,7 +125,7 @@ Public Module JSONHandler
     End Function
 
     Public Function InterpretValue(valueString As String,
-                                   Optional fullInterpret As Boolean = False, Optional ent As Entity = Nothing, Optional room As Room = Nothing) As Object
+                                   Optional fullInterpret As Boolean = False, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As Object
         'interprets a value from JSON
         'full interpret means that for tags and arrays the arguments are also interpreted
 

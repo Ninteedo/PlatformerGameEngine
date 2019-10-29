@@ -34,8 +34,8 @@ Public Class FrmLevelEditor
         Me.Size = New Size(tblControlsOverall.Right + 20, tblControlsOverall.Bottom + 40)
 
         'flwSaveLoad.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
-        'tblEntities.Location = New Point(flwSaveLoad.Left, flwSaveLoad.Bottom + 5)
-        'tblTagsSummary.Location = New Point(tblEntities.Right + 10, tblEntities.Top)
+        'tblActors.Location = New Point(flwSaveLoad.Left, flwSaveLoad.Bottom + 5)
+        'tblTagsSummary.Location = New Point(tblActors.Right + 10, tblActors.Top)
         'tblTagsDetailed.Location = New Point(tblTagsSummary.Left, tblTagsSummary.Bottom + 5)
     End Sub
 
@@ -58,7 +58,7 @@ Public Class FrmLevelEditor
                 'loads locations of each folder
                 Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
                 renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
-                renderer.entityFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "entityFolder")
+                renderer.actorFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "actorFolder")
                 renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
                 'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
             Else
@@ -170,17 +170,17 @@ Public Class FrmLevelEditor
 
 #End Region
 
-#Region "Entities"
+#Region "Actors"
 
 #Region "Templates"
 
-    Private Sub LoadEntityTemplate(fileLocation As String)
-        'loads an entity saved to a file for a template
+    Private Sub LoadActorTemplate(fileLocation As String)
+        'loads an actor saved to a file for a template
 
-        Dim entityString As String = PRE2.ReadFile(fileLocation)
-        If IsNothing(entityString) = False Then
+        Dim actorString As String = PRE2.ReadFile(fileLocation)
+        If IsNothing(actorString) = False Then
             Dim successfulLoad As Boolean = False
-            Dim newTemplate As Entity = EntityStringHandler.ReadEntityString(entityString, renderer, successfulLoad)
+            Dim newTemplate As Actor = ActorStringHandler.ReadActorString(actorString, renderer, successfulLoad)
 
             If successfulLoad Then
                 If Not IsNothing(thisLevel.templates) Then      'makes name unique
@@ -191,7 +191,7 @@ Public Class FrmLevelEditor
                     newTemplate.Name = FrmGame.MakeNameUnique(newTemplate.Name, templateNames, True)
                 End If
 
-                newTemplate.AddTag(New Tag("fileName", AddQuotes(fileLocation.Remove(0, Len(renderer.entityFolderLocation)))))
+                newTemplate.AddTag(New Tag("fileName", AddQuotes(fileLocation.Remove(0, Len(renderer.actorFolderLocation)))))
 
                 If IsNothing(thisLevel.templates) = True Then
                     ReDim thisLevel.templates(0)
@@ -205,8 +205,8 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub RemoveEntityTemplate(templateIndex As Integer)
-        'removes the template of an entity and all instances made from that template from the level
+    Private Sub RemoveActorTemplate(templateIndex As Integer)
+        'removes the template of an actor and all instances made from that template from the level
 
         If Not IsNothing(thisLevel.templates) Then
             If templateIndex >= 0 And templateIndex <= UBound(thisLevel.templates) Then
@@ -222,11 +222,11 @@ Public Class FrmLevelEditor
                         If Not IsNothing(currentRoom.instances) AndAlso UBound(currentRoom.instances) >= 0 Then
                             Dim instanceIndex As Integer = 0
                             Do
-                                Dim currentInstance As Entity = currentRoom.instances(instanceIndex)
+                                Dim currentInstance As Actor = currentRoom.instances(instanceIndex)
 
                                 If currentInstance.FindTag("templateName").InterpretArgument = templateName Then
                                     'removes current instance if the templateName matches
-                                    RemoveEntityInstance(instanceIndex)
+                                    RemoveActorInstance(instanceIndex)
 
                                     'For index As Integer = instanceIndex To UBound(currentRoom.instances) - 1
                                     '    currentRoom.instances(index) = currentRoom.instances(index + 1)
@@ -266,22 +266,22 @@ Public Class FrmLevelEditor
     End Sub
 
 
-    Private Sub btnLoadEntity_Click(sender As Object, e As EventArgs) Handles btnLoadEntity.Click
-        Using openDialog As New OpenFileDialog With {.Filter = "Entity files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.entityFolderLocation}
+    Private Sub btnLoadActor_Click(sender As Object, e As EventArgs) Handles btnLoadActor.Click
+        Using openDialog As New OpenFileDialog With {.Filter = "Actor files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.actorFolderLocation}
 
             If openDialog.ShowDialog() = DialogResult.OK Then
                 For Each fileName As String In openDialog.FileNames
-                    LoadEntityTemplate(fileName)
+                    LoadActorTemplate(fileName)
                 Next
             End If
         End Using
     End Sub
 
-    Private Sub btnRemoveEntity_Click(sender As Object, e As EventArgs) Handles btnRemoveEntity.Click
+    Private Sub btnRemoveActor_Click(sender As Object, e As EventArgs) Handles btnRemoveActor.Click
         If lstTemplates.SelectedIndex > -1 Then
             If MsgBox("Are you sure you wish to remove this template?" & Environment.NewLine &
                   "This will also remove all instances which use this template") = DialogResult.OK Then
-                RemoveEntityTemplate(lstTemplates.SelectedIndex)
+                RemoveActorTemplate(lstTemplates.SelectedIndex)
             End If
         End If
     End Sub
@@ -308,11 +308,11 @@ Public Class FrmLevelEditor
             lstInstances.SelectedIndex = -1
 
             'ToggleTagControls(True)
-            ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+            ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
         Else
             If lstInstances.SelectedIndex = -1 Then
                 'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
-                ShowEntityTags(Nothing, False)
+                ShowActorTags(Nothing, False)
             End If
         End If
     End Sub
@@ -321,12 +321,12 @@ Public Class FrmLevelEditor
 
 #Region "Instances"
 
-    Private Sub AddEntityInstance(ByVal template As Entity)
-        'creates a new instance from the given entity
+    Private Sub AddActorInstance(ByVal template As Actor)
+        'creates a new instance from the given actor
 
         'Dim templateName As String = template.name
 
-        Dim newInstance As Entity = template.Clone
+        Dim newInstance As Actor = template.Clone
         If Not newInstance.HasTag("templateName") Then      'doesn't add template name if template is an instance of a template
             newInstance.AddTag(New Tag("templateName", template.Name))       'instance stores the name of its template so the instance can be created from the correct template when loading
         End If
@@ -358,7 +358,7 @@ Public Class FrmLevelEditor
         RefreshTemplatesList()
     End Sub
 
-    Private Sub RemoveEntityInstance(instanceIndex As Integer)
+    Private Sub RemoveActorInstance(instanceIndex As Integer)
         'deletes the instance with the given index
 
         'removes the instance from the room
@@ -385,7 +385,7 @@ Public Class FrmLevelEditor
 
         'checks that a template is selected
         If lstTemplates.SelectedIndex > -1 Then
-            AddEntityInstance(thisLevel.templates(lstTemplates.SelectedIndex))
+            AddActorInstance(thisLevel.templates(lstTemplates.SelectedIndex))
         Else
             PRE2.DisplayError("No selected template to create an instance from")
         End If
@@ -396,7 +396,7 @@ Public Class FrmLevelEditor
 
         'checks that an instance is selected
         If lstInstances.SelectedIndex > -1 Then
-            AddEntityInstance(SelectedRoom.instances(lstInstances.SelectedIndex))
+            AddActorInstance(SelectedRoom.instances(lstInstances.SelectedIndex))
         Else
             PRE2.DisplayError("No selected instance to duplicate")
         End If
@@ -409,7 +409,7 @@ Public Class FrmLevelEditor
         If lstInstances.SelectedIndex > -1 Then
             'asks the user to confirm deleting the instance
             If MsgBox("Are you sure you wish to delete instance " & SelectedRoom.instances(lstInstances.SelectedIndex).Name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
-                RemoveEntityInstance(lstInstances.SelectedIndex)
+                RemoveActorInstance(lstInstances.SelectedIndex)
             End If
         End If
     End Sub
@@ -436,13 +436,13 @@ Public Class FrmLevelEditor
             lstTemplates.SelectedIndex = -1
 
             'ToggleTagControls(True)     'enables tag controls as an instance has been selected
-            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+            ShowActorTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
 
             RenderCurrentRoom()
         Else
             If lstTemplates.SelectedIndex = -1 Then
                 'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
-                ShowEntityTags(Nothing, False)
+                ShowActorTags(Nothing, False)
             End If
         End If
     End Sub
@@ -472,13 +472,13 @@ Public Class FrmLevelEditor
         Next
     End Sub
 
-    Private Sub ShowEntityTags(ByVal ent As Entity, isTemplate As Boolean)
-        'changes the values displayed in the controls for tags to show values of the current entity
+    Private Sub ShowActorTags(ByVal ent As Actor, isTemplate As Boolean)
+        'changes the values displayed in the controls for tags to show values of the current actor
 
         disableTagChangedEvent = True
 
-        If IsNothing(ent) Then      'if no entity provided then uses an empty entity
-            ent = New Entity With {.Name = "No Entity Selected"}       'this doesn't work as entities have some default properties
+        If IsNothing(ent) Then      'if no actor provided then uses an empty actor
+            ent = New Actor With {.Name = "No Actor Selected"}       'this doesn't work as actors have some default properties
             'ToggleTagControls(False)
         End If
 
@@ -514,31 +514,31 @@ Public Class FrmLevelEditor
 
     Private Sub KeyTagChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged, numTagLocY.ValueChanged,
         numTagLayer.ValueChanged, numTagScale.ValueChanged ', txtTagName.TextChanged
-        'updates the key tags (location, layer, scale) of selected entity using the key tags controls' values
+        'updates the key tags (location, layer, scale) of selected actor using the key tags controls' values
 
         If Not disableTagChangedEvent Then
-            'selects the entity to update, currently selected instance or template
-            Dim entityToUpdate As Entity
+            'selects the actor to update, currently selected instance or template
+            Dim actorToUpdate As Actor
             If lstInstances.SelectedIndex > -1 Then
-                entityToUpdate = SelectedRoom.instances(lstInstances.SelectedIndex)
+                actorToUpdate = SelectedRoom.instances(lstInstances.SelectedIndex)
             ElseIf lstTemplates.SelectedIndex > -1 Then
-                entityToUpdate = thisLevel.templates(lstTemplates.SelectedIndex)
+                actorToUpdate = thisLevel.templates(lstTemplates.SelectedIndex)
             Else
                 Exit Sub
             End If
 
-            'entityToUpdate.name = txtTagName.Text
-            entityToUpdate.Location = New PointF(numTagLocX.Value, numTagLocY.Value)
-            entityToUpdate.Layer = numTagLayer.Value
-            entityToUpdate.Scale = numTagScale.Value
+            'actorToUpdate.name = txtTagName.Text
+            actorToUpdate.Location = New PointF(numTagLocX.Value, numTagLocY.Value)
+            actorToUpdate.Layer = numTagLayer.Value
+            actorToUpdate.Scale = numTagScale.Value
 
             If lstInstances.SelectedIndex > -1 Then
-                thisLevel.rooms(lstRooms.SelectedIndex).instances(lstInstances.SelectedIndex) = entityToUpdate
+                thisLevel.rooms(lstRooms.SelectedIndex).instances(lstInstances.SelectedIndex) = actorToUpdate
             Else
-                thisLevel.templates(lstTemplates.SelectedIndex) = entityToUpdate
+                thisLevel.templates(lstTemplates.SelectedIndex) = actorToUpdate
             End If
 
-            ShowEntityTags(entityToUpdate, lstTemplates.SelectedIndex > -1)
+            ShowActorTags(actorToUpdate, lstTemplates.SelectedIndex > -1)
 
             RenderCurrentRoom()
         End If
@@ -553,10 +553,10 @@ Public Class FrmLevelEditor
             If tagMaker.userFinished = True Then
                 If lstInstances.SelectedIndex > -1 Then
                     SelectedRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.CreatedTag)
-                    ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+                    ShowActorTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
                 ElseIf lstTemplates.SelectedIndex > -1 Then
                     thisLevel.templates(lstTemplates.SelectedIndex).AddTag(tagMaker.CreatedTag)
-                    ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+                    ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
                 End If
             End If
         End Using
@@ -583,10 +583,10 @@ Public Class FrmLevelEditor
             If tagMaker.userFinished = True Then
                 If instanceIndex > -1 Then
                     SelectedRoom.instances(instanceIndex).SetTag(tagIndex, tagMaker.CreatedTag)
-                    ShowEntityTags(SelectedRoom.instances(instanceIndex), False)
+                    ShowActorTags(SelectedRoom.instances(instanceIndex), False)
                 ElseIf templateIndex > -1 Then
                     thisLevel.templates(templateIndex).SetTag(tagIndex, tagMaker.CreatedTag)
-                    ShowEntityTags(thisLevel.templates(templateIndex), True)
+                    ShowActorTags(thisLevel.templates(templateIndex), True)
                 End If
             End If
         End If
@@ -617,10 +617,10 @@ Public Class FrmLevelEditor
 
         If lstInstances.SelectedIndex > -1 Then
             SelectedRoom.instances(lstInstances.SelectedIndex).tags = newTags
-            ShowEntityTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+            ShowActorTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
         ElseIf lstTemplates.SelectedIndex > -1 Then
             thisLevel.templates(lstTemplates.SelectedIndex).tags = newTags
-            ShowEntityTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+            ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
         End If
     End Sub
 
@@ -637,7 +637,7 @@ Public Class FrmLevelEditor
 
 #Region "Mouse Location Control"
 
-    Dim heldInstanceIndex As Integer = -1           'index of the entity being held by the user
+    Dim heldInstanceIndex As Integer = -1           'index of the actor being held by the user
     Dim relativeHoldLocation As PointF = Nothing    'used so that the mouse holds a specific location on the instance
 
     Private Sub PnlRenderMouseDown(sender As Object, e As MouseEventArgs) Handles pnlRender.MouseDown
@@ -649,7 +649,7 @@ Public Class FrmLevelEditor
         'finds which instances the mouse is over
         Dim possibleInstanceIndices() As Integer = Nothing
         For index As Integer = 0 To UBound(SelectedRoom.instances)
-            Dim instanceArea As RectangleF = SelectedRoom.instances(index).GetEntityHitbox()
+            Dim instanceArea As RectangleF = SelectedRoom.instances(index).GetActorHitbox()
 
             If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
                 And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
@@ -672,8 +672,8 @@ Public Class FrmLevelEditor
             Next
 
             heldInstanceIndex = topMostInstanceIndex
-            relativeHoldLocation = New PointF(SelectedRoom.instances(heldInstanceIndex).GetEntityHitbox.Left - mouseLocationInRender.X,
-                                              SelectedRoom.instances(heldInstanceIndex).GetEntityHitbox.Top - mouseLocationInRender.Y)
+            relativeHoldLocation = New PointF(SelectedRoom.instances(heldInstanceIndex).GetActorHitbox.Left - mouseLocationInRender.X,
+                                              SelectedRoom.instances(heldInstanceIndex).GetActorHitbox.Top - mouseLocationInRender.Y)
             lstInstances.SelectedIndex = heldInstanceIndex
         End If
     End Sub
@@ -685,7 +685,7 @@ Public Class FrmLevelEditor
             SelectedRoom.instances(heldInstanceIndex).Location = New PointF(e.X / renderer.RenderScale.Width + relativeHoldLocation.X,
                                                                             e.Y / renderer.RenderScale.Height + relativeHoldLocation.Y)
             RenderCurrentRoom()
-            ShowEntityTags(SelectedRoom.instances(heldInstanceIndex), False)
+            ShowActorTags(SelectedRoom.instances(heldInstanceIndex), False)
         End If
     End Sub
 
@@ -1044,18 +1044,18 @@ Public Class FrmLevelEditor
         Dim templateSelected As Boolean = lstTemplates.SelectedIndex > -1
         Dim instanceSelected As Boolean = lstInstances.SelectedIndex > -1
         Dim roomSelected As Boolean = lstRooms.SelectedIndex > -1
-        Dim entityTagSelected As Boolean = lstTags.SelectedIndex > -1
+        Dim actorTagSelected As Boolean = lstTags.SelectedIndex > -1
         Dim roomParamSelected As Boolean = lstRoomParams.SelectedIndex > -1
         Dim levelParamSelected As Boolean = lstLevelParams.SelectedIndex > -1
         Dim levelSaveLocationSelected As Boolean = Not IsNothing(levelSaveLocation) AndAlso IO.File.Exists(levelSaveLocation)
 
         Dim controlsDefaultDisabled() As Control = {
-            btnInstanceCreate, btnInstanceDuplicate, btnInstanceDelete, btnRemoveEntity, btnLevelSave,
+            btnInstanceCreate, btnInstanceDuplicate, btnInstanceDelete, btnRemoveActor, btnLevelSave,
             btnTagAdd, btnTagEdit, btnTagRemove, btnAddRoomParam, btnEditRoomParam, btnRemoveRoomParam, btnLevelParamRemove, btnLevelParamEdit,
             btnRoomEditCoords, btnLevelRoomRemove
         }
         Dim controlsDefaultEnabled() As Control = {
-            btnLevelOpen, btnLevelRoomAdd, btnLoadEntity, btnCreateEntity, btnLevelParamAdd
+            btnLevelOpen, btnLevelRoomAdd, btnLoadActor, btnCreateActor, btnLevelParamAdd
         }
         For Each ctrl As Control In controlsDefaultDisabled
             ctrl.Enabled = False
@@ -1082,7 +1082,7 @@ Public Class FrmLevelEditor
                 btnInstanceDelete.Enabled = True
 
                 btnTagAdd.Enabled = True
-                If entityTagSelected Then
+                If actorTagSelected Then
                     btnTagEdit.Enabled = True
                     btnTagRemove.Enabled = True
                 End If
@@ -1095,10 +1095,10 @@ Public Class FrmLevelEditor
         End If
 
         If templateSelected Then
-            btnRemoveEntity.Enabled = True
+            btnRemoveActor.Enabled = True
 
             btnTagAdd.Enabled = True
-            If entityTagSelected Then
+            If actorTagSelected Then
                 btnTagEdit.Enabled = True
                 btnTagRemove.Enabled = True
             End If

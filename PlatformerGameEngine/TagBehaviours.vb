@@ -8,8 +8,8 @@ Public Module TagBehaviours
 
     'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
 
-    Public Sub ProcessTag(tag As Tag, ByRef ent As Entity, ByRef room As Room, renderEngine As PRE2)
-        'processes a single tag and modifies the entity accordingly
+    Public Sub ProcessTag(tag As Tag, ByRef ent As Actor, ByRef room As Room, renderEngine As PRE2)
+        'processes a single tag and modifies the actor accordingly
 
         'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
         'Dim tag As Tag = ent.tags(tagIndex)
@@ -40,7 +40,7 @@ Public Module TagBehaviours
 
 #Region "Collision Detection"
 
-    Private Sub VelocityHandling(ByRef ent As Entity, ByRef velocity As Vector, ByRef room As Room)
+    Private Sub VelocityHandling(ByRef ent As Actor, ByRef velocity As Vector, ByRef room As Room)
         Const collisionTagName As String = "collision"
         Const collisionTypeTagName As String = "collisionType"
         Const vulnerableTagName As String = "vulnerable"
@@ -48,7 +48,7 @@ Public Module TagBehaviours
         Const solidTagName As String = "solid"
 
         If ent.HasTag(collisionTagName) Then
-            For Each otherEnt As Entity In room.instances
+            For Each otherEnt As Actor In room.instances
                 If ent.Name <> otherEnt.Name Then
                     'Dim velocity2Temp As Object = otherEnt.FindTag("velocity").InterpretArgument
                     'Dim velocity2 As New Vector(0, 0)
@@ -62,7 +62,7 @@ Public Module TagBehaviours
                         If collisionResult.intersecting Or collisionResult.willIntersect Then
 
                             Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
-                            Dim entVulnerable As Boolean = False        'stores whether the entity is vulnerable
+                            Dim entVulnerable As Boolean = False        'stores whether the actor is vulnerable
                             If Not IsNothing(entCollisionTypesTemp) Then
                                 If IsArray(entCollisionTypesTemp) Then
                                     For index As Integer = 0 To UBound(entCollisionTypesTemp)
@@ -103,7 +103,7 @@ Public Module TagBehaviours
                             End If
 
                             If entVulnerable And Not IsNothing(otherEntEffect) Then
-                                'executes the effect of the other entity
+                                'executes the effect of the other actor
                             End If
                         End If
                     End If
@@ -120,9 +120,9 @@ Public Module TagBehaviours
         Return Not (rect1.Left > rect2.Right Or rect1.Right < rect2.Left Or rect1.Top > rect2.Bottom Or rect1.Bottom < rect2.Top)
     End Function
 
-    Public Function CheckPolygons(ent1 As Entity, ent2 As Entity, velocity As Vector) As PolygonCollisionResult
-        Dim ent1Rect As RectangleF = ent1.GetEntityHitbox()
-        Dim ent2Rect As RectangleF = ent2.GetEntityHitbox()
+    Public Function CheckPolygons(ent1 As Actor, ent2 As Actor, velocity As Vector) As PolygonCollisionResult
+        Dim ent1Rect As RectangleF = ent1.GetActorHitbox()
+        Dim ent2Rect As RectangleF = ent2.GetActorHitbox()
         Dim ent1RectMoved As New RectangleF(New PointF(ent1Rect.X + velocity.X, ent2Rect.Y + velocity.Y), ent1Rect.Size)
         Dim ent1Poly As New Polygon(ent1Rect)
         Dim ent2Poly As New Polygon(ent2Rect)
@@ -404,7 +404,7 @@ Public Module TagBehaviours
 
 #Region "Calculation"
 
-    Public Function ProcessCalculation(calc As String, Optional ent As Entity = Nothing, Optional room As Room = Nothing) As String
+    Public Function ProcessCalculation(calc As String, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As String
         'takes in a calculation as a string and returns the result
 
         If Not IsNothing(calc) AndAlso Len(calc) > 0 Then
@@ -557,7 +557,7 @@ Public Module TagBehaviours
         End If
     End Function
 
-    Public Function AssessCondition(condition As String, Optional ent As Entity = Nothing, Optional thisRoom As Room = Nothing) As Boolean
+    Public Function AssessCondition(condition As String, Optional ent As Actor = Nothing, Optional thisRoom As Room = Nothing) As Boolean
         If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
             Dim comparisonOperators() As String = {"=", "<>", ">", ">=", "<", "<="}
             Dim logicOperators() As String = {"and", "or"}

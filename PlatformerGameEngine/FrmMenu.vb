@@ -65,8 +65,8 @@ Public Class FrmMenu
                     OpenSpriteMaker()
                 Case "OpenLevelEditor"
                     OpenLevelEditor()
-                Case "OpenEntityMaker"
-                    OpenEntityMaker()
+                Case "OpenActorMaker"
+                    OpenActorMaker()
             End Select
         Else
             MsgBox("This button doesn't do anything")
@@ -110,8 +110,8 @@ Public Class FrmMenu
         'changes the menu layout to one relevant to the tools menu
 
         Dim toolsMenuLayout As New MenuOptions With {
-            .buttonText = {"Sprite Maker", "Entity Maker", "Level Editor"},
-            .behaviours = {"OpenSpriteMaker", "OpenEntityMaker", "OpenLevelEditor"},
+            .buttonText = {"Sprite Maker", "Actor Maker", "Level Editor"},
+            .behaviours = {"OpenSpriteMaker", "OpenActorMaker", "OpenLevelEditor"},
             .previousMenuIndex = currentMenuIndex
         }
         ReDim Preserve menuLayouts(UBound(menuLayouts) + 1)
@@ -170,11 +170,11 @@ Public Class FrmMenu
         End Using
     End Sub
 
-    Private Sub OpenEntityMaker()
-        'opens the entity maker tool
+    Private Sub OpenActorMaker()
+        'opens the actor maker tool
 
-        Using entityMaker As New FrmEntityMaker
-            entityMaker.ShowDialog()
+        Using actorMaker As New FrmActorMaker
+            actorMaker.ShowDialog()
         End Using
     End Sub
 End Class
