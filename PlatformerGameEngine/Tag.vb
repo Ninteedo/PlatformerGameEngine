@@ -3,7 +3,7 @@
     Public argument As String
 
     Public Sub New(tagName As String, Optional argument As String = Nothing)
-        name = tagName
+        Me.name = tagName
         Me.argument = argument
     End Sub
 

@@ -20,69 +20,124 @@ Public Module JSONHandler
         Return result
     End Function
 
-    Public Function JSONToTag(jsonString As String) As Tag
+    'Public Function JSONToTag(jsonString As String) As Tag
+    '    'converts a JSON string into a tag
+    '    'TODO: input validation and error handling
+
+    '    'Dim splits() As String = JSONSplit(jsonString, 0)
+    '    'Dim resultName As String = RemoveQuotes(Mid(splits(0), 1, splits(0).IndexOf(":")))
+    '    'Dim currentValue As String = Mid(splits(0), splits(0).IndexOf(":"))
+
+    '    Dim cIndex As Integer = 0
+    '    Dim inString As Boolean = False
+    '    Dim currentString As String = ""
+
+    '    Dim resultName As String = ""
+
+    '    Dim inValue As Boolean = False
+    '    Dim currentValue As String = ""
+
+    '    Dim subStructureLevel As Integer = 0    'tracks how many tags have been opened
+
+    '    If Not IsNothing(jsonString) Then
+    '        Do
+    '            Dim c As String = jsonString(cIndex)
+
+    '            If Not inValue Then
+    '                If Not inString AndAlso c = ":" Or c = "}" Then 'marks end of name and beginning of value
+    '                    'resultName = InterpretString(currentString).Trim
+    '                    resultName = currentString.Trim
+    '                    currentString = ""
+
+    '                    inValue = True
+    '                End If
+    '            Else
+    '                currentValue += c
+    '                If Not inString And c = "}" Then        'end of value
+    '                    subStructureLevel -= 1
+
+    '                    If subStructureLevel < 0 Then
+    '                        currentValue = currentValue.Remove(Len(currentValue) - 1)
+    '                        Exit Do
+    '                    End If
+    '                ElseIf Not inString And c = "{" Then     'sub tag opened
+    '                    subStructureLevel += 1
+    '                End If
+    '            End If
+
+    '            If Not inString And c = """" Then
+    '                inString = True
+    '            ElseIf inString AndAlso c = """" AndAlso jsonString(cIndex - 1) <> "\" Then
+    '                inString = False
+    '            ElseIf inString Then
+    '                currentString += c
+    '            End If
+
+    '            cIndex += 1
+    '        Loop Until cIndex >= Len(jsonString)
+
+    '        If Len(currentValue) = 0 Then
+    '            currentValue = Nothing
+    '        End If
+    '    End If
+
+    '    Return New Tag(resultName, currentValue)
+    'End Function
+
+    Public Function JsonToTag(json As String) As Tag
         'converts a JSON string into a tag
-        'TODO: input validation and error handling
 
-        'Dim splits() As String = JSONSplit(jsonString, 0)
-        'Dim resultName As String = RemoveQuotes(Mid(splits(0), 1, splits(0).IndexOf(":")))
-        'Dim currentValue As String = Mid(splits(0), splits(0).IndexOf(":"))
+        Dim cIndex As Integer           'current character index of json string
+        Dim name As String = ""
+        Dim argument As String = ""
+        Dim inString As Boolean         'is the current character in a string (includes quotation marks)
+        Dim stringEscaped As Boolean    'has the string been 'escaped' (escaped by \, _
+        '                               used for special cases such as \n for new line or \" for a quotation mark)
+        Dim inArgument As Boolean       'false: currently in name, true: currently in argument
 
-        Dim cIndex As Integer = 0
-        Dim inString As Boolean = False
-        Dim currentString As String = ""
+        json = Trim(json)       'removes any leading or trailing whitespace
 
-        Dim resultName As String = ""
+        For cIndex = 0 To Len(json) - 1
+            Dim c As String = json(cIndex)      'current character
+            Dim addChar As Boolean = True       'if true then c is added to name/argument
 
-        Dim inValue As Boolean = False
-        Dim currentValue As String = ""
-
-        Dim subStructureLevel As Integer = 0    'tracks how many tags have been opened
-
-        If Not IsNothing(jsonString) Then
-            Do
-                Dim c As String = jsonString(cIndex)
-
-                If Not inValue Then
-                    If Not inString AndAlso c = ":" Or c = "}" Then 'marks end of name and beginning of value
-                        'resultName = InterpretString(currentString).Trim
-                        resultName = currentString.Trim
-                        currentString = ""
-
-                        inValue = True
-                    End If
+            If inString Then
+                If stringEscaped Then
+                    stringEscaped = False
                 Else
-                    currentValue += c
-                    If Not inString And c = "}" Then        'end of value
-                        subStructureLevel -= 1
-
-                        If subStructureLevel < 0 Then
-                            currentValue = currentValue.Remove(Len(currentValue) - 1)
-                            Exit Do
+                    If c = "\" Then
+                        stringEscaped = True
+                    Else
+                        If c = """" Then        '4 quotes represents a quotation mark
+                            inString = False
                         End If
-                    ElseIf Not inString And c = "{" Then     'sub tag opened
-                        subStructureLevel += 1
                     End If
                 End If
-
-                If Not inString And c = """" Then
-                    inString = True
-                ElseIf inString AndAlso c = """" AndAlso jsonString(cIndex - 1) <> "\" Then
-                    inString = False
-                ElseIf inString Then
-                    currentString += c
+            Else
+                If c = ":" Then
+                    inArgument = True
+                    addChar = False
+                Else
+                    If c = """" Then
+                        inString = True
+                    Else
+                        addChar = False
+                    End If
                 End If
-
-                cIndex += 1
-            Loop Until cIndex >= Len(jsonString)
-
-            If Len(currentValue) = 0 Then
-                currentValue = Nothing
             End If
-        End If
 
-        Return New Tag(resultName, currentValue)
+            If addChar Then
+                If inArgument Then
+                    argument += c
+                Else
+                    name += c
+                End If
+            End If
+        Next cIndex
+
+        Return New Tag(name, argument)
     End Function
+
 #End Region
 
 #Region "Value/String Interpreting"
