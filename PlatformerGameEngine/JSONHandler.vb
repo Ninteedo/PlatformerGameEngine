@@ -135,7 +135,7 @@ Public Module JSONHandler
             End If
         Next cIndex
 
-        Return New Tag(name, argument)
+        Return New Tag(RemoveQuotes(name), RemoveQuotes(argument))
     End Function
 
 #End Region

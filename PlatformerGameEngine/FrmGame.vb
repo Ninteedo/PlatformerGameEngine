@@ -164,11 +164,11 @@ Public Class FrmGame
             End If
         Next keyIndex
 
-        For actorIndex As Integer = 0 To UBound(currentRoom.instances)
-            ActorTick(currentRoom.instances(actorIndex))
+        For actorIndex As Integer = 0 To UBound(currentRoom.actors)
+            ActorTick(currentRoom.actors(actorIndex))
         Next
 
-        renderer.DoGameRender(currentRoom.instances)
+        renderer.DoGameRender(currentRoom.actors)
     End Sub
 
     Private Sub ActorTick(ByRef ent As Actor)
@@ -254,9 +254,9 @@ Public Class FrmGame
             Case "room"
                 result = currentRoom.FindParam(parts(1))
             Case Else
-                For index As Integer = 0 To UBound(currentRoom.instances)
-                    If currentRoom.instances(index).Name = parts(0) Then
-                        result = currentRoom.instances(index)
+                For index As Integer = 0 To UBound(currentRoom.actors)
+                    If currentRoom.actors(index).Name = parts(0) Then
+                        result = currentRoom.actors(index)
                     End If
                 Next
         End Select

@@ -9,7 +9,7 @@ Public Class FrmLevelEditor
 #Region "Initialisation"
     'initialisation
 
-    Dim delayTimer As New Timer With {.Interval = 1, .Enabled = False}
+    ReadOnly delayTimer As New Timer With {.Interval = 1, .Enabled = False}
 
     Private Sub FrmLevelEditor_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         AddHandler delayTimer.Tick, AddressOf Initialisation
@@ -19,7 +19,7 @@ Public Class FrmLevelEditor
     Private Sub Initialisation()
         delayTimer.Stop()
 
-        renderer = New PRE2 With {.renderPanel = pnlRender}
+        renderer = New PRE2 With {.renderPanel = PnlRender}
 
         LayoutInitialisation()
         'ControlInitialisation()
@@ -27,17 +27,17 @@ Public Class FrmLevelEditor
         RefreshControlsEnabled()
     End Sub
 
-    Private Sub LayoutInitialisation()
-        tblControlsOverall.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
-        tblLevel.Location = New Point(pnlRender.Left, pnlRender.Bottom + 10)
+    'Private Sub LayoutInitialisation()
+    '    'TblControlsOverall.Location = New Point(PnlRender.Right + 10, PnlRender.Top)
+    '    'TblRooms.Location = New Point(PnlRender.Left, PnlRender.Bottom + 10)
 
-        Me.Size = New Size(tblControlsOverall.Right + 20, tblControlsOverall.Bottom + 40)
+    '    'Me.Size = New Size(TblControlsOverall.Right + 20, TblControlsOverall.Bottom + 40)
 
-        'flwSaveLoad.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
-        'tblActors.Location = New Point(flwSaveLoad.Left, flwSaveLoad.Bottom + 5)
-        'tblTagsSummary.Location = New Point(tblActors.Right + 10, tblActors.Top)
-        'tblTagsDetailed.Location = New Point(tblTagsSummary.Left, tblTagsSummary.Bottom + 5)
-    End Sub
+    '    'flwSaveLoad.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
+    '    'tblActors.Location = New Point(flwSaveLoad.Left, flwSaveLoad.Bottom + 5)
+    '    'tblTagsSummary.Location = New Point(tblActors.Right + 10, tblActors.Top)
+    '    'tblTagsDetailed.Location = New Point(tblTagsSummary.Left, tblTagsSummary.Bottom + 5)
+    'End Sub
 
 #End Region
 
@@ -80,8 +80,8 @@ Public Class FrmLevelEditor
             thisLevel = FrmGame.LoadLevelFile(levelSaveLocation, renderer)
 
             RefreshRoomsList()
-            RefreshInstancesList()
-            RefreshTemplatesList()
+            RefreshActorsList()
+            'RefreshTemplatesList()
             RefreshParameterList()
 
             RefreshControlsEnabled()
@@ -97,7 +97,7 @@ Public Class FrmLevelEditor
         PRE2.WriteFile(saveLocation, levelToSave.ToString)
     End Sub
 
-    Private Sub btnLevelOpen_Click(sender As Object, e As EventArgs) Handles btnLevelOpen.Click
+    Private Sub btnLevelOpen_Click(sender As Object, e As EventArgs) Handles
         Using openDialog As New OpenFileDialog With {.Filter = "Level file (*.lvl)|*.lvl", .InitialDirectory = renderer.levelFolderLocation}
             If openDialog.ShowDialog() = DialogResult.OK Then
                 LoadLevel(openDialog.FileName)
@@ -105,7 +105,7 @@ Public Class FrmLevelEditor
         End Using
     End Sub
 
-    Private Sub BtnLevelSaveAs_Click(sender As Object, e As EventArgs) Handles btnLevelSaveAs.Click
+    Private Sub BtnLevelSaveAs_Click(sender As Object, e As EventArgs) Handles
         Dim fileName As String = InputBox("Enter file name for level")
 
         If fileName.Length >= 1 Then        'checks that the user actually entered something
@@ -115,7 +115,7 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub BtnLevelSave_Click(sender As Object, e As EventArgs) Handles btnLevelSave.Click
+    Private Sub BtnLevelSave_Click(sender As Object, e As EventArgs)
         SaveLevel(thisLevel, levelSaveLocation)
     End Sub
 
@@ -152,20 +152,12 @@ Public Class FrmLevelEditor
     Dim thisLevel As Level
     'Dim thisRoom As Room
 
-    Private ReadOnly Property SelectedRoom As Room
-        Get
-            If lstRooms.SelectedIndex > -1 And Not IsNothing(thisLevel.rooms) AndAlso lstRooms.SelectedIndex <= UBound(thisLevel.rooms) Then
-                Return thisLevel.rooms(lstRooms.SelectedIndex)
-            Else
-                Return Nothing
-            End If
-        End Get
-    End Property
+
 
     Private Sub RenderCurrentRoom()
         'renders the current room
 
-        renderer.DoGameRender(SelectedRoom.instances)
+        renderer.DoGameRender(SelectedRoom.actors)
     End Sub
 
 #End Region
@@ -174,278 +166,352 @@ Public Class FrmLevelEditor
 
 #Region "Templates"
 
-    Private Sub LoadActorTemplate(fileLocation As String)
-        'loads an actor saved to a file for a template
+    'Private Sub LoadActorTemplate(fileLocation As String)
+    '    'loads an actor saved to a file for a template
 
-        Dim actorString As String = PRE2.ReadFile(fileLocation)
-        If IsNothing(actorString) = False Then
-            Dim successfulLoad As Boolean = False
-            Dim newTemplate As Actor = ActorStringHandler.ReadActorString(actorString, renderer, successfulLoad)
+    '    Dim actorString As String = PRE2.ReadFile(fileLocation)
+    '    If Not IsNothing(actorString) Then
+    '        Dim successfulLoad As Boolean = False
+    '        Dim newTemplate As Actor = ActorStringHandler.ReadActorString(actorString, renderer, successfulLoad)
 
-            If successfulLoad Then
-                If Not IsNothing(thisLevel.templates) Then      'makes name unique
-                    Dim templateNames(UBound(thisLevel.templates)) As String
-                    For index As Integer = 0 To UBound(templateNames)
-                        templateNames(index) = thisLevel.templates(index).Name
-                    Next index
-                    newTemplate.Name = FrmGame.MakeNameUnique(newTemplate.Name, templateNames, True)
-                End If
+    '        If successfulLoad Then
+    '            If Not IsNothing(thisLevel.templates) Then      'makes name unique
+    '                Dim templateNames(UBound(thisLevel.templates)) As String
+    '                For index As Integer = 0 To UBound(templateNames)
+    '                    templateNames(index) = thisLevel.templates(index).Name
+    '                Next index
+    '                newTemplate.Name = FrmGame.MakeNameUnique(newTemplate.Name, templateNames, True)
+    '            End If
 
-                newTemplate.AddTag(New Tag("fileName", AddQuotes(fileLocation.Remove(0, Len(renderer.actorFolderLocation)))))
+    '            newTemplate.AddTag(New Tag("fileName", AddQuotes(fileLocation.Remove(0, Len(renderer.actorFolderLocation)))))
 
-                If IsNothing(thisLevel.templates) = True Then
-                    ReDim thisLevel.templates(0)
-                Else
-                    ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) + 1)
-                End If
-                thisLevel.templates(UBound(thisLevel.templates)) = newTemplate
-            End If
+    '            If IsNothing(thisLevel.templates) = True Then
+    '                ReDim thisLevel.templates(0)
+    '            Else
+    '                ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) + 1)
+    '            End If
+    '            thisLevel.templates(UBound(thisLevel.templates)) = newTemplate
+    '        End If
 
-            RefreshTemplatesList()
-        End If
-    End Sub
+    '        RefreshTemplatesList()
+    '    End If
+    'End Sub
 
-    Private Sub RemoveActorTemplate(templateIndex As Integer)
-        'removes the template of an actor and all instances made from that template from the level
+    'Private Sub RemoveActorTemplate(templateIndex As Integer)
+    '    'removes the template of an actor and all instances made from that template from the level
 
-        If Not IsNothing(thisLevel.templates) Then
-            If templateIndex >= 0 And templateIndex <= UBound(thisLevel.templates) Then
-                'first removes all instances with the templateName tag which is the same as the name of the template
-                Dim templateName As String = thisLevel.templates(templateIndex).Name
+    '    If Not IsNothing(thisLevel.templates) Then
+    '        If templateIndex >= 0 And templateIndex <= UBound(thisLevel.templates) Then
+    '            'first removes all instances with the templateName tag which is the same as the name of the template
+    '            Dim templateName As String = thisLevel.templates(templateIndex).Name
 
-                If Not IsNothing(thisLevel.rooms) Then
-                    'goes through each room
-                    For roomIndex As Integer = 0 To UBound(thisLevel.rooms)
-                        Dim currentRoom As Room = thisLevel.rooms(roomIndex)
-                        lstRooms.SelectedIndex = roomIndex
+    '            If Not IsNothing(thisLevel.rooms) Then
+    '                'goes through each room
+    '                For roomIndex As Integer = 0 To UBound(thisLevel.rooms)
+    '                    Dim currentRoom As Room = thisLevel.rooms(roomIndex)
+    '                    LstRooms.SelectedIndex = roomIndex
 
-                        If Not IsNothing(currentRoom.instances) AndAlso UBound(currentRoom.instances) >= 0 Then
-                            Dim instanceIndex As Integer = 0
-                            Do
-                                Dim currentInstance As Actor = currentRoom.instances(instanceIndex)
+    '                    If Not IsNothing(currentRoom.actors) AndAlso UBound(currentRoom.actors) >= 0 Then
+    '                        Dim instanceIndex As Integer = 0
+    '                        Do
+    '                            Dim currentInstance As Actor = currentRoom.actors(instanceIndex)
 
-                                If currentInstance.FindTag("templateName").InterpretArgument = templateName Then
-                                    'removes current instance if the templateName matches
-                                    RemoveActorInstance(instanceIndex)
+    '                            If currentInstance.FindTag("templateName").InterpretArgument = templateName Then
+    '                                'removes current instance if the templateName matches
+    '                                RemoveActorInstance(instanceIndex)
 
-                                    'For index As Integer = instanceIndex To UBound(currentRoom.instances) - 1
-                                    '    currentRoom.instances(index) = currentRoom.instances(index + 1)
-                                    'Next index
+    '                                'For index As Integer = instanceIndex To UBound(currentRoom.instances) - 1
+    '                                '    currentRoom.instances(index) = currentRoom.instances(index + 1)
+    '                                'Next index
 
-                                    'ReDim Preserve currentRoom.instances(UBound(currentRoom.instances) - 1)
-                                Else
-                                    instanceIndex += 1
-                                End If
-                            Loop Until instanceIndex > UBound(currentRoom.instances) - 1
+    '                                'ReDim Preserve currentRoom.instances(UBound(currentRoom.instances) - 1)
+    '                            Else
+    '                                instanceIndex += 1
+    '                            End If
+    '                        Loop Until instanceIndex > UBound(currentRoom.actors) - 1
 
-                            thisLevel.rooms(roomIndex) = currentRoom
-                        End If
-                    Next roomIndex
-                End If
+    '                        thisLevel.rooms(roomIndex) = currentRoom
+    '                    End If
+    '                Next roomIndex
+    '            End If
 
-                'then removes the template itself
-                For index As Integer = templateIndex To UBound(thisLevel.templates) - 1
-                    thisLevel.templates(index) = thisLevel.templates(index + 1)
-                Next index
+    '            'then removes the template itself
+    '            For index As Integer = templateIndex To UBound(thisLevel.templates) - 1
+    '                thisLevel.templates(index) = thisLevel.templates(index + 1)
+    '            Next index
 
-                If UBound(thisLevel.templates) > 0 Then
-                    ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) - 1)
-                Else
-                    thisLevel.templates = Nothing
-                End If
-            Else
-                PRE2.DisplayError("Provided template index (" & templateIndex & ") was an out of bounds")
-            End If
-        Else
-            PRE2.DisplayError("There is currently no templates")
-        End If
+    '            If UBound(thisLevel.templates) > 0 Then
+    '                ReDim Preserve thisLevel.templates(UBound(thisLevel.templates) - 1)
+    '            Else
+    '                thisLevel.templates = Nothing
+    '            End If
+    '        Else
+    '            PRE2.DisplayError("Provided template index (" & templateIndex & ") was an out of bounds")
+    '        End If
+    '    Else
+    '        PRE2.DisplayError("There is currently no templates")
+    '    End If
 
-        RefreshInstancesList()
-        RefreshTemplatesList()
+    '    RefreshActorsList()
+    '    RefreshTemplatesList()
 
-    End Sub
-
-
-    Private Sub btnLoadActor_Click(sender As Object, e As EventArgs) Handles btnLoadActor.Click
-        Using openDialog As New OpenFileDialog With {.Filter = "Actor files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.actorFolderLocation}
-
-            If openDialog.ShowDialog() = DialogResult.OK Then
-                For Each fileName As String In openDialog.FileNames
-                    LoadActorTemplate(fileName)
-                Next
-            End If
-        End Using
-    End Sub
-
-    Private Sub btnRemoveActor_Click(sender As Object, e As EventArgs) Handles btnRemoveActor.Click
-        If lstTemplates.SelectedIndex > -1 Then
-            If MsgBox("Are you sure you wish to remove this template?" & Environment.NewLine &
-                  "This will also remove all instances which use this template") = DialogResult.OK Then
-                RemoveActorTemplate(lstTemplates.SelectedIndex)
-            End If
-        End If
-    End Sub
+    'End Sub
 
 
-    Private Sub RefreshTemplatesList()
-        If IsNothing(thisLevel.templates) = False Then
-            Dim names(UBound(thisLevel.templates)) As String
+    'Private Sub btnLoadActor_Click(sender As Object, e As EventArgs)
+    '    Using openDialog As New OpenFileDialog With {.Filter = "Actor files (*.ent)|*.ent", .Multiselect = True, .InitialDirectory = renderer.actorFolderLocation}
 
-            For index As Integer = 0 To UBound(thisLevel.templates)
-                names(index) = thisLevel.templates(index).Name
-            Next
+    '        If openDialog.ShowDialog() = DialogResult.OK Then
+    '            For Each fileName As String In openDialog.FileNames
+    '                LoadActorTemplate(fileName)
+    '            Next
+    '        End If
+    '    End Using
+    'End Sub
 
-            RefreshList(lstTemplates, names)
-        Else
-            RefreshList(lstTemplates, Nothing)
-        End If
-    End Sub
+    'Private Sub btnRemoveActor_Click(sender As Object, e As EventArgs)
+    '    If lstTemplates.SelectedIndex > -1 Then
+    '        If MsgBox("Are you sure you wish to remove this template?" & Environment.NewLine &
+    '              "This will also remove all instances which use this template") = DialogResult.OK Then
+    '            RemoveActorTemplate(lstTemplates.SelectedIndex)
+    '        End If
+    '    End If
+    'End Sub
 
-    Private Sub lstTemplates_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstTemplates.SelectedIndexChanged
-        'deselects whatever is selected in lstInstances
 
-        If lstTemplates.SelectedIndex > -1 Then     'checks that this isn't being unselected
-            lstInstances.SelectedIndex = -1
+    'Private Sub RefreshTemplatesList()
+    '    If IsNothing(thisLevel.templates) = False Then
+    '        Dim names(UBound(thisLevel.templates)) As String
 
-            'ToggleTagControls(True)
-            ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
-        Else
-            If lstInstances.SelectedIndex = -1 Then
-                'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
-                ShowActorTags(Nothing, False)
-            End If
-        End If
-    End Sub
+    '        For index As Integer = 0 To UBound(thisLevel.templates)
+    '            names(index) = thisLevel.templates(index).Name
+    '        Next
+
+    '        RefreshList(lstTemplates, names)
+    '    Else
+    '        RefreshList(lstTemplates, Nothing)
+    '    End If
+    'End Sub
+
+    'Private Sub LstTemplates_SelectedIndexChanged(sender As Object, e As EventArgs)
+    '    'deselects whatever is selected in lstInstances
+
+    '    If lstTemplates.SelectedIndex > -1 Then     'checks that this isn't being unselected
+    '        LstActors.SelectedIndex = -1
+
+    '        'ToggleTagControls(True)
+    '        ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+    '    Else
+    '        If LstActors.SelectedIndex = -1 Then
+    '            'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
+    '            ShowActorTags(Nothing, False)
+    '        End If
+    '    End If
+    'End Sub
+
+
 
 #End Region
 
 #Region "Instances"
 
-    Private Sub AddActorInstance(ByVal template As Actor)
+    Private Property Actors As Actor()
+        Get
+            Return SelectedRoom.actors
+        End Get
+        Set(value As Actor())
+            SelectedRoom.actors = value
+
+            RefreshActorsList()
+            RefreshActorTagsList()
+
+            RenderCurrentRoom()
+        End Set
+    End Property
+
+    Private Property SelectedActor As Actor
+        Get
+            If LstActors.SelectedIndex > -1 Then
+                Return SelectedRoom.actors(LstActors.SelectedIndex)
+            Else
+                Return New Actor With {.Name = "UnselectedActor"}
+            End If
+        End Get
+        Set(value As Actor)
+            If LstActors.SelectedIndex > -1 Then
+                SelectedRoom.actors(LstActors.SelectedIndex) = value
+            Else
+                PRE2.DisplayError("Tried to modify an actor but none were selected")
+            End If
+        End Set
+    End Property
+
+    Private Sub BtnCreateActor_Click(sender As Object, e As EventArgs) Handles BtnCreateActor.Click
+        'opens Actor Maker for user and adds created actor to room
+
+        Using actorMaker As New FrmActorMaker(renderEngine:=renderer)
+            actorMaker.ShowDialog()
+
+            If actorMaker.userFinished Then
+                AddActor(actorMaker.result)
+                'ReDim Preserve CurrentRoom.instances(UBound(CurrentRoom.instances) + 1)
+                'CurrentRoom.instances(UBound(CurrentRoom.instances)) = actorMaker.result
+            End If
+        End Using
+    End Sub
+
+    Private Sub ItmActorDelete_Click(sender As Object, e As EventArgs) Handles ItmActorDelete.Click
+        RemoveItem(SelectedRoom.actors, LstActors.SelectedIndex)
+        RefreshActorsList()
+    End Sub
+
+    Private Sub ItmActorEdit_Click(sender As Object, e As EventArgs) Handles ItmActorEdit.Click
+        Using actorMaker As New FrmActorMaker(SelectedActor, renderer)
+            actorMaker.ShowDialog()
+
+            If actorMaker.userFinished Then
+                SelectedActor = actorMaker.result
+            End If
+        End Using
+    End Sub
+
+    Private Sub ItmActorDuplicate_Click(sender As Object, e As EventArgs) Handles ItmActorDuplicate.Click
+        AddActor(SelectedActor)
+    End Sub
+
+    Private Sub AddActor(ByVal template As Actor)
         'creates a new instance from the given actor
 
         'Dim templateName As String = template.name
 
-        Dim newInstance As Actor = template.Clone
-        If Not newInstance.HasTag("templateName") Then      'doesn't add template name if template is an instance of a template
-            newInstance.AddTag(New Tag("templateName", template.Name))       'instance stores the name of its template so the instance can be created from the correct template when loading
-        End If
+        Dim newActor As Actor = template.Clone
+        'If Not newInstance.HasTag("templateName") Then      'doesn't add template name if template is an instance of a template
+        '    newInstance.AddTag(New Tag("templateName", template.Name))       'instance stores the name of its template so the instance can be created from the correct template when loading
+        'End If
+
+        Dim usedNames(UBound(Actors)) As String
+        For index As Integer = 0 To UBound(usedNames)
+            usedNames(index) = Actors(index).Name
+        Next
+        newActor.Name = FrmGame.MakeNameUnique(newActor.Name, usedNames, True)
+
+        AppendItem(Actors, newActor)
 
         'checks if there are any instances with the same name yet, and numbers the instance accordingly
-        If IsNothing(SelectedRoom.instances) Then
-            newInstance.Name = RemoveQuotes(template.Name) & "-1"
+        'If IsNothing(SelectedRoom.instances) Then
+        '    newInstance.Name = RemoveQuotes(template.Name) & "-1"
 
-            ReDim thisLevel.rooms(lstRooms.SelectedIndex).instances(0)
-            SelectedRoom.instances(0) = newInstance
-        Else
-            Dim instanceNames(UBound(SelectedRoom.instances)) As String
+        '    ReDim thisLevel.rooms(LstRooms.SelectedIndex).instances(0)
+        '    SelectedRoom.instances(0) = newInstance
+        'Else
+        '    Dim instanceNames(UBound(SelectedRoom.instances)) As String
 
-            For index As Integer = 0 To UBound(SelectedRoom.instances)
-                instanceNames(index) = SelectedRoom.instances(index).Name
-            Next index
+        '    For index As Integer = 0 To UBound(SelectedRoom.instances)
+        '        instanceNames(index) = SelectedRoom.instances(index).Name
+        '    Next index
 
-            Dim newName As String = FrmGame.MakeNameUnique(newInstance.Name, instanceNames, False)
+        '    Dim newName As String = FrmGame.MakeNameUnique(newInstance.Name, instanceNames, False)
 
-            newInstance.Name = newName
+        '    newInstance.Name = newName
 
-            ReDim Preserve thisLevel.rooms(lstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) + 1)
-            SelectedRoom.instances(UBound(SelectedRoom.instances)) = newInstance
-        End If
+        '    ReDim Preserve thisLevel.rooms(LstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) + 1)
+        '    SelectedRoom.instances(UBound(SelectedRoom.instances)) = newInstance
+        'End If
 
         'template.name = templateName
 
-        RefreshInstancesList()
-        RefreshTemplatesList()
+        'RefreshActorsList()
+        'RefreshTemplatesList()
     End Sub
 
-    Private Sub RemoveActorInstance(instanceIndex As Integer)
-        'deletes the instance with the given index
+    'Private Sub RemoveActorInstance(instanceIndex As Integer)
+    '    'deletes the instance with the given index
 
-        'removes the instance from the room
-        If instanceIndex >= 0 And instanceIndex <= UBound(SelectedRoom.instances) Then
-            For index As Integer = instanceIndex To UBound(SelectedRoom.instances) - 1
-                SelectedRoom.instances(index) = SelectedRoom.instances(index + 1)
-            Next index
+    '    'removes the instance from the room
+    '    If instanceIndex >= 0 And instanceIndex <= UBound(SelectedRoom.instances) Then
+    '        For index As Integer = instanceIndex To UBound(SelectedRoom.instances) - 1
+    '            SelectedRoom.instances(index) = SelectedRoom.instances(index + 1)
+    '        Next index
 
-            If UBound(SelectedRoom.instances) Then
-                ReDim Preserve thisLevel.rooms(lstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) - 1)
-            Else
-                thisLevel.rooms(lstRooms.SelectedIndex).instances = Nothing
-            End If
-        Else
-            PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(SelectedRoom.instances))
-        End If
+    '        If UBound(SelectedRoom.instances) Then
+    '            ReDim Preserve thisLevel.rooms(LstRooms.SelectedIndex).instances(UBound(SelectedRoom.instances) - 1)
+    '        Else
+    '            thisLevel.rooms(LstRooms.SelectedIndex).instances = Nothing
+    '        End If
+    '    Else
+    '        PRE2.DisplayError("Tried to remove an instance at index " & instanceIndex & " in an array with a max index of " & UBound(SelectedRoom.instances))
+    '    End If
 
-        RefreshInstancesList()
-    End Sub
-
-
-    Private Sub btnInstanceCreate_Click(sender As Object, e As EventArgs) Handles btnInstanceCreate.Click
-        'creates a new instance of the currently selected template
-
-        'checks that a template is selected
-        If lstTemplates.SelectedIndex > -1 Then
-            AddActorInstance(thisLevel.templates(lstTemplates.SelectedIndex))
-        Else
-            PRE2.DisplayError("No selected template to create an instance from")
-        End If
-    End Sub
-
-    Private Sub btnInstanceDuplicate_Click(sender As Object, e As EventArgs) Handles btnInstanceDuplicate.Click
-        'creates a new instance as a copy of the currently selected instance
-
-        'checks that an instance is selected
-        If lstInstances.SelectedIndex > -1 Then
-            AddActorInstance(SelectedRoom.instances(lstInstances.SelectedIndex))
-        Else
-            PRE2.DisplayError("No selected instance to duplicate")
-        End If
-    End Sub
-
-    Private Sub btnInstanceDelete_Click(sender As Object, e As EventArgs) Handles btnInstanceDelete.Click
-        'deletes the currently selected instance
-
-        'checks that an instance is selected
-        If lstInstances.SelectedIndex > -1 Then
-            'asks the user to confirm deleting the instance
-            If MsgBox("Are you sure you wish to delete instance " & SelectedRoom.instances(lstInstances.SelectedIndex).Name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
-                RemoveActorInstance(lstInstances.SelectedIndex)
-            End If
-        End If
-    End Sub
+    '    RefreshInstancesList()
+    'End Sub
 
 
-    Private Sub RefreshInstancesList()
-        If IsNothing(SelectedRoom.instances) = False Then
-            Dim names(UBound(SelectedRoom.instances)) As String
+    'Private Sub btnInstanceCreate_Click(sender As Object, e As EventArgs) Handles BtnCreateActor.Click
+    '    'creates a new instance of the currently selected template
 
-            For index As Integer = 0 To UBound(SelectedRoom.instances)
-                names(index) = SelectedRoom.instances(index).Name
+    '    'checks that a template is selected
+    '    If lstTemplates.SelectedIndex > -1 Then
+    '        AddActorInstance(thisLevel.templates(lstTemplates.SelectedIndex))
+    '    Else
+    '        PRE2.DisplayError("No selected template to create an instance from")
+    '    End If
+    'End Sub
+
+    'Private Sub btnInstanceDuplicate_Click(sender As Object, e As EventArgs)
+    '    'creates a new instance as a copy of the currently selected instance
+
+    '    'checks that an instance is selected
+    '    If LstActors.SelectedIndex > -1 Then
+    '        AddActorInstance(SelectedRoom.instances(LstActors.SelectedIndex))
+    '    Else
+    '        PRE2.DisplayError("No selected instance to duplicate")
+    '    End If
+    'End Sub
+
+    'Private Sub btnInstanceDelete_Click(sender As Object, e As EventArgs)
+    '    'deletes the currently selected instance
+
+    '    'checks that an instance is selected
+    '    If LstActors.SelectedIndex > -1 Then
+    '        'asks the user to confirm deleting the instance
+    '        If MsgBox("Are you sure you wish to delete instance " & SelectedRoom.instances(LstActors.SelectedIndex).Name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+    '            RemoveActorInstance(LstActors.SelectedIndex)
+    '        End If
+    '    End If
+    'End Sub
+
+
+    Private Sub RefreshActorsList()
+        If IsNothing(SelectedRoom.actors) = False Then
+            Dim names(UBound(SelectedRoom.actors)) As String
+
+            For index As Integer = 0 To UBound(SelectedRoom.actors)
+                names(index) = SelectedRoom.actors(index).Name
             Next
 
-            RefreshList(lstInstances, names)
+            RefreshList(LstActors, names)
         Else
-            RefreshList(lstInstances, Nothing)
+            RefreshList(LstActors, Nothing)
         End If
     End Sub
 
-    Private Sub lstInstances_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstInstances.SelectedIndexChanged
-        'deselects whatever is selected in lstTemplates
+    'Private Sub lstInstances_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstActors.SelectedIndexChanged
+    '    'deselects whatever is selected in lstTemplates
 
-        If lstInstances.SelectedIndex > -1 Then     'checks that this isn't being unselected
-            lstTemplates.SelectedIndex = -1
+    '    If LstActors.SelectedIndex > -1 Then     'checks that this isn't being unselected
+    '        lstTemplates.SelectedIndex = -1
 
-            'ToggleTagControls(True)     'enables tag controls as an instance has been selected
-            ShowActorTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
+    '        'ToggleTagControls(True)     'enables tag controls as an instance has been selected
+    '        ShowActorTags(SelectedRoom.instances(LstActors.SelectedIndex), False)
 
-            RenderCurrentRoom()
-        Else
-            If lstTemplates.SelectedIndex = -1 Then
-                'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
-                ShowActorTags(Nothing, False)
-            End If
-        End If
-    End Sub
+    '        RenderCurrentRoom()
+    '    Else
+    '        If lstTemplates.SelectedIndex = -1 Then
+    '            'ToggleTagControls(False)    'disables tag controls as there is no selected instance or template
+    '            ShowActorTags(Nothing, False)
+    '        End If
+    '    End If
+    'End Sub
 
 #End Region
 
@@ -462,49 +528,52 @@ Public Class FrmLevelEditor
     '    ToggleTagControls(False)
     'End Sub
 
+    Private Sub RefreshActorTagsList()
+        Dim items(UBound(SelectedActor.tags)) As String
+        For index As Integer = 0 To UBound(items)
+            items(index) = SelectedActor.tags(index).ToString
+        Next
+        RefreshList(LstActorTags, items)
+
+        ShowActorTags(SelectedActor)
+    End Sub
+
     Private Sub ToggleTagControls(enabled As Boolean)
         'enables or disables all controls for tags, depending on whether provided True or False
 
-        Dim tagControls() As Control = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
+        Dim tagControls() As Control = {TxtActorName, NumActorLocX, NumActorLocY, NumActorLayer, NumActorScale, LstActorTags, BtnAddActorTag}
 
         For Each ctrl As Object In tagControls
             ctrl.Enabled = enabled
         Next
     End Sub
 
-    Private Sub ShowActorTags(ByVal ent As Actor, isTemplate As Boolean)
+    Private Sub ShowActorTags(ByVal displayActor As Actor)
         'changes the values displayed in the controls for tags to show values of the current actor
 
         disableTagChangedEvent = True
 
-        If IsNothing(ent) Then      'if no actor provided then uses an empty actor
-            ent = New Actor With {.Name = "No Actor Selected"}       'this doesn't work as actors have some default properties
+        If IsNothing(displayActor) Then      'if no actor provided then uses an empty actor
+            displayActor = New Actor With {.Name = "No Actor Selected"}       'this doesn't work as actors have some default properties
             'ToggleTagControls(False)
         End If
 
-        txtTagName.Text = RemoveQuotes(ent.Name)
-        If Not isTemplate Then      'templates dont have x and y values
-            numTagLocX.Value = ent.Location.X
-            numTagLocY.Value = ent.Location.Y
-            If txtTagName.Enabled Then
-                numTagLocX.Enabled = True
-                numTagLocY.Enabled = True
-            End If
-        Else
-            numTagLocX.Value = 0
-            numTagLocY.Value = 0
-            numTagLocX.Enabled = False
-            numTagLocY.Enabled = False
+        TxtActorName.Text = RemoveQuotes(displayActor.Name)
+        NumActorLocX.Value = displayActor.Location.X
+        NumActorLocY.Value = displayActor.Location.Y
+        If TxtActorName.Enabled Then
+            NumActorLocX.Enabled = True
+            NumActorLocY.Enabled = True
         End If
-        numTagLayer.Value = ent.Layer
-        numTagScale.Value = ent.Scale
+        NumActorLayer.Value = displayActor.Layer
+        NumActorScale.Value = displayActor.Scale
 
         'updates lstTags
-        lstTags.Items.Clear()
-        If IsNothing(ent.tags) = False Then
-            For Each thisTag As Tag In ent.tags
+        LstActorTags.Items.Clear()
+        If IsNothing(displayActor.tags) = False Then
+            For Each thisTag As Tag In displayActor.tags
                 If IsNothing(thisTag.name) = False Then
-                    lstTags.Items.Add(thisTag.ToString)
+                    LstActorTags.Items.Add(thisTag.ToString)
                 End If
             Next thisTag
         End If
@@ -512,15 +581,15 @@ Public Class FrmLevelEditor
         disableTagChangedEvent = False
     End Sub
 
-    Private Sub KeyTagChanged(sender As Object, e As EventArgs) Handles numTagLocX.ValueChanged, numTagLocY.ValueChanged,
-        numTagLayer.ValueChanged, numTagScale.ValueChanged ', txtTagName.TextChanged
+    Private Sub KeyTagChanged(sender As Object, e As EventArgs) Handles NumActorLocX.ValueChanged, NumActorLocY.ValueChanged,
+        NumActorLayer.ValueChanged, NumActorScale.ValueChanged ', txtTagName.TextChanged
         'updates the key tags (location, layer, scale) of selected actor using the key tags controls' values
 
         If Not disableTagChangedEvent Then
             'selects the actor to update, currently selected instance or template
             Dim actorToUpdate As Actor
-            If lstInstances.SelectedIndex > -1 Then
-                actorToUpdate = SelectedRoom.instances(lstInstances.SelectedIndex)
+            If LstActors.SelectedIndex > -1 Then
+                actorToUpdate = SelectedRoom.actors(LstActors.SelectedIndex)
             ElseIf lstTemplates.SelectedIndex > -1 Then
                 actorToUpdate = thisLevel.templates(lstTemplates.SelectedIndex)
             Else
@@ -528,12 +597,12 @@ Public Class FrmLevelEditor
             End If
 
             'actorToUpdate.name = txtTagName.Text
-            actorToUpdate.Location = New PointF(numTagLocX.Value, numTagLocY.Value)
-            actorToUpdate.Layer = numTagLayer.Value
-            actorToUpdate.Scale = numTagScale.Value
+            actorToUpdate.Location = New PointF(NumActorLocX.Value, NumActorLocY.Value)
+            actorToUpdate.Layer = NumActorLayer.Value
+            actorToUpdate.Scale = NumActorScale.Value
 
-            If lstInstances.SelectedIndex > -1 Then
-                thisLevel.rooms(lstRooms.SelectedIndex).instances(lstInstances.SelectedIndex) = actorToUpdate
+            If LstActors.SelectedIndex > -1 Then
+                thisLevel.rooms(LstRooms.SelectedIndex).actors(LstActors.SelectedIndex) = actorToUpdate
             Else
                 thisLevel.templates(lstTemplates.SelectedIndex) = actorToUpdate
             End If
@@ -544,94 +613,94 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub btnTagAdd_Click(sender As Object, e As EventArgs) Handles btnTagAdd.Click
-        'adds a tag created by the user using FrmTagMaker
+    'Private Sub btnTagAdd_Click(sender As Object, e As EventArgs) Handles BtnAddActorTag.Click
+    '    'adds a tag created by the user using FrmTagMaker
 
-        Using tagMaker As New FrmTagMaker
-            tagMaker.ShowDialog()
+    '    Using tagMaker As New FrmTagMaker
+    '        tagMaker.ShowDialog()
 
-            If tagMaker.userFinished = True Then
-                If lstInstances.SelectedIndex > -1 Then
-                    SelectedRoom.instances(lstInstances.SelectedIndex).AddTag(tagMaker.CreatedTag)
-                    ShowActorTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-                ElseIf lstTemplates.SelectedIndex > -1 Then
-                    thisLevel.templates(lstTemplates.SelectedIndex).AddTag(tagMaker.CreatedTag)
-                    ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
-                End If
-            End If
-        End Using
-    End Sub
+    '        If tagMaker.userFinished = True Then
+    '            If LstActors.SelectedIndex > -1 Then
+    '                SelectedRoom.actors(LstActors.SelectedIndex).AddTag(tagMaker.CreatedTag)
+    '                ShowActorTags(SelectedRoom.actors(LstActors.SelectedIndex), False)
+    '            ElseIf lstTemplates.SelectedIndex > -1 Then
+    '                thisLevel.templates(lstTemplates.SelectedIndex).AddTag(tagMaker.CreatedTag)
+    '                ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+    '            End If
+    '        End If
+    '    End Using
+    'End Sub
 
-    Private Sub btnTagEdit_Click(sender As Object, e As EventArgs) Handles btnTagEdit.Click
-        'allows the user to edit a tag using FrmTagMaker
+    'Private Sub btnTagEdit_Click(sender As Object, e As EventArgs)
+    '    'allows the user to edit a tag using FrmTagMaker
 
-        Dim tagIndex As Integer = lstTags.SelectedIndex
-        Dim instanceIndex As Integer = lstInstances.SelectedIndex
-        Dim templateIndex As Integer = lstTemplates.SelectedIndex
+    '    Dim tagIndex As Integer = LstActorTags.SelectedIndex
+    '    Dim instanceIndex As Integer = LstActors.SelectedIndex
+    '    Dim templateIndex As Integer = lstTemplates.SelectedIndex
 
-        Dim tagMaker As FrmTagMaker = New FrmTagMaker
-        If tagIndex > -1 Then
-            If instanceIndex > -1 Then
-                tagMaker = New FrmTagMaker(SelectedRoom.instances(instanceIndex).tags(tagIndex))
-            ElseIf templateIndex > -1 Then
-                tagMaker = New FrmTagMaker(thisLevel.templates(templateIndex).tags(tagIndex))
-            Else
-                Exit Sub
-            End If
-            tagMaker.ShowDialog()
+    '    Dim tagMaker As FrmTagMaker = New FrmTagMaker
+    '    If tagIndex > -1 Then
+    '        If instanceIndex > -1 Then
+    '            tagMaker = New FrmTagMaker(SelectedRoom.actors(instanceIndex).tags(tagIndex))
+    '        ElseIf templateIndex > -1 Then
+    '            tagMaker = New FrmTagMaker(thisLevel.templates(templateIndex).tags(tagIndex))
+    '        Else
+    '            Exit Sub
+    '        End If
+    '        tagMaker.ShowDialog()
 
-            If tagMaker.userFinished = True Then
-                If instanceIndex > -1 Then
-                    SelectedRoom.instances(instanceIndex).SetTag(tagIndex, tagMaker.CreatedTag)
-                    ShowActorTags(SelectedRoom.instances(instanceIndex), False)
-                ElseIf templateIndex > -1 Then
-                    thisLevel.templates(templateIndex).SetTag(tagIndex, tagMaker.CreatedTag)
-                    ShowActorTags(thisLevel.templates(templateIndex), True)
-                End If
-            End If
-        End If
-        tagMaker.Dispose()
-    End Sub
+    '        If tagMaker.userFinished = True Then
+    '            If instanceIndex > -1 Then
+    '                SelectedRoom.actors(instanceIndex).SetTag(tagIndex, tagMaker.CreatedTag)
+    '                ShowActorTags(SelectedRoom.actors(instanceIndex), False)
+    '            ElseIf templateIndex > -1 Then
+    '                thisLevel.templates(templateIndex).SetTag(tagIndex, tagMaker.CreatedTag)
+    '                ShowActorTags(thisLevel.templates(templateIndex), True)
+    '            End If
+    '        End If
+    '    End If
+    '    tagMaker.Dispose()
+    'End Sub
 
-    Private Sub btnTagRemove_Click(sender As Object, e As EventArgs) Handles btnTagRemove.Click
-        'removes the selected tag
+    'Private Sub BtnTagRemove_Click(sender As Object, e As EventArgs)
+    '    'removes the selected tag
 
-        Dim newTags() As Tag
-        If lstInstances.SelectedIndex > -1 Then
-            newTags = SelectedRoom.instances(lstInstances.SelectedIndex).tags
-        ElseIf lstTemplates.SelectedIndex > -1 Then
-            newTags = thisLevel.templates(lstTemplates.SelectedIndex).tags
-        Else
-            Exit Sub
-        End If
+    '    Dim newTags() As Tag
+    '    If LstActors.SelectedIndex > -1 Then
+    '        newTags = SelectedRoom.actors(LstActors.SelectedIndex).tags
+    '    ElseIf lstTemplates.SelectedIndex > -1 Then
+    '        newTags = thisLevel.templates(lstTemplates.SelectedIndex).tags
+    '    Else
+    '        Exit Sub
+    '    End If
 
-        For index As Integer = lstTags.SelectedIndex To UBound(newTags) - 1
-            newTags(index) = newTags(index + 1)
-        Next
+    '    For index As Integer = LstActorTags.SelectedIndex To UBound(newTags) - 1
+    '        newTags(index) = newTags(index + 1)
+    '    Next
 
-        If UBound(newTags) > 0 Then
-            ReDim Preserve newTags(UBound(newTags) - 1)
-        Else
-            newTags = Nothing
-        End If
+    '    If UBound(newTags) > 0 Then
+    '        ReDim Preserve newTags(UBound(newTags) - 1)
+    '    Else
+    '        newTags = Nothing
+    '    End If
 
-        If lstInstances.SelectedIndex > -1 Then
-            SelectedRoom.instances(lstInstances.SelectedIndex).tags = newTags
-            ShowActorTags(SelectedRoom.instances(lstInstances.SelectedIndex), False)
-        ElseIf lstTemplates.SelectedIndex > -1 Then
-            thisLevel.templates(lstTemplates.SelectedIndex).tags = newTags
-            ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
-        End If
-    End Sub
+    '    If LstActors.SelectedIndex > -1 Then
+    '        SelectedRoom.actors(LstActors.SelectedIndex).tags = newTags
+    '        ShowActorTags(SelectedRoom.actors(LstActors.SelectedIndex), False)
+    '    ElseIf lstTemplates.SelectedIndex > -1 Then
+    '        thisLevel.templates(lstTemplates.SelectedIndex).tags = newTags
+    '        ShowActorTags(thisLevel.templates(lstTemplates.SelectedIndex), True)
+    '    End If
+    'End Sub
 
-    Private Sub txtTagName_Leave(sender As Object, e As EventArgs) Handles txtTagName.Leave
+    Private Sub TxtTagName_Leave(sender As Object, e As EventArgs) Handles TxtActorName.Leave
         'changes the name of an instance or template
 
-        If lstTemplates.SelectedIndex > -1 Then
-            thisLevel.templates(lstTemplates.SelectedIndex).Name = txtTagName.Text
-        ElseIf lstInstances.SelectedIndex > -1 Then
-            SelectedRoom.instances(lstInstances.SelectedIndex).Name = txtTagName.Text
-        End If
+        'If lstTemplates.SelectedIndex > -1 Then
+        '    thisLevel.templates(lstTemplates.SelectedIndex).Name = TxtActorName.Text
+        'ElseIf LstActors.SelectedIndex > -1 Then
+        SelectedRoom.actors(LstActors.SelectedIndex).Name = TxtActorName.Text
+        'End If
     End Sub
 
 
@@ -640,7 +709,7 @@ Public Class FrmLevelEditor
     Dim heldInstanceIndex As Integer = -1           'index of the actor being held by the user
     Dim relativeHoldLocation As PointF = Nothing    'used so that the mouse holds a specific location on the instance
 
-    Private Sub PnlRenderMouseDown(sender As Object, e As MouseEventArgs) Handles pnlRender.MouseDown
+    Private Sub PnlRenderMouseDown(sender As Object, e As MouseEventArgs) Handles PnlRender.MouseDown
         'mouse starts holding the instance underneath it
 
         'gets the relative mouse location in the game render
@@ -648,8 +717,8 @@ Public Class FrmLevelEditor
 
         'finds which instances the mouse is over
         Dim possibleInstanceIndices() As Integer = Nothing
-        For index As Integer = 0 To UBound(SelectedRoom.instances)
-            Dim instanceArea As RectangleF = SelectedRoom.instances(index).GetActorHitbox()
+        For index As Integer = 0 To UBound(SelectedRoom.actors)
+            Dim instanceArea As RectangleF = SelectedRoom.actors(index).GetActorHitbox()
 
             If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
                 And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
@@ -666,30 +735,30 @@ Public Class FrmLevelEditor
         If Not IsNothing(possibleInstanceIndices) Then
             Dim topMostInstanceIndex As Integer = possibleInstanceIndices(0)
             For index As Integer = 0 To UBound(possibleInstanceIndices)
-                If SelectedRoom.instances(possibleInstanceIndices(index)).Layer > SelectedRoom.instances(topMostInstanceIndex).Layer Then
+                If SelectedRoom.actors(possibleInstanceIndices(index)).Layer > SelectedRoom.actors(topMostInstanceIndex).Layer Then
                     topMostInstanceIndex = possibleInstanceIndices(index)
                 End If
             Next
 
             heldInstanceIndex = topMostInstanceIndex
-            relativeHoldLocation = New PointF(SelectedRoom.instances(heldInstanceIndex).GetActorHitbox.Left - mouseLocationInRender.X,
-                                              SelectedRoom.instances(heldInstanceIndex).GetActorHitbox.Top - mouseLocationInRender.Y)
-            lstInstances.SelectedIndex = heldInstanceIndex
+            relativeHoldLocation = New PointF(SelectedRoom.actors(heldInstanceIndex).GetActorHitbox.Left - mouseLocationInRender.X,
+                                              SelectedRoom.actors(heldInstanceIndex).GetActorHitbox.Top - mouseLocationInRender.Y)
+            LstActors.SelectedIndex = heldInstanceIndex
         End If
     End Sub
 
-    Private Sub PnlRenderMouseDrag(sender As Object, e As MouseEventArgs) Handles pnlRender.MouseMove
+    Private Sub PnlRenderMouseDrag(sender As Object, e As MouseEventArgs) Handles PnlRender.MouseMove
         'mouse moves the held instance
 
         If heldInstanceIndex >= 0 Then
-            SelectedRoom.instances(heldInstanceIndex).Location = New PointF(e.X / renderer.RenderScale.Width + relativeHoldLocation.X,
+            SelectedRoom.actors(heldInstanceIndex).Location = New PointF(e.X / renderer.RenderScale.Width + relativeHoldLocation.X,
                                                                             e.Y / renderer.RenderScale.Height + relativeHoldLocation.Y)
             RenderCurrentRoom()
-            ShowActorTags(SelectedRoom.instances(heldInstanceIndex), False)
+            ShowActorTags(SelectedRoom.actors(heldInstanceIndex), False)
         End If
     End Sub
 
-    Private Sub PnlRenderMouseUp(sender As Object, e As MouseEventArgs) Handles pnlRender.MouseUp
+    Private Sub PnlRenderMouseUp(sender As Object, e As MouseEventArgs) Handles PnlRender.MouseUp
         'mouse lets go of the held instance
 
         heldInstanceIndex = -1
@@ -702,180 +771,205 @@ Public Class FrmLevelEditor
 #Region "Parameters"
     'parameters
 
+    Private Property Parameters As Tag()
+        Get
+            Return thisLevel.parameters
+        End Get
+        Set(value As Tag())
+            thisLevel.parameters = value
+
+            RefreshParameterList()
+
+            RenderCurrentRoom()
+        End Set
+    End Property
+
     Private Sub RefreshParameterList()
-        'refreshes both lstLevelParams and lstRoomParams
-        Dim items() As String = {}
-        If IsNothing(thisLevel.globalParameters) = False Then
-            ReDim items(UBound(thisLevel.globalParameters))
+        'refreshes LstLevelParams
+
+        If Not IsNothing(Parameters) Then
+            Dim items(UBound(Parameters)) As String
 
             For index As Integer = 0 To UBound(items)
-                items(index) = thisLevel.globalParameters(index).ToString
+                items(index) = Parameters(index).ToString
             Next index
-        End If
-        RefreshList(lstLevelParams, items)
-
-        items = {}
-        If IsNothing(SelectedRoom.parameters) = False Then
-            ReDim items(UBound(SelectedRoom.parameters))
-
-            For index As Integer = 0 To UBound(items)
-                items(index) = SelectedRoom.parameters(index).ToString
-            Next index
-        End If
-        RefreshList(lstRoomParams, items)
-    End Sub
-
-    Private Sub AddParameter(newParam As Tag, ByRef parameterList() As Tag)
-        'adds a given parameter to the level
-
-        If IsNothing(parameterList) = True Then
-            ReDim parameterList(0)
+            RefreshList(LstLevelParams, items)
         Else
-            ReDim Preserve parameterList(UBound(parameterList) + 1)
-        End If
-        parameterList(UBound(parameterList)) = newParam
-
-        RefreshParameterList()
-    End Sub
-
-    Private Sub ReplaceParameter(paramIndex As Integer, newParam As Tag, parameterList() As Tag)
-        'replaces the parameter in the given index with the given parameter
-
-        parameterList(paramIndex) = newParam
-
-        RefreshParameterList()
-    End Sub
-
-    Private Sub RemoveParameter(paramIndex As Integer, ByRef parameterList() As Tag)
-        'removes the parameter at the given index
-
-        For index As Integer = paramIndex To UBound(parameterList) - 1
-            parameterList(index) = parameterList(index + 1)
-        Next index
-
-        If UBound(parameterList) > 0 Then
-            ReDim Preserve parameterList(UBound(parameterList) - 1)
-        Else
-            parameterList = Nothing
+            RefreshList(LstLevelParams, Nothing)
         End If
 
-        RefreshParameterList()
     End Sub
+
+    'Private Sub AddParameter(newParam As Tag, ByRef parameterList() As Tag)
+    '    'adds a given parameter to the level
+
+    '    If IsNothing(parameterList) = True Then
+    '        ReDim parameterList(0)
+    '    Else
+    '        ReDim Preserve parameterList(UBound(parameterList) + 1)
+    '    End If
+    '    parameterList(UBound(parameterList)) = newParam
+
+    '    RefreshParameterList()
+    'End Sub
+
+    'Private Sub ReplaceParameter(paramIndex As Integer, newParam As Tag, parameterList() As Tag)
+    '    'replaces the parameter in the given index with the given parameter
+
+    '    parameterList(paramIndex) = newParam
+
+    '    RefreshParameterList()
+    'End Sub
+
+    'Private Sub RemoveParameter(paramIndex As Integer, ByRef parameterList() As Tag)
+    '    'removes the parameter at the given index
+
+    '    For index As Integer = paramIndex To UBound(parameterList) - 1
+    '        parameterList(index) = parameterList(index + 1)
+    '    Next index
+
+    '    If UBound(parameterList) > 0 Then
+    '        ReDim Preserve parameterList(UBound(parameterList) - 1)
+    '    Else
+    '        parameterList = Nothing
+    '    End If
+
+    '    RefreshParameterList()
+    'End Sub
 
     'level params
 
-    Private Sub lstLevelParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstLevelParams.SelectedIndexChanged
+    Private Sub LstLevelParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstLevelParams.SelectedIndexChanged
         'a different parameter is selected for editing/removing
 
-        If lstLevelParams.SelectedIndex > -1 Then
-            btnLevelParamEdit.Enabled = True
-            btnLevelParamRemove.Enabled = True
-        Else
-            btnLevelParamEdit.Enabled = False
-            btnLevelParamRemove.Enabled = False
+        If LstLevelParams.SelectedIndex > -1 Then
+
         End If
     End Sub
 
-    Private Sub btnLevelParamAdd_Click(sender As Object, e As EventArgs) Handles btnLevelParamAdd.Click
+    Private Sub BtnAddLevelParam_Click(sender As Object, e As EventArgs) Handles BtnAddLevelParam.Click
         'user creates a new parameter using FrmTagMaker
 
         'gets the user to create a parameter (same as a tag)
         Using tagMaker As New FrmTagMaker
             tagMaker.ShowDialog()
-            If tagMaker.userFinished = True Then
-                AddParameter(tagMaker.CreatedTag, thisLevel.globalParameters)
+            If tagMaker.userFinished Then
+                AppendItem(Parameters, tagMaker.CreatedTag)
             End If
         End Using
     End Sub
 
-    Private Sub btnLevelParamEdit_Click(sender As Object, e As EventArgs) Handles btnLevelParamEdit.Click
-        'user changes an existing parameter using FrmTagMaker
+    'Private Sub btnLevelParamEdit_Click(sender As Object, e As EventArgs)
+    '    'user changes an existing parameter using FrmTagMaker
 
-        If lstLevelParams.SelectedIndex > -1 Then
-            'gets the user to create a parameter (same as a tag)
-            Using tagMaker As New FrmTagMaker(thisLevel.globalParameters(lstLevelParams.SelectedIndex))
-                tagMaker.ShowDialog()
-                If tagMaker.userFinished = True Then
-                    ReplaceParameter(lstLevelParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.globalParameters)
-                End If
-            End Using
-        End If
-    End Sub
+    '    If LstLevelParams.SelectedIndex > -1 Then
+    '        'gets the user to create a parameter (same as a tag)
+    '        Using tagMaker As New FrmTagMaker(thisLevel.parameters(LstLevelParams.SelectedIndex))
+    '            tagMaker.ShowDialog()
+    '            If tagMaker.userFinished = True Then
+    '                ReplaceParameter(LstLevelParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.parameters)
+    '            End If
+    '        End Using
+    '    End If
+    'End Sub
 
-    Private Sub btnLevelParamRemove_Click(sender As Object, e As EventArgs) Handles btnLevelParamRemove.Click
-        'user deletes an existing parameter
+    'Private Sub btnLevelParamRemove_Click(sender As Object, e As EventArgs)
+    '    'user deletes an existing parameter
 
-        If lstLevelParams.SelectedIndex > -1 Then
-            If MsgBox("Are you sure you wish to delete parameter " & thisLevel.globalParameters(lstLevelParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
-                RemoveParameter(lstLevelParams.SelectedIndex, thisLevel.globalParameters)
-            End If
-        End If
-    End Sub
+    '    If LstLevelParams.SelectedIndex > -1 Then
+    '        If MsgBox("Are you sure you wish to delete parameter " & thisLevel.parameters(LstLevelParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+    '            RemoveParameter(LstLevelParams.SelectedIndex, thisLevel.parameters)
+    '        End If
+    '    End If
+    'End Sub
 
     'room params
 
-    Private Sub lstRoomParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstRoomParams.SelectedIndexChanged
-        'a different parameter is selected for editing/removing
+    'Private Sub lstRoomParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstLevelParams.SelectedIndexChanged
+    '    'a different parameter is selected for editing/removing
 
-        If lstLevelParams.SelectedIndex > -1 Then
-            btnEditRoomParam.Enabled = True
-            btnRemoveRoomParam.Enabled = True
-        Else
-            btnEditRoomParam.Enabled = False
-            btnRemoveRoomParam.Enabled = False
-        End If
-    End Sub
+    '    If LstLevelParams.SelectedIndex > -1 Then
+    '        btnEditRoomParam.Enabled = True
+    '        btnRemoveRoomParam.Enabled = True
+    '    Else
+    '        btnEditRoomParam.Enabled = False
+    '        btnRemoveRoomParam.Enabled = False
+    '    End If
+    'End Sub
 
-    Private Sub btnAddRoomParam_Click(sender As Object, e As EventArgs) Handles btnAddRoomParam.Click
-        'user creates a new parameter using FrmTagMaker
+    'Private Sub btnAddRoomParam_Click(sender As Object, e As EventArgs) Handles BtnAddLevelParam.Click
+    '    'user creates a new parameter using FrmTagMaker
 
-        'gets the user to create a parameter (same as a tag)
-        Using tagMaker As New FrmTagMaker
-            tagMaker.ShowDialog()
-            If tagMaker.userFinished = True Then
-                AddParameter(tagMaker.CreatedTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
-            End If
-        End Using
-    End Sub
+    '    'gets the user to create a parameter (same as a tag)
+    '    Using tagMaker As New FrmTagMaker
+    '        tagMaker.ShowDialog()
+    '        If tagMaker.userFinished = True Then
+    '            AddParameter(tagMaker.CreatedTag, thisLevel.rooms(LstRooms.SelectedIndex).parameters)
+    '        End If
+    '    End Using
+    'End Sub
 
-    Private Sub btnRemoveRoomParam_Click(sender As Object, e As EventArgs) Handles btnRemoveRoomParam.Click
-        'user deletes an existing parameter
+    'Private Sub btnRemoveRoomParam_Click(sender As Object, e As EventArgs)
+    '    'user deletes an existing parameter
 
-        If lstRoomParams.SelectedIndex > -1 Then
-            If MsgBox("Are you sure you wish to delete parameter " & SelectedRoom.parameters(lstRoomParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
-                RemoveParameter(lstRoomParams.SelectedIndex, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
-            End If
-        End If
-    End Sub
+    '    If LstLevelParams.SelectedIndex > -1 Then
+    '        If MsgBox("Are you sure you wish to delete parameter " & SelectedRoom.parameters(LstLevelParams.SelectedIndex).name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+    '            RemoveParameter(LstLevelParams.SelectedIndex, thisLevel.rooms(LstRooms.SelectedIndex).parameters)
+    '        End If
+    '    End If
+    'End Sub
 
-    Private Sub btnEditRoomParam_Click(sender As Object, e As EventArgs) Handles btnEditRoomParam.Click
-        'user changes an existing parameter using FrmTagMaker
+    'Private Sub btnEditRoomParam_Click(sender As Object, e As EventArgs)
+    '    'user changes an existing parameter using FrmTagMaker
 
-        If lstRoomParams.SelectedIndex > -1 Then
-            'gets the user to create a parameter (same as a tag)
-            Using tagMaker As New FrmTagMaker(SelectedRoom.parameters(lstRoomParams.SelectedIndex))
-                tagMaker.ShowDialog()
-                If tagMaker.userFinished = True Then
-                    ReplaceParameter(lstRoomParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.rooms(lstRooms.SelectedIndex).parameters)
-                End If
-            End Using
-        End If
-    End Sub
+    '    If LstLevelParams.SelectedIndex > -1 Then
+    '        'gets the user to create a parameter (same as a tag)
+    '        Using tagMaker As New FrmTagMaker(SelectedRoom.parameters(LstLevelParams.SelectedIndex))
+    '            tagMaker.ShowDialog()
+    '            If tagMaker.userFinished = True Then
+    '                ReplaceParameter(LstLevelParams.SelectedIndex, tagMaker.CreatedTag, thisLevel.rooms(LstRooms.SelectedIndex).parameters)
+    '            End If
+    '        End Using
+    '    End If
+    'End Sub
 
 #End Region
 
 #Region "Rooms"
-    'rooms 
+
+    Private Property Rooms As Room()
+        Get
+            Return thisLevel.rooms
+        End Get
+        Set(value As Room())
+            thisLevel.rooms = value
+
+            RefreshRoomsList()
+            RefreshActorsList()
+
+            RenderCurrentRoom()
+        End Set
+    End Property
+
+    Private ReadOnly Property SelectedRoom As Room
+        Get
+            If LstRooms.SelectedIndex > -1 And Not IsNothing(thisLevel.rooms) AndAlso LstRooms.SelectedIndex <= UBound(thisLevel.rooms) Then
+                Return thisLevel.rooms(LstRooms.SelectedIndex)
+            Else
+                Return New Room With {.Name = "UnselectedRoom"}
+            End If
+        End Get
+    End Property
 
     Private Sub RefreshRoomsList()
-        If IsNothing(thisLevel.rooms) = False Then
-            Dim names(UBound(thisLevel.rooms)) As String
+        If IsNothing(Rooms) = False Then
+            Dim roomNames(UBound(Rooms)) As String
 
-            For index As Integer = 0 To UBound(thisLevel.rooms)
-                names(index) = thisLevel.rooms(index).Name
+            For index As Integer = 0 To UBound(Rooms)
+                roomNames(index) = Rooms(index).Name
             Next
 
-            RefreshList(lstRooms, names)
+            RefreshList(LstRooms, roomNames)
         End If
     End Sub
 
@@ -883,73 +977,47 @@ Public Class FrmLevelEditor
         'adds a new room to the level
 
         'checks that name isn't already being used
-        If Not IsNothing(thisLevel.rooms) Then
-            For Each currentRoom As Room In thisLevel.rooms
-                If currentRoom.Name = AddQuotes(newRoom.Name) Then
-                    PRE2.DisplayError("Room name " & AddQuotes(newRoom.Name, True) & " is in use, please use a different one")
-                    Exit Sub
-                End If
-            Next
-        End If
-
-        If IsNothing(thisLevel.rooms) = True Then
-            ReDim thisLevel.rooms(0)
-        Else
-            ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) + 1)
-        End If
-        thisLevel.rooms(UBound(thisLevel.rooms)) = newRoom
-
-        RefreshRoomsList()
+        AppendItem(Rooms, newRoom)
     End Sub
 
     Private Sub RemoveRoom(roomIndex As Integer)
         'removes the room at the given index
 
-        For index As Integer = roomIndex To UBound(thisLevel.rooms) - 1
-            thisLevel.rooms(index) = thisLevel.rooms(index + 1)
-        Next index
-
-        If UBound(thisLevel.rooms) > 0 Then
-            ReDim Preserve thisLevel.rooms(UBound(thisLevel.rooms) - 1)
-        Else
-            thisLevel.rooms = Nothing
-        End If
-
-        RefreshRoomsList()
+        RemoveItem(Rooms, roomIndex)
     End Sub
 
-    Private Sub SetRoomCoords(roomIndex As Integer, roomCoords As Point)
-        'sets the coordinates of the room at the given index to the given coords
+    'Private Sub SetRoomCoords(roomIndex As Integer, roomCoords As Point)
+    '    'sets the coordinates of the room at the given index to the given coords
 
-        If IsNothing(thisLevel.rooms) = False AndAlso roomIndex >= 0 And roomIndex <= UBound(thisLevel.rooms) Then
-            'checks if the new coords are being used by another room
-            Dim uniqueCoords As Boolean = True
-            'For Each coords As Point In thisLevel.roomCoords
-            '    If coords = roomCoords Then
-            '        uniqueCoords = False
-            '        Exit For
-            '    End If
-            'Next
+    '    If IsNothing(thisLevel.rooms) = False AndAlso roomIndex >= 0 And roomIndex <= UBound(thisLevel.rooms) Then
+    '        'checks if the new coords are being used by another room
+    '        Dim uniqueCoords As Boolean = True
+    '        'For Each coords As Point In thisLevel.roomCoords
+    '        '    If coords = roomCoords Then
+    '        '        uniqueCoords = False
+    '        '        Exit For
+    '        '    End If
+    '        'Next
 
-            If uniqueCoords = True Then
-                'thisLevel.roomCoords(roomIndex) = roomCoords
+    '        If uniqueCoords = True Then
+    '            'thisLevel.roomCoords(roomIndex) = roomCoords
 
-                RefreshRoomsList()
-            Else
-                PRE2.DisplayError("These coordinates are already being used by another room")
-            End If
-        End If
-    End Sub
+    '            RefreshRoomsList()
+    '        Else
+    '            PRE2.DisplayError("These coordinates are already being used by another room")
+    '        End If
+    '    End If
+    'End Sub
 
-    Private Sub lstRooms_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstRooms.SelectedIndexChanged
+    Private Sub LstRooms_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstRooms.SelectedIndexChanged
         'currently selected room is changed
 
-        If lstRooms.SelectedIndex > -1 Then
+        If LstRooms.SelectedIndex > -1 Then
             'thisRoom = thisLevel.rooms(lstRooms.SelectedIndex)
 
             'lstTemplates.SelectedIndex = -1
-            lstInstances.SelectedIndex = -1
-            RefreshInstancesList()
+            LstActors.SelectedIndex = -1
+            RefreshActorsList()
             RefreshParameterList()
             RenderCurrentRoom()
 
@@ -960,46 +1028,46 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub btnLevelRoomAdd_Click(sender As Object, e As EventArgs) Handles btnLevelRoomAdd.Click
+    Private Sub BtnRoomAdd_Click(sender As Object, e As EventArgs) Handles BtnRoomAdd.Click
         'a new room is added to the level
 
         Dim roomName As String = InputBox("Please enter a name for the new room")
 
-        If roomName.Length > 0 Then
+        If Not IsNothing(roomName) AndAlso roomName.Length > 0 Then
             AddRoom(New Room With {.Name = roomName})
         End If
     End Sub
 
-    Private Sub btnLevelRoomRemove_Click(sender As Object, e As EventArgs) Handles btnLevelRoomRemove.Click
-        'an existing room is removed from the level
+    'Private Sub btnLevelRoomRemove_Click(sender As Object, e As EventArgs)
+    '    'an existing room is removed from the level
 
-        'checks that a room is selected
-        If lstRooms.SelectedIndex > -1 Then
-            'asks the user to confirm deleting the room
-            If MsgBox("Are you sure you wish to delete room " & SelectedRoom.Name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
-                RemoveRoom(lstRooms.SelectedIndex)
-            End If
-        End If
-    End Sub
+    '    'checks that a room is selected
+    '    If LstRooms.SelectedIndex > -1 Then
+    '        'asks the user to confirm deleting the room
+    '        If MsgBox("Are you sure you wish to delete room " & SelectedRoom.Name, MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+    '            RemoveRoom(LstRooms.SelectedIndex)
+    '        End If
+    '    End If
+    'End Sub
 
-    Private Sub btnRoomEditCoords_Click(sender As Object, e As EventArgs) Handles btnRoomEditCoords.Click
-        'prompts the user to enter new coords for the selected room
+    'Private Sub btnRoomEditCoords_Click(sender As Object, e As EventArgs)
+    '    'prompts the user to enter new coords for the selected room
 
-        If lstRooms.SelectedIndex > -1 Then
-            Dim userInput As String = InputBox("Please enter the new coordinates for " & thisLevel.rooms(lstRooms.SelectedIndex).Name & vbCrLf & "Form x,y eg '2,1'")
+    '    If LstRooms.SelectedIndex > -1 Then
+    '        Dim userInput As String = InputBox("Please enter the new coordinates for " & thisLevel.rooms(LstRooms.SelectedIndex).Name & vbCrLf & "Form x,y eg '2,1'")
 
-            If userInput.Length > 0 Then
-                'checks that input is valid
-                If IsNothing(userInput.Split(",")(0)) = False And IsNothing(userInput.Split(",")(1)) = False AndAlso IsNumeric(userInput.Split(",")(0)) = True And IsNumeric(userInput.Split(",")(1)) = True Then
-                    Dim newCoords As New Point(Int(userInput.Split(",")(0)), Int(userInput.Split(",")(1)))
+    '        If userInput.Length > 0 Then
+    '            'checks that input is valid
+    '            If IsNothing(userInput.Split(",")(0)) = False And IsNothing(userInput.Split(",")(1)) = False AndAlso IsNumeric(userInput.Split(",")(0)) = True And IsNumeric(userInput.Split(",")(1)) = True Then
+    '                Dim newCoords As New Point(Int(userInput.Split(",")(0)), Int(userInput.Split(",")(1)))
 
-                    SetRoomCoords(lstRooms.SelectedIndex, newCoords)
-                Else
-                    PRE2.DisplayError(userInput & " is not valid input for coordinates")
-                End If
-            End If
-        End If
-    End Sub
+    '                SetRoomCoords(LstRooms.SelectedIndex, newCoords)
+    '            Else
+    '                PRE2.DisplayError(userInput & " is not valid input for coordinates")
+    '            End If
+    '        End If
+    '    End If
+    'End Sub
 
 #End Region
 
@@ -1009,20 +1077,19 @@ Public Class FrmLevelEditor
     Private Sub RefreshList(list As ListBox, values() As String)
         'empties a list and fills it with given values
 
-        Dim startSelectedIndex As Integer = list.SelectedIndex
+        If Not IsNothing(list) Then
+            Dim startSelectedIndex As Integer = list.SelectedIndex
+            list.SelectedIndex = -1
+            list.Items.Clear()
 
-        list.SelectedIndex = -1
-        list.Items.Clear()
-
-        If IsNothing(list) = False Then
-            If IsNothing(values) = False Then
+            If Not IsNothing(values) Then
                 For Each value As String In values
                     If Not IsNothing(value) Then
                         list.Items.Add(value)
                     End If
                 Next value
 
-                If list.Items.Count > startSelectedIndex Then
+                If startSelectedIndex < list.Items.Count Then
                     list.SelectedIndex = startSelectedIndex
                 End If
             End If
@@ -1032,8 +1099,8 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub AnySelectionChanged(sender As Object, e As EventArgs) Handles _
-        lstInstances.SelectedIndexChanged, lstLevelParams.SelectedIndexChanged, lstRoomParams.SelectedIndexChanged,
-        lstRooms.SelectedIndexChanged, lstTags.SelectedIndexChanged, lstTemplates.SelectedIndexChanged
+        LstActors.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged,
+        LstRooms.SelectedIndexChanged, LstActorTags.SelectedIndexChanged, lstTemplates.SelectedIndexChanged
 
         RefreshControlsEnabled()
     End Sub
@@ -1042,20 +1109,20 @@ Public Class FrmLevelEditor
         'enables or disables controls based on current condition
 
         Dim templateSelected As Boolean = lstTemplates.SelectedIndex > -1
-        Dim instanceSelected As Boolean = lstInstances.SelectedIndex > -1
-        Dim roomSelected As Boolean = lstRooms.SelectedIndex > -1
-        Dim actorTagSelected As Boolean = lstTags.SelectedIndex > -1
-        Dim roomParamSelected As Boolean = lstRoomParams.SelectedIndex > -1
-        Dim levelParamSelected As Boolean = lstLevelParams.SelectedIndex > -1
+        Dim instanceSelected As Boolean = LstActors.SelectedIndex > -1
+        Dim roomSelected As Boolean = LstRooms.SelectedIndex > -1
+        Dim actorTagSelected As Boolean = LstActorTags.SelectedIndex > -1
+        Dim roomParamSelected As Boolean = LstLevelParams.SelectedIndex > -1
+        Dim levelParamSelected As Boolean = LstLevelParams.SelectedIndex > -1
         Dim levelSaveLocationSelected As Boolean = Not IsNothing(levelSaveLocation) AndAlso IO.File.Exists(levelSaveLocation)
 
         Dim controlsDefaultDisabled() As Control = {
-            btnInstanceCreate, btnInstanceDuplicate, btnInstanceDelete, btnRemoveActor, btnLevelSave,
-            btnTagAdd, btnTagEdit, btnTagRemove, btnAddRoomParam, btnEditRoomParam, btnRemoveRoomParam, btnLevelParamRemove, btnLevelParamEdit,
+            BtnCreateActor, btnInstanceDuplicate, btnInstanceDelete, btnRemoveActor, btnLevelSave,
+            BtnAddActorTag, btnTagEdit, btnTagRemove, BtnAddLevelParam, btnEditRoomParam, btnRemoveRoomParam, btnLevelParamRemove, btnLevelParamEdit,
             btnRoomEditCoords, btnLevelRoomRemove
         }
         Dim controlsDefaultEnabled() As Control = {
-            btnLevelOpen, btnLevelRoomAdd, btnLoadActor, btnCreateActor, btnLevelParamAdd
+            btnLevelOpen, BtnRoomAdd, btnLoadActor, BtnCreateActor, btnLevelParamAdd
         }
         For Each ctrl As Control In controlsDefaultDisabled
             ctrl.Enabled = False
@@ -1069,10 +1136,10 @@ Public Class FrmLevelEditor
             btnLevelRoomRemove.Enabled = True
             btnRoomEditCoords.Enabled = True
             'btnRoomSaveAs.Enabled = True
-            btnAddRoomParam.Enabled = True
+            BtnAddLevelParam.Enabled = True
 
             If templateSelected Then
-                btnInstanceCreate.Enabled = True
+                BtnCreateActor.Enabled = True
                 ToggleTagControls(True)
             End If
 
@@ -1081,7 +1148,7 @@ Public Class FrmLevelEditor
                 btnInstanceDuplicate.Enabled = True
                 btnInstanceDelete.Enabled = True
 
-                btnTagAdd.Enabled = True
+                BtnAddActorTag.Enabled = True
                 If actorTagSelected Then
                     btnTagEdit.Enabled = True
                     btnTagRemove.Enabled = True
@@ -1097,7 +1164,7 @@ Public Class FrmLevelEditor
         If templateSelected Then
             btnRemoveActor.Enabled = True
 
-            btnTagAdd.Enabled = True
+            BtnAddActorTag.Enabled = True
             If actorTagSelected Then
                 btnTagEdit.Enabled = True
                 btnTagRemove.Enabled = True
@@ -1114,6 +1181,37 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
+    Private Sub RemoveItem(ByRef array As Object, ByVal removeIndex As Integer)
+        'removes the item at the given index from a given array
+
+        If IsArray(array) Then
+            If UBound(array) > 0 Then
+                For index As Integer = removeIndex To UBound(array) - 1
+                    array(index) = array(index + 1)
+                Next
+                ReDim Preserve array(UBound(array) - 1)
+            Else
+                array = Nothing
+            End If
+        End If
+    End Sub
+
+    Private Sub AppendItem(ByRef array As Object, ByVal newItem As Object)
+        'adds the given item to the end of the given array
+
+        If IsArray(array) Then
+            If UBound(array) > 0 Then
+                ReDim Preserve array(UBound(array) + 1)
+                array(UBound(array)) = newItem
+            Else
+                array = {newItem}
+            End If
+        End If
+    End Sub
+
 #End Region
+
+
+
 
 End Class

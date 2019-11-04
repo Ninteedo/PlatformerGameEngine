@@ -1,4 +1,4 @@
-﻿Public Class Tag
+﻿Public Structure Tag
     Public name As String
     Public argument As String
 
@@ -10,7 +10,7 @@
     Public Sub New(ByVal tagString As String)
         'creates a tag from a string
 
-        Dim newTag As Tag = JSONToTag(tagString)
+        Dim newTag As Tag = JsonToTag(tagString)
         name = newTag.name
         argument = newTag.argument
     End Sub
@@ -44,21 +44,13 @@
     End Function
 
     Public Sub SetArgument(newValue As Object)
-        If IsArray(newValue) Then
-            argument = ArrayToString(newValue)
-        Else
-            argument = newValue
-        End If
+        argument = ArrayToString(newValue)
     End Sub
 
     Public Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
         'used for = and <> operators
 
-        If LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.argument = tag2.argument Then
-            Return True
-        Else
-            Return False
-        End If
+        Return LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.argument = tag2.argument
     End Function
 
     Public Shared Operator =(tag1 As Tag, tag2 As Tag) As Boolean

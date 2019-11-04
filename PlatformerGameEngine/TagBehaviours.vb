@@ -48,7 +48,7 @@ Public Module TagBehaviours
         Const solidTagName As String = "solid"
 
         If ent.HasTag(collisionTagName) Then
-            For Each otherEnt As Actor In room.instances
+            For Each otherEnt As Actor In room.actors
                 If ent.Name <> otherEnt.Name Then
                     'Dim velocity2Temp As Object = otherEnt.FindTag("velocity").InterpretArgument
                     'Dim velocity2 As New Vector(0, 0)

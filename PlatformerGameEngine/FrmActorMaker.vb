@@ -52,15 +52,16 @@ Public Class FrmActorMaker
 
         ' Add any initialization after the InitializeComponent() call.
 
-        Me.result = actorToModify
+        Me.original = actorToModify
         Me.renderer = renderEngine
     End Sub
 
     Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         'displays a warning to the user if they have unsaved work when they close the form
 
-        Dim unsavedChanges As Boolean = result = original   'checks if the created actor is identical to the original one
-
+		'checks if user hasn't finished the created actor is identical to the original one
+        Dim unsavedChanges As Boolean = Not userFinished And result = original  
+		
         'if there are unsaved changes then warns the user
         If unsavedChanges Then
             If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
@@ -90,7 +91,7 @@ Public Class FrmActorMaker
 
     Private Sub BtnDone_Click(sender As Object, e As EventArgs) Handles BtnDone.Click
         userFinished = True
-        original = result
+        'original = result
 
         Me.Close()
     End Sub
@@ -138,6 +139,8 @@ Public Class FrmActorMaker
                 End If
                 loadedSprites(UBound(loadedSprites)) = newSprite
             End If
+			
+			RefreshSpritesList()
         End If
     End Sub
 
@@ -180,11 +183,19 @@ Public Class FrmActorMaker
             Dim oldIndex As Integer = LstSprites.SelectedIndex
             Dim newIndex As Integer = NumSpriteIndex.Value
 
+			Dim ascending As Boolean = newIndex - oldIndex >= 0		'stores whether the sprites need to be moved in ascending or descending order
+			
             Dim thisSprite As Sprite = loadedSprites(oldIndex)
-            loadedSprites(oldIndex) = loadedSprites(newIndex)
-            loadedSprites(newIndex) = thisSprite
+            'loadedSprites(oldIndex) = loadedSprites(newIndex)
+            'loadedSprites(newIndex) = thisSprite
 
+			For index As Integer = oldIndex To newIndex Step If(ascending, 1, -1)
+				loadedSprites(index + If(ascending, -1, 1)) = loadedSprites(index)
+			Next
+			
             LstSprites.SelectedIndex = newIndex
+			
+			RefreshSpritesList()
         End If
     End Sub
 
@@ -206,6 +217,7 @@ Public Class FrmActorMaker
 #End Region
 
 #Region "Render"
+
     Dim renderer As PRE2
 
     Private Sub DrawSpritePreview(spriteToDraw As Sprite)

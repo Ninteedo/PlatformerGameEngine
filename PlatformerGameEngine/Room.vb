@@ -3,11 +3,11 @@
 Public Class Room
     'a room is a collection of actors which are all rendered at once
 
-    Public instances() As Actor    'the actors which are used in the game, modified copies of the defaults
-    Public parameters() As Tag
+    Public actors() As Actor    'the actors which are used in the game, modified copies of the defaults
+    'Public parameters() As Tag
 
     Public Sub New()
-        instances = Nothing
+        actors = Nothing
         parameters = Nothing
     End Sub
 
@@ -25,9 +25,9 @@ Public Class Room
                         Case "instances"
                             Dim temp() As Object = thisTag.InterpretArgument
                             If Not IsNothing(temp) Then
-                                ReDim instances(UBound(temp))
+                                ReDim actors(UBound(temp))
                                 For index As Integer = 0 To UBound(temp)
-                                    instances(index) = New Actor(temp(index).ToString, renderEngine)
+                                    actors(index) = New Actor(temp(index).ToString, renderEngine)
                                 Next
                             End If
                         Case "parameters"
@@ -56,7 +56,7 @@ Public Class Room
             For Each param As Tag In parameters
                 'only adds parameter if the level doesn't have an identical global parameter
                 'Dim levelHasParam As Boolean = False
-                'For Each globalParam As Tag In levelOfRoom.globalParameters
+                'For Each globalParam As Tag In levelOfRoom.parameters
                 '    If param = globalParam Then
                 '        levelHasParam = True
                 '    End If
@@ -69,8 +69,8 @@ Public Class Room
         End If
 
         'adds an addEnt line for each instance
-        If Not IsNothing(instances) Then
-            For Each instance As Actor In instances
+        If Not IsNothing(actors) Then
+            For Each instance As Actor In actors
                 'finds the template of the instance
                 Dim templateOfInstance As Actor = Nothing           'used so that tags can be compared and identical ones can be ignored
                 Dim templateName As String = Nothing
@@ -111,7 +111,7 @@ Public Class Room
         'updated version of room tostring which makes better use of tags
 
         Dim parametersTag As New Tag("parameters", ArrayToString(parameters))
-        Dim instancesTag As New Tag("instances", ArrayToString(instances))
+        Dim instancesTag As New Tag("instances", ArrayToString(actors))
 
         Return New Tag(Name, ArrayToString({parametersTag, instancesTag})).ToString
     End Function
@@ -134,11 +134,7 @@ Public Class Room
     Public Function HasParam(paramName As String) As Boolean
         'returns whether or not this room has a parameter with the given name
 
-        If FindParam(paramName).name <> Nothing Then
-            Return True
-        Else
-            Return False
-        End If
+        Return Not IsNothing(FindParam(paramName).name)
     End Function
 
     Public Sub AddParam(newParam As Tag, Optional removeDuplicates As Boolean = False)

@@ -2,21 +2,14 @@
 '22/03/2019
 'Panel Render Engine v2
 
-'Imports SpriteHandler = PlatformerGameEngine.SpriteStringHandler
-
 Public Class PanelRenderEngine2
 
     Public renderPanel As Panel
-    'Public loadedSprites() As Sprite
-
-    'Public renderScaleFactor As Single = 10                 'the overall custom render scaling of the game (might be unnecessary)
-    Public renderResolution As Size = New Size(640, 480)      'the intended size for the game
-    'Public renderPixelPerfect As Boolean = False              'true: render window size is set to resolution, false: game is scaled to fit the render window
+    Public renderResolution As Size = New Size(640, 480)      'how many pixels the game is played at, scaled afterwards to the size of the render panel
 
     Public spriteFolderLocation As String
     Public actorFolderLocation As String
     Public levelFolderLocation As String
-    'Public roomFolderLocation As String
 
 #Region "Rendering"
 
@@ -30,13 +23,13 @@ Public Class PanelRenderEngine2
             Dim renderLayer As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
 
             If IsNothing(actorList) = False Then
-                'sorts actorList by layer
+                'sorts actorList by layer ascending
                 Dim swaps As Integer = 0
                 Dim passes As Integer = 0
                 Do While swaps > 0 Or passes = 0
                     swaps = 0
                     For index As Integer = 1 To UBound(actorList)
-                        If actorList(index).Layer > actorList(index - 1).Layer Then
+                        If actorList(index).Layer < actorList(index - 1).Layer Then
                             Dim temp As Actor = actorList(index)
                             actorList(index) = actorList(index - 1)
                             actorList(index - 1) = temp
@@ -46,18 +39,17 @@ Public Class PanelRenderEngine2
                     passes += 1
                 Loop
 
-                'renders each actor in sorted order
+                'renders each actor in new sorted order
                 For actorIndex As Integer = 0 To UBound(actorList)
                     Dim currentActor As Actor = actorList(actorIndex)
-                    If IsNothing(currentActor.Sprites) = False AndAlso currentActor.CurrentFrame <= UBound(currentActor.Sprites) And currentActor.CurrentFrame >= 0 Then
+                    If Not IsNothing(currentActor.Sprites) AndAlso currentActor.CurrentFrame <= UBound(currentActor.Sprites) And currentActor.CurrentFrame >= 0 Then
                         Dim renderSprite As Sprite = currentActor.Sprites(currentActor.CurrentFrame)
-
-                        Dim renderSize As SizeF = New SizeF(
-                                        currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5),
-                                        currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5))
-                        'Dim renderArea As New RectangleF(New PointF((currentActor.Location.X - currentActor.RotationAnchor.X - 0.5) * RenderScale.Width,
-                        '                                            (currentActor.Location.Y - currentActor.RotationAnchor.Y - 0.5) * RenderScale.Height), renderSize)
-                        Dim renderArea As New RectangleF(New PointF(currentActor.Location.X * RenderScale.Width, currentActor.Location.Y * RenderScale.Height), renderSize)
+                        'Dim renderSize As SizeF = New SizeF(
+                        '                currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5),
+                        '                currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5))
+                        Dim renderArea As New RectangleF(
+                            New PointF(currentActor.Location.X * RenderScale.Width, currentActor.Location.Y * RenderScale.Height),
+                            New SizeF(currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5), currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5)))
                         renderLayer.Graphics.DrawImage(renderSprite.Bitmap, renderArea)
                     End If
                 Next actorIndex
@@ -75,42 +67,6 @@ Public Class PanelRenderEngine2
 
 #End Region
 
-    '#Region "Sprite Loading"
-
-    '    Public Sub LoadSprite(fileLocation As String)
-    '        'loads a sprite from a given location
-
-    '        If IO.File.Exists(fileLocation) Then
-    '            Dim newSprite As New Sprite(fileLocation)
-    '            'Dim fileName As String = newSprite.fileName
-
-    '            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) Then      'checks that the same sprite isn't already loaded
-    '                If IsNothing(loadedSprites) = True Then
-    '                    ReDim loadedSprites(0)
-    '                Else
-    '                    ReDim Preserve loadedSprites(UBound(loadedSprites) + 1)
-    '                End If
-    '                loadedSprites(UBound(loadedSprites)) = newSprite
-    '            End If
-    '        End If
-    '    End Sub
-
-    '    Public Function FindLoadedSprite(fileLocation As String) As Sprite
-    '        'returns a loaded sprite with the given file name if it is already loaded
-
-    '        If IsNothing(loadedSprites) = False Then
-    '            For index As Integer = 0 To UBound(loadedSprites)
-    '                If loadedSprites(index).fileName = fileLocation Then
-    '                    Return loadedSprites(index)
-    '                End If
-    '            Next index
-    '        End If
-
-    '        Return Nothing
-    '    End Function
-
-    '#End Region
-
 #Region "Error Handling"
 
     Shared Sub DisplayError(message As String)
@@ -125,50 +81,6 @@ Public Class PanelRenderEngine2
     End Sub
 
 #End Region
-
-    '#Region "Array Modding"
-
-    '    Public Shared Function ModArrayLength(arrayToMod() As Object, lengthChange As Integer) As Object()
-    '        'changes the length of the given array by the given amount
-
-    '        Dim result() As Object = arrayToMod
-
-    '        If IsNothing(arrayToMod) = False Then
-    '            If UBound(result) + lengthChange >= 0 Then
-    '                ReDim Preserve result(UBound(result) + lengthChange)
-    '            Else
-    '                result = Nothing
-    '            End If
-    '        Else
-    '            If lengthChange >= 0 Then
-    '                ReDim result(lengthChange)
-    '            End If
-    '        End If
-
-    '        Return result
-    '    End Function
-
-    '    Public Shared Function RemoveElementFromArray(oldArray() As Object, indexToRemove As Integer) As Object
-    '        'returns the given array but with an element removed
-
-    '        If indexToRemove >= 0 And indexToRemove <= UBound(oldArray) Then
-    '            Dim result() As Object = oldArray
-
-    '            For index As Integer = indexToRemove To UBound(result) - 1
-    '                result(index) = result(index + 1)
-    '            Next index
-
-    '            ReDim Preserve result(UBound(result) - 1)
-
-    '            Return result
-    '        Else
-    '            DisplayError("Tried to remove an element at index " & indexToRemove & " in an array with a max index of " & UBound(oldArray))
-
-    '            Return oldArray
-    '        End If
-    '    End Function
-
-    '#End Region
 
 #Region "File Handling"
 
@@ -198,29 +110,6 @@ Public Class PanelRenderEngine2
 
         writer.Close()
     End Sub
-
-    'Public Shared Function FindFolderPath(path As String, folderName As String) As String
-    '    'returns the location of the folder with the given name in the string
-
-    '    Dim folders() As String = path.Split("\")
-    '    Dim result As String = ""
-
-    '    If folders.Contains(folderName) = True Then
-    '        Dim foundFolder As Boolean = False
-
-    '        For index As Integer = UBound(folders) To 0 Step -1
-    '            If foundFolder = True Then
-    '                result = result.Insert(1, folders(index) & "\")
-    '            End If
-
-    '            If folders(index) = folderName Then
-    '                foundFolder = True
-    '            End If
-    '        Next index
-    '    End If
-
-    '    Return result
-    'End Function
 
     Public Function FindProperty(fileText As String, propertyName As String) As String     'returns the property in a file with a given name, property: value
         Dim lines() As String = fileText.Split(Environment.NewLine)
