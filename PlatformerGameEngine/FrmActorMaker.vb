@@ -37,10 +37,10 @@ Public Class FrmActorMaker
 
 #End Region
 
-#Region "Save/Load"
+#Region "Constructors"
 
-    Dim result As Actor          'the user's created actor
-    ReadOnly original As Actor       'used to see if any changes have been made
+    Public result As Actor          'the user's created actor
+    Private original As Actor       'used to see if any changes have been made
     'Dim saveLocation As String = ""
     'Dim gameLocation As String = ""
 
@@ -56,51 +56,10 @@ Public Class FrmActorMaker
         Me.renderer = renderEngine
     End Sub
 
-    'Private ReadOnly Property ActorString
-    '    Get
-    '        'Return ActorStringHandler.CreateActorString(ent, renderer.spriteFolderLocation)
-    '        Return result.ToString(renderer.spriteFolderLocation)
-    '    End Get
-    'End Property
-
-    'Private Sub GetFolderLocations()
-    '    'asks the user to select the game loader file
-
-    '    MsgBox("Please select the loader file for the game")
-    '    Using openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Title = "Select Loader File"}
-    '        If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
-    '            If IO.File.Exists(openDialog.FileName) = True Then
-    '                Dim loaderText As String = PRE2.ReadFile(openDialog.FileName)
-
-    '                Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
-    '                'renderer.actorFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "actorFolder")
-    '                renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderText, "spriteFolder")
-    '            Else
-    '                PRE2.DisplayError("Couldn't find file " & openDialog.FileName)
-    '                Me.Close()
-    '            End If
-    '        Else
-    '            Me.Close()
-    '        End If
-    '    End Using
-    'End Sub
-
     Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         'displays a warning to the user if they have unsaved work when they close the form
 
         Dim unsavedChanges As Boolean = result = original   'checks if the created actor is identical to the original one
-
-
-
-        'If Not IsNothing(saveLocation) AndAlso IO.File.Exists(saveLocation) Then
-        '    Dim savedActorString As String = PRE2.ReadFile(saveLocation)
-
-        '    If savedActorString <> ActorString Then
-        '        unsavedChanges = True
-        '    End If
-        'ElseIf Not IsNothing(renderer.actorFolderLocation) Then     'no level folder location if form isnt finished loading
-        '    unsavedChanges = True
-        'End If
 
         'if there are unsaved changes then warns the user
         If unsavedChanges Then
@@ -112,43 +71,55 @@ Public Class FrmActorMaker
 
 #End Region
 
+#Region "Finishing"
+
+    Public userFinished As Boolean = False
+
+    Private Sub BtnCancel_Click(sender As Object, e As EventArgs) Handles BtnCancel.Click
+        If result <> original Then
+            If MsgBox("Are you sure you wish to cancel with unsaved work?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
+                Exit Sub
+            Else
+                result = original
+            End If
+        End If
+
+        userFinished = False
+        Me.Close()
+    End Sub
+
+    Private Sub BtnDone_Click(sender As Object, e As EventArgs) Handles BtnDone.Click
+        userFinished = True
+        original = result
+
+        Me.Close()
+    End Sub
+
+#End Region
+
 #Region "Sprites"
 
     Private Sub RefreshSpritesList()
         'empties and refills the sprites list
 
-        lstSprites.Items.Clear()
+        LstSprites.Items.Clear()
 
         If Not IsNothing(loadedSprites) Then
             For index As Integer = 0 To UBound(loadedSprites)
-                lstSprites.Items.Add(loadedSprites(index).fileName.Remove(0, Len(renderer.spriteFolderLocation)))
+                LstSprites.Items.Add(loadedSprites(index).fileName.Remove(0, Len(renderer.spriteFolderLocation)))
             Next
         End If
     End Sub
 
-    Private Sub BtnSpriteLoad_Click(sender As Object, e As EventArgs) Handles btnSpriteLoad.Click
-        'loads the user selected sprites
-
-        Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
-            If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
-                For index As Integer = 0 To UBound(openDialog.FileNames)
-                    LoadSprite(openDialog.FileNames(index))
-                Next index
-
-                RefreshSpritesList()
-            End If
-        End Using
-    End Sub
-
-    Private Sub LstSprites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstSprites.SelectedIndexChanged
-        If lstSprites.SelectedIndex > -1 Then
-            DrawSpritePreview(loadedSprites(lstSprites.SelectedIndex))
+    Private Sub LstSprites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstSprites.SelectedIndexChanged
+        If LstSprites.SelectedIndex > -1 Then
+            DrawSpritePreview(loadedSprites(LstSprites.SelectedIndex))
         Else
             DrawSpritePreview(Nothing)
         End If
     End Sub
 
-#Region "Sprite Loading"
+#Region "Loading"
 
     Dim loadedSprites() As Sprite
 
@@ -186,6 +157,52 @@ Public Class FrmActorMaker
 
 #End Region
 
+#Region "List Manipulation"
+
+    Private Sub BtnSpriteLoad_Click(sender As Object, e As EventArgs) Handles BtnSpriteLoad.Click
+        'loads the user selected sprites
+
+        Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
+            If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
+                For index As Integer = 0 To UBound(openDialog.FileNames)
+                    LoadSprite(openDialog.FileNames(index))
+                Next index
+
+                RefreshSpritesList()
+            End If
+        End Using
+    End Sub
+
+    Private Sub NumSpriteIndex_ValueChanged(sender As Object, e As EventArgs) Handles NumSpriteIndex.ValueChanged
+        'swaps the locations in loadedSprites of the selected sprite and the entered new sprite index
+
+        If LstSprites.SelectedIndex > -1 Then
+            Dim oldIndex As Integer = LstSprites.SelectedIndex
+            Dim newIndex As Integer = NumSpriteIndex.Value
+
+            Dim thisSprite As Sprite = loadedSprites(oldIndex)
+            loadedSprites(oldIndex) = loadedSprites(newIndex)
+            loadedSprites(newIndex) = thisSprite
+
+            LstSprites.SelectedIndex = newIndex
+        End If
+    End Sub
+
+    Private Sub MenuLstSpriteDelete_Click(sender As Object, e As EventArgs) Handles MenuLstSpriteDelete.Click
+        'deletes the sprite that the user has selected
+
+        If LstSprites.SelectedIndex > -1 Then
+            For index As Integer = LstSprites.SelectedIndex To UBound(loadedSprites) - 1
+                loadedSprites(index) = loadedSprites(index + 1)
+            Next
+            ReDim Preserve loadedSprites(UBound(loadedSprites) - 1)
+
+            RefreshSpritesList()
+        End If
+    End Sub
+
+#End Region
+
 #End Region
 
 #Region "Render"
@@ -213,36 +230,13 @@ Public Class FrmActorMaker
 
 #Region "Other Controls"
 
-    Private Sub BtnRedraw_Click(sender As Object, e As EventArgs) Handles BtnRedraw.Click
-        If IsNothing(result.Sprites) = False Then
-            If lstSprites.SelectedIndex > -1 Then
-                DrawSpritePreview(result.Sprites(lstSprites.SelectedIndex))
-            End If
-        Else
-            DrawSpritePreview(Nothing)       'if there are no frames then clears the render
-        End If
-    End Sub
+
 
 #End Region
 
-    Private Sub MenuLstSpriteDelete_Click(sender As Object, e As EventArgs) Handles MenuLstSpriteDelete.Click
-        'deletes the sprite that the user has selected
 
-        If lstSprites.SelectedIndex > -1 Then
-            For index As Integer = lstSprites.SelectedIndex To UBound(loadedSprites) - 1
-                loadedSprites(index) = loadedSprites(index + 1)
-            Next
-            ReDim Preserve loadedSprites(UBound(loadedSprites) - 1)
 
-            RefreshSpritesList()
-        End If
-    End Sub
 
-    Private Sub BtnCancel_Click(sender As Object, e As EventArgs) Handles BtnCancel.Click
 
-    End Sub
 
-    Private Sub BtnDone_Click(sender As Object, e As EventArgs) Handles BtnDone.Click
-
-    End Sub
 End Class
