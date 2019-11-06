@@ -139,6 +139,7 @@
     <Compile Include="SpriteStringHandler.vb" />
     <Compile Include="Tag.vb" />
     <Compile Include="TagBehaviours.vb" />
+    <Compile Include="TagContainer.vb" />
     <Compile Include="TagEvents.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -154,7 +155,6 @@
     <EmbeddedResource Include="FrmMenu.resx">
       <DependentUpon>FrmMenu.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FrmSpriteMaker.resx" />
     <EmbeddedResource Include="FrmTagMaker.resx">
       <DependentUpon>FrmTagMaker.vb</DependentUpon>
     </EmbeddedResource>

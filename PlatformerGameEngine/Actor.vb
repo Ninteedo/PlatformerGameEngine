@@ -2,9 +2,9 @@
     'most things are actors, even if they don't move
     'each actor has at least 1 sprite and can have lots of tags
 
-    Private spritesList() As Sprite
-    Public tags() As Tag
+    Inherits TagContainer
 
+    Private spritesList() As Sprite
     Public spriteFolderLocation As String
 
     Public Sub New()
@@ -39,42 +39,46 @@
         Return CreateActorString(Me)
     End Function
 
-    Public Overloads Function ToString(spriteFolderLocation As String) As String
-        Return ActorStringHandler.CreateActorString(Me)
-    End Function
-
     Public Function Clone() As Actor
         'returns a clone of this actor
 
-        Dim newClone As New Actor With {
-            .spriteFolderLocation = spriteFolderLocation.Clone,
-            .tags = tags.Clone
-        }
-        RefreshSpritesList()
+        Dim newClone As Actor = Nothing
+
+        If Not IsNothing(Me) Then
+            newClone = New Actor With {
+            .spriteFolderLocation = spriteFolderLocation,
+            .tags = tags
+                }
+            RefreshSpritesList()
+        End If
 
         Return newClone
     End Function
 
 
     Public Sub RefreshSpritesList()
-        'changes what is stored in framesList() using the "frames" tag
+        'changes what is stored in spriteList() using the "sprites" tag
 
-        Dim spritesArgument() As Object = FindTag("sprites").InterpretArgument()
+        If HasTag("sprites") Then
+            Dim spritesArgument() As Object = FindTag("sprites").InterpretArgument()
 
-        If Not IsNothing(spritesArgument) Then
-            Dim newSprites(UBound(spritesArgument)) As Sprite
-            For spriteIndex As Integer = 0 To UBound(spritesArgument)
-                Dim spriteTag As New Tag(spritesArgument(spriteIndex).ToString)
-                newSprites(spriteIndex) = New Sprite(spriteTag.ToString)
-            Next
+            If Not IsNothing(spritesArgument) Then
+                Dim newSprites(UBound(spritesArgument)) As Sprite
+                For spriteIndex As Integer = 0 To UBound(spritesArgument)
+                    Dim spriteTag As New Tag(spritesArgument(spriteIndex).ToString)
+                    newSprites(spriteIndex) = New Sprite(spriteTag.ToString)
+                Next
 
-            If newSprites IsNot Sprites Then
-                spritesList = newSprites
+                If newSprites IsNot Sprites Then
+                    spritesList = newSprites
+                End If
+            Else
+                If Not IsNothing(Sprites) Then
+                    spritesList = Nothing
+                End If
             End If
         Else
-            If Not IsNothing(Sprites) Then
-                spritesList = Nothing
-            End If
+            spritesList = Nothing
         End If
     End Sub
 
@@ -83,14 +87,6 @@
 
         AddTag(New Tag("sprites", ArrayToString(spritesList)), True)
     End Sub
-
-    'Public Function GetFrames() As Frame()
-    '    Return frames
-    'End Function
-
-    'Public Sub SetFrames(newFrames As Frame())
-    '    frames = 
-    'End Sub
 
     Public Property Sprites As Sprite()
         Get
@@ -103,80 +99,80 @@
     End Property
 
 
-    Public Function FindTag(tagName As String) As Tag
-        'returns the first tag this actor has with the given name
+    'Public Function FindTag(tagName As String) As Tag
+    '    'returns the first tag this actor has with the given name
 
-        If IsNothing(tags) = False Then
-            For index As Integer = 0 To UBound(tags)
-                If LCase(tags(index).name) = LCase(tagName) Then
-                    Return tags(index)
-                End If
-            Next index
-        End If
+    '    If IsNothing(tags) = False Then
+    '        For index As Integer = 0 To UBound(tags)
+    '            If LCase(tags(index).name) = LCase(tagName) Then
+    '                Return tags(index)
+    '            End If
+    '        Next index
+    '    End If
 
-        Return Nothing
-    End Function
+    '    Return Nothing
+    'End Function
 
-    Public Function HasTag(tagName As String) As Boolean
-        'returns whether or not this actor has a tag with the given name
+    'Public Function HasTag(tagName As String) As Boolean
+    '    'returns whether or not this actor has a tag with the given name
 
-        If FindTag(tagName).name <> Nothing Then
-            Return True
-        Else
-            Return False
-        End If
-    End Function
+    '    If FindTag(tagName).name <> Nothing Then
+    '        Return True
+    '    Else
+    '        Return False
+    '    End If
+    'End Function
 
-    Public Sub AddTag(newTag As Tag, Optional removeDuplicates As Boolean = False)
-        'adds the given tag to this actor's list of tags
+    'Public Sub AddTag(newTag As Tag, Optional removeDuplicates As Boolean = False)
+    '    'adds the given tag to this actor's list of tags
 
-        If removeDuplicates Then
-            RemoveTag(newTag.name)
-        End If
+    '    If removeDuplicates Then
+    '        RemoveTag(newTag.name)
+    '    End If
 
-        If IsNothing(tags) Then
-            ReDim tags(0)
-        Else
-            ReDim Preserve tags(UBound(tags) + 1)
-        End If
-        tags(UBound(tags)) = newTag
+    '    If IsNothing(tags) Then
+    '        ReDim tags(0)
+    '    Else
+    '        ReDim Preserve tags(UBound(tags) + 1)
+    '    End If
+    '    tags(UBound(tags)) = newTag
 
-        CheckSpecialTagModified(newTag)
-    End Sub
+    '    CheckSpecialTagModified(newTag)
+    'End Sub
 
-    Public Sub RemoveTag(tagName As String)
-        'removes all tags with the given name
+    'Public Sub RemoveTag(tagName As String)
+    '    'removes all tags with the given name
 
-        Dim tagIndex As Integer = 0
+    '    Dim tagIndex As Integer = 0
 
-        If Not IsNothing(tags) Then
-            Do While tagIndex <= UBound(tags)
-                If tags(tagIndex).name = tagName Then
-                    For removeIndex As Integer = tagIndex To UBound(tags) - 1
-                        tags(removeIndex) = tags(removeIndex + 1)
-                    Next removeIndex
+    '    If Not IsNothing(tags) Then
+    '        Do While tagIndex <= UBound(tags)
+    '            If tags(tagIndex).name = tagName Then
+    '                For removeIndex As Integer = tagIndex To UBound(tags) - 1
+    '                    tags(removeIndex) = tags(removeIndex + 1)
+    '                Next removeIndex
 
-                    ReDim Preserve tags(UBound(tags) - 1)
-                Else
-                    tagIndex += 1       'tag index isn't incremented when a tag with matching name is found so none are skipped
-                End If
-            Loop
-        End If
+    '                ReDim Preserve tags(UBound(tags) - 1)
+    '            Else
+    '                tagIndex += 1       'tag index isn't incremented when a tag with matching name is found so none are skipped
+    '            End If
+    '        Loop
+    '    End If
 
-        CheckSpecialTagModified(New Tag(tagName, Nothing))
-    End Sub
+    '    CheckSpecialTagModified(New Tag(tagName, Nothing))
+    'End Sub
 
-    Public Sub SetTag(tagIndex As Integer, newTag As Tag)
-        'changes the tag at the given index to the new tag
+    'Public Sub SetTag(tagIndex As Integer, newTag As Tag)
+    '    'changes the tag at the given index to the new tag
 
-        If Not IsNothing(tags) And tagIndex >= 0 AndAlso tagIndex <= UBound(tags) Then
-            tags(tagIndex) = newTag
+    '    If Not IsNothing(tags) And tagIndex >= 0 AndAlso tagIndex <= UBound(tags) Then
+    '        tags(tagIndex) = newTag
 
-            CheckSpecialTagModified(newTag)
-        Else
-            PanelRenderEngine2.DisplayError("Tried to change tag for actor " & Name & " but index (" & tagIndex & ") was out of bounds")
-        End If
-    End Sub
+    '        CheckSpecialTagModified(newTag)
+    '    Else
+    '        PanelRenderEngine2.DisplayError("Tried to change tag for actor " & Name & " but index (" & tagIndex & ") was out of bounds")
+    '    End If
+    'End Sub
 
     Private Sub CheckSpecialTagModified(modifiedTag As Tag)
         'used for if something special needs to be done when a specific tag is changed
@@ -312,16 +308,18 @@
     Public Shared Function AreActorsEqual(ent1 As Actor, ent2 As Actor) As Boolean
         'returns whether 2 provided frames are identical
 
-        If ent1.tags IsNot ent2.tags OrElse ent1.Sprites IsNot ent2.Sprites Then
-            Return False
+        If IsNothing(ent1) Or IsNothing(ent2) Then
+            Return IsNothing(ent1) = IsNothing(ent2)
         Else
-            Return True
+            Return Not (ent1.tags IsNot ent2.tags OrElse ent1.Sprites IsNot ent2.Sprites)
         End If
     End Function
 
-    Public Function GetActorHitbox() As RectangleF
-        Return New RectangleF(New PointF(Location.X, Location.Y),
+    Public ReadOnly Property Hitbox As RectangleF
+        Get
+            Return New RectangleF(New PointF(Location.X, Location.Y),
                                     New SizeF(Scale * (Sprites(CurrentFrame).Dimensions.Width - 0),
                                             Scale * (Sprites(CurrentFrame).Dimensions.Height - 0)))
-    End Function
+        End Get
+    End Property
 End Class
