@@ -273,12 +273,7 @@ Public Module JSONHandler
     End Function
 
     Public Function HasQuotes(input As String) As Boolean
-        If Not IsNothing(input) AndAlso Len(input) > 1 Then
-            Dim result As Boolean = Mid(input, 1, 1) = """" And Mid(input, Len(input), 1) = """"
-            Return result
-        Else
-            Return False
-        End If
+        Return Not IsNothing(input) AndAlso Len(input) > 1 AndAlso (Mid(input, 1, 1) = """" And Mid(input, Len(input), 1) = """")
     End Function
 
     Public Function AddQuotes(initial As String, Optional ignoreAlreadyQuoted As Boolean = False) As String

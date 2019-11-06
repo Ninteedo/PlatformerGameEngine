@@ -18,7 +18,7 @@
         Sprites = startSprites
         tags = startTags
 
-        CurrentFrame = 0
+        CurrentSprite = 0
         Location = startLocation
         'Rotation = startRotation
         Scale = startScale
@@ -97,92 +97,6 @@
             RefreshSpritesTag()
         End Set
     End Property
-
-
-    'Public Function FindTag(tagName As String) As Tag
-    '    'returns the first tag this actor has with the given name
-
-    '    If IsNothing(tags) = False Then
-    '        For index As Integer = 0 To UBound(tags)
-    '            If LCase(tags(index).name) = LCase(tagName) Then
-    '                Return tags(index)
-    '            End If
-    '        Next index
-    '    End If
-
-    '    Return Nothing
-    'End Function
-
-    'Public Function HasTag(tagName As String) As Boolean
-    '    'returns whether or not this actor has a tag with the given name
-
-    '    If FindTag(tagName).name <> Nothing Then
-    '        Return True
-    '    Else
-    '        Return False
-    '    End If
-    'End Function
-
-    'Public Sub AddTag(newTag As Tag, Optional removeDuplicates As Boolean = False)
-    '    'adds the given tag to this actor's list of tags
-
-    '    If removeDuplicates Then
-    '        RemoveTag(newTag.name)
-    '    End If
-
-    '    If IsNothing(tags) Then
-    '        ReDim tags(0)
-    '    Else
-    '        ReDim Preserve tags(UBound(tags) + 1)
-    '    End If
-    '    tags(UBound(tags)) = newTag
-
-    '    CheckSpecialTagModified(newTag)
-    'End Sub
-
-    'Public Sub RemoveTag(tagName As String)
-    '    'removes all tags with the given name
-
-    '    Dim tagIndex As Integer = 0
-
-    '    If Not IsNothing(tags) Then
-    '        Do While tagIndex <= UBound(tags)
-    '            If tags(tagIndex).name = tagName Then
-    '                For removeIndex As Integer = tagIndex To UBound(tags) - 1
-    '                    tags(removeIndex) = tags(removeIndex + 1)
-    '                Next removeIndex
-
-    '                ReDim Preserve tags(UBound(tags) - 1)
-    '            Else
-    '                tagIndex += 1       'tag index isn't incremented when a tag with matching name is found so none are skipped
-    '            End If
-    '        Loop
-    '    End If
-
-    '    CheckSpecialTagModified(New Tag(tagName, Nothing))
-    'End Sub
-
-    'Public Sub SetTag(tagIndex As Integer, newTag As Tag)
-    '    'changes the tag at the given index to the new tag
-
-    '    If Not IsNothing(tags) And tagIndex >= 0 AndAlso tagIndex <= UBound(tags) Then
-    '        tags(tagIndex) = newTag
-
-    '        CheckSpecialTagModified(newTag)
-    '    Else
-    '        PanelRenderEngine2.DisplayError("Tried to change tag for actor " & Name & " but index (" & tagIndex & ") was out of bounds")
-    '    End If
-    'End Sub
-
-    Private Sub CheckSpecialTagModified(modifiedTag As Tag)
-        'used for if something special needs to be done when a specific tag is changed
-
-        Select Case modifiedTag.name
-            Case "frames"
-                RefreshSpritesList()
-        End Select
-    End Sub
-
 
     Property Name As String
         Get
@@ -263,7 +177,7 @@
     '            End If
     '        End If
 
-    '        Return New PointF(Sprites(CurrentFrame).Dimensions.Width / 2, Sprites(CurrentFrame).Dimensions.Height / 2)
+    '        Return New PointF(Sprites(CurrentSprite).Dimensions.Width / 2, Sprites(CurrentSprite).Dimensions.Height / 2)
     '    End Get
     '    Set(value As PointF)
     '        AddTag(New Tag("rotationAnchor", "[" & value.X & "," & value.Y & "]"), True)
@@ -283,7 +197,7 @@
         End Set
     End Property
 
-    Property CurrentFrame As UInteger
+    Property CurrentSprite As UInteger
         Get
             If HasTag("currentFrame") Then
                 Return FindTag("currentFrame").InterpretArgument()
@@ -318,8 +232,8 @@
     Public ReadOnly Property Hitbox As RectangleF
         Get
             Return New RectangleF(New PointF(Location.X, Location.Y),
-                                    New SizeF(Scale * (Sprites(CurrentFrame).Dimensions.Width - 0),
-                                            Scale * (Sprites(CurrentFrame).Dimensions.Height - 0)))
+                                    New SizeF(Scale * Sprites(CurrentSprite).Dimensions.Width,
+                                            Scale * Sprites(CurrentSprite).Dimensions.Height))
         End Get
     End Property
 End Class

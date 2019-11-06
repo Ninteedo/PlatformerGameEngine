@@ -48,10 +48,8 @@ Public Class FrmGame
     Public loaderFileLocation As String
     Public levelFiles(0) As String
 
-    Public levelDelimiters() As String = {"||", "//", vbCrLf}
-    Public roomDelimiters() As String = {"|", "/", ";"}
-
     Private Sub LoadGame()      'this loads the game
+        'TODO: redo this entirely
         If IO.File.Exists(loaderFileLocation) = True Then
             Dim loaderFileText As String = PRE2.ReadFile(loaderFileLocation)
 
@@ -60,7 +58,6 @@ Public Class FrmGame
             renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
             renderer.actorFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "actorFolder")
             renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
-            'renderer.roomFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "roomFolder")
 
             'loads the file names of each level, keeps going until a level isn't provided
             Dim index As Integer = 0
@@ -100,25 +97,6 @@ Public Class FrmGame
         End If
     End Sub
 
-    'Public Shared Function LoadLevelFileOld(fileLocation As String, renderEngine As PRE2,
-    '                                     levelDelimiters() As String, roomDelimiters() As String) As Level
-    '    If IO.File.Exists(fileLocation) = True Then
-    '        Dim levelString As String = PRE2.ReadFile(fileLocation)
-    '        Dim createdLevel As Level = New Level
-    '        Dim lines() As String = Strings.Split(levelString.Trim, levelDelimiters(2))
-
-    '        For lineIndex As Integer = 0 To UBound(lines)
-    '            ParseLevelLine(lines(lineIndex), createdLevel, renderEngine, levelDelimiters, roomDelimiters)
-    '        Next lineIndex
-
-    '        Return createdLevel
-    '    Else
-    '        PRE2.DisplayError("Could not find level file at " & fileLocation)
-
-    '        Return Nothing
-    '    End If
-    'End Function
-
     Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2) As Level
         'loads a level from a given file location
         If IO.File.Exists(fileLocation) Then
@@ -132,17 +110,6 @@ Public Class FrmGame
 
         Return Nothing
     End Function
-
-    'Public Shared Function LoadActor(fileLocation As String, renderEngine As PRE2) As Actor
-    '    If IO.File.Exists(fileLocation) = True Then
-    '        Dim fileText As String = PRE2.ReadFile(fileLocation)
-    '        Return ActorStringHandler.ReadActorString(fileText, renderEngine)
-    '    Else
-    '        PRE2.DisplayError("Couldn't find actor file " & fileLocation)
-    '    End If
-
-    '    Return Nothing
-    'End Function
 
 #End Region
 
@@ -192,24 +159,24 @@ Public Class FrmGame
 
         '{"velocity":[velocity(0)+1,velocity(1)]}
 
-        Dim result As Object = defaultResult
+        'Dim result As Object = defaultResult
 
-        If Not IsNothing(tag.argument) Then ' AndAlso argIndex <= UBound(tag.args) Then
-            Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
-            'Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
+        'If Not IsNothing(tag.argument) Then ' AndAlso argIndex <= UBound(tag.args) Then
+        '    Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
+        '    'Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
 
-            If IsNothing(rawArg) Then           'is not anything
-                result = Nothing
-                'ElseIf HasQuotes(rawArg) Then        'is a string
-                '    result = RemoveQuotes(rawArg)
-                'ElseIf IsNumeric(argCalculated) Then    'is a calculation
-                '    result = argCalculated
-            Else
-                result = rawArg
-            End If
-        End If
+        '    If IsNothing(rawArg) Then           'is not anything
+        '        result = Nothing
+        '        'ElseIf HasQuotes(rawArg) Then        'is a string
+        '        '    result = RemoveQuotes(rawArg)
+        '        'ElseIf IsNumeric(argCalculated) Then    'is a calculation
+        '        '    result = argCalculated
+        '    Else
+        '        result = rawArg
+        '    End If
+        'End If
 
-        Return result
+        Return InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
     End Function
 
     'Public Shared Function FindInstanceByName(name As String, room As Room, Optional thisActor As Actor = Nothing) As Actor
@@ -308,7 +275,7 @@ Public Class FrmGame
                 End If
             Next index
 
-            If addedToList = False Then
+            If Not addedToList Then
                 ReDim Preserve keysHeld(UBound(keysHeld) + 1)
                 keysHeld(UBound(keysHeld)) = e.KeyCode
             End If
@@ -366,4 +333,3 @@ Public Class FrmGame
 #End Region
 
 End Class
-

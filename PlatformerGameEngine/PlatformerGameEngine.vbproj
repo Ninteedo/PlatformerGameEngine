@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actor.vb" />
+    <Compile Include="ArrayModifying.vb" />
     <Compile Include="EntityStringHandler.vb" />
     <Compile Include="FrmActorMaker.Designer.vb">
       <DependentUpon>FrmActorMaker.vb</DependentUpon>

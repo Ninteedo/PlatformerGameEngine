@@ -42,8 +42,8 @@ Public Class PanelRenderEngine2
                 'renders each actor in new sorted order
                 For actorIndex As Integer = 0 To UBound(actorList)
                     Dim currentActor As Actor = actorList(actorIndex)
-                    If Not IsNothing(currentActor.Sprites) AndAlso currentActor.CurrentFrame <= UBound(currentActor.Sprites) And currentActor.CurrentFrame >= 0 Then
-                        Dim renderSprite As Sprite = currentActor.Sprites(currentActor.CurrentFrame)
+                    If Not IsNothing(currentActor.Sprites) AndAlso currentActor.CurrentSprite <= UBound(currentActor.Sprites) And currentActor.CurrentSprite >= 0 Then
+                        Dim renderSprite As Sprite = currentActor.Sprites(currentActor.CurrentSprite)
                         'Dim renderSize As SizeF = New SizeF(
                         '                currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5),
                         '                currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5))

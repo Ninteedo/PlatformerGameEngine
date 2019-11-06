@@ -2,8 +2,8 @@
     Public name As String
     Public argument As String
 
-    Public Sub New(tagName As String, Optional argument As String = Nothing)
-        Me.name = tagName
+    Public Sub New(name As String, Optional argument As String = Nothing)
+        Me.name = name
         Me.argument = argument
     End Sub
 
@@ -16,31 +16,29 @@
     End Sub
 
     Public Overrides Function ToString() As String
-        'turns this tag into a string
-
         Return TagToJSON(Me)
     End Function
 
     Public Function InterpretArgument(Optional subTagName As String = Nothing) As Object
-        Dim temp As Object = InterpretValue(argument)
+        Dim result As Object = InterpretValue(argument)
 
         'if subTagName is provided then searches the argument for a tag with the same name
         If Not IsNothing(subTagName) Then
-            If IsArray(temp) Then
-                For index As Integer = 0 To UBound(temp)
-                    If Not IsNothing(temp(index)) AndAlso temp(index).name = subTagName Then
-                        Return temp(index)
+            If IsArray(result) Then
+                For index As Integer = 0 To UBound(result)
+                    If Not IsNothing(result(index)) AndAlso result(index).name = subTagName Then
+                        Return result(index)
                     End If
                 Next
-            ElseIf Not IsNothing(temp) AndAlso temp.name = subTagName Then
-                Return temp
+            ElseIf Not IsNothing(result) AndAlso result.name = subTagName Then
+                Return result
             End If
 
             'couldn't find a matching sub tag
             Return Nothing
         End If
 
-        Return temp
+        Return result
     End Function
 
     Public Sub SetArgument(newValue As Object)
