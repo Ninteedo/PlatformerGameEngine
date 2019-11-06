@@ -1,4 +1,4 @@
-﻿Public Structure Tag
+﻿Public Class Tag
     Public name As String
     Public argument As String
 

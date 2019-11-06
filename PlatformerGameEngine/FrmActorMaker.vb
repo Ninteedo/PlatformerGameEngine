@@ -131,7 +131,7 @@ Public Class FrmActorMaker
             Dim newSprite As New Sprite(fileLocation)
             'Dim fileName As String = newSprite.fileName
 
-            If IsNothing(FindLoadedSprite(newSprite.fileName).fileName) Then      'checks that the same sprite isn't already loaded
+            If IsNothing(FindLoadedSprite(newSprite.fileName)) Then      'checks that the same sprite isn't already loaded
                 If IsNothing(loadedSprites) = True Then
                     ReDim loadedSprites(0)
                 Else
@@ -139,8 +139,8 @@ Public Class FrmActorMaker
                 End If
                 loadedSprites(UBound(loadedSprites)) = newSprite
             End If
-			
-			RefreshSpritesList()
+
+            RefreshSpritesList()
         End If
     End Sub
 
@@ -245,10 +245,5 @@ Public Class FrmActorMaker
 
 
 #End Region
-
-
-
-
-
 
 End Class

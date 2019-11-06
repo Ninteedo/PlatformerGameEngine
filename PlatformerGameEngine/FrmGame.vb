@@ -104,14 +104,14 @@ Public Class FrmGame
     '                                     levelDelimiters() As String, roomDelimiters() As String) As Level
     '    If IO.File.Exists(fileLocation) = True Then
     '        Dim levelString As String = PRE2.ReadFile(fileLocation)
-    '        Dim thisLevel As Level = New Level
+    '        Dim createdLevel As Level = New Level
     '        Dim lines() As String = Strings.Split(levelString.Trim, levelDelimiters(2))
 
     '        For lineIndex As Integer = 0 To UBound(lines)
-    '            ParseLevelLine(lines(lineIndex), thisLevel, renderEngine, levelDelimiters, roomDelimiters)
+    '            ParseLevelLine(lines(lineIndex), createdLevel, renderEngine, levelDelimiters, roomDelimiters)
     '        Next lineIndex
 
-    '        Return thisLevel
+    '        Return createdLevel
     '    Else
     '        PRE2.DisplayError("Could not find level file at " & fileLocation)
 
@@ -252,7 +252,7 @@ Public Class FrmGame
                     End If
                 End If
             Case "room"
-                result = currentRoom.FindParam(parts(1))
+                'result = currentRoom.FindTag(parts(1))
             Case Else
                 For index As Integer = 0 To UBound(currentRoom.actors)
                     If currentRoom.actors(index).Name = parts(0) Then

@@ -121,8 +121,8 @@ Public Module TagBehaviours
     End Function
 
     Public Function CheckPolygons(ent1 As Actor, ent2 As Actor, velocity As Vector) As PolygonCollisionResult
-        Dim ent1Rect As RectangleF = ent1.GetActorHitbox()
-        Dim ent2Rect As RectangleF = ent2.GetActorHitbox()
+        Dim ent1Rect As RectangleF = ent1.Hitbox()
+        Dim ent2Rect As RectangleF = ent2.Hitbox()
         Dim ent1RectMoved As New RectangleF(New PointF(ent1Rect.X + velocity.X, ent2Rect.Y + velocity.Y), ent1Rect.Size)
         Dim ent1Poly As New Polygon(ent1Rect)
         Dim ent2Poly As New Polygon(ent2Rect)
