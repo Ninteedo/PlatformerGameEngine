@@ -96,9 +96,10 @@ Public Module JSONHandler
         Dim inArgument As Boolean       'false: currently in name, true: currently in argument
 
         json = Trim(json)       'removes any leading or trailing whitespace
+        json = Mid(json, 2, Len(json) - 2)      'removes beginning and ending braces
 
         For cIndex = 0 To Len(json) - 1
-            Dim c As String = json(cIndex)      'current character
+            Dim c As String = Mid(json, cIndex + 1, 1)      'current character
             Dim addChar As Boolean = True       'if true then c is added to name/argument
 
             If inString Then
@@ -115,12 +116,14 @@ Public Module JSONHandler
                 End If
             Else
                 If c = ":" Then
-                    inArgument = True
-                    addChar = False
+                    If Not inArgument Then
+                        inArgument = True
+                        addChar = False
+                    End If
                 Else
                     If c = """" Then
                         inString = True
-                    Else
+                    ElseIf Not inArgument Then
                         addChar = False
                     End If
                 End If
@@ -208,6 +211,7 @@ Public Module JSONHandler
                                 result.SetArgument(InterpretValue(result.argument, True, ent, room))
                             End If
                         Case "["        'array
+                            'valueString = Mid(valueString, 2, Len(valueString) - 2)
                             Dim valueStrings() As String = JSONSplit(valueString, 0)   '{""}
                             Dim values() As Object
                             ReDim values(UBound(valueStrings))
@@ -301,34 +305,34 @@ Public Module JSONHandler
                 input = Mid(input, 2, Len(input) - 2)   'removes outermost {} or []
             End If
             Dim inString As Boolean = False
-                Dim subStructureLevel As Integer = 0
+            Dim subStructureLevel As Integer = 0
 
-                For cIndex As Integer = 0 To Len(input) - 1
-                    Dim c As String = input(cIndex)
+            For cIndex As Integer = 0 To Len(input) - 1
+                Dim c As String = input(cIndex)
 
-                    If Not inString And subStructureLevel = subStructureLevelRequired And c = delimiter Then  'only splits when it is at the required sub-structure level
-                        ReDim Preserve result(UBound(result) + 1)
-                        result(UBound(result)) = ""
-                    Else
-                        result(UBound(result)) += c
+                If Not inString And subStructureLevel = subStructureLevelRequired And c = delimiter Then  'only splits when it is at the required sub-structure level
+                    ReDim Preserve result(UBound(result) + 1)
+                    result(UBound(result)) = ""
+                Else
+                    result(UBound(result)) += c
 
-                        If inString And c = """" AndAlso input(cIndex - 1) <> "\" Then
-                            inString = False
-                        ElseIf Not inString And c = """" Then
-                            inString = True
-                        ElseIf Not inString And c = "{" Then
-                            subStructureLevel += 1
-                        ElseIf Not inString And c = "}" Then
-                            subStructureLevel -= 1
-                            'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
-                            '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)
-                        End If
+                    If inString And c = """" AndAlso input(cIndex - 1) <> "\" Then
+                        inString = False
+                    ElseIf Not inString And c = """" Then
+                        inString = True
+                    ElseIf Not inString And c = "{" Then
+                        subStructureLevel += 1
+                    ElseIf Not inString And c = "}" Then
+                        subStructureLevel -= 1
+                        'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
+                        '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)
                     End If
-                Next
+                End If
+            Next
 
-                Return result
-            Else
-                Return {input}
+            Return result
+        Else
+            Return {input}
         End If
     End Function
 

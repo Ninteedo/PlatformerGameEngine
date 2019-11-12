@@ -13,6 +13,12 @@ Public Class Sprite
     Private Const coloursTagName As String = "colours"
     Private Const pixelsTagName As String = "pixels"
 
+    Public Sub New()
+        pixelColours = Nothing
+        fileName = Nothing
+        bitmapVersion = Nothing
+    End Sub
+
     Public Sub New(colourIndices(,) As Integer, colours() As Color)
         'uses colours and colour indices to make a sprite
 
@@ -89,8 +95,8 @@ Public Class Sprite
 
     Public Sub New(ByVal spriteString As String)
         Dim spriteTag As New Tag(spriteString)
-        Dim coloursTag As New Tag(spriteTag.InterpretArgument(coloursTagName))
-        Dim pixelsTag As New Tag(spriteTag.InterpretArgument(pixelsTagName))
+        Dim coloursTag As Tag = spriteTag.InterpretArgument(coloursTagName)
+        Dim pixelsTag As Tag = spriteTag.InterpretArgument(pixelsTagName)
 
         If Not IsNothing(coloursTag) Then
             Dim colourNames() As String = coloursTag.InterpretArgument
@@ -138,6 +144,90 @@ Public Class Sprite
         Set(value As Color(,))
             pixelColours = value
             bitmapVersion = Nothing
+        End Set
+    End Property
+
+    Public Property Colours As Color()
+        'the colours present in the sprite
+        '0 is always transparent
+        'the rest are ordered by first appearance
+        Get
+            Dim coloursUsed() As Color = {Color.Transparent}
+            If Not IsNothing(Pixels) Then
+                For index2 As Integer = 0 To Pixels.GetUpperBound(1)
+                    For index1 As Integer = 0 To Pixels.GetUpperBound(0)
+                        'checks if colour has already been added
+                        Dim duplicate As Boolean = False
+                        For colourIndex As Integer = 0 To UBound(coloursUsed)
+                            If Pixels(index1, index2) = coloursUsed(colourIndex) Then
+                                duplicate = True
+                                Exit For
+                            End If
+                        Next
+
+                        'only adds colour if it isn't a duplicate
+                        If Not duplicate Then
+                            coloursUsed = InsertItem(coloursUsed, Pixels(index1, index2))
+                        End If
+                    Next
+                Next
+            End If
+
+            Return coloursUsed
+        End Get
+        Set(value As Color())
+            Dim startColourIndices(,) As Integer = ColourIndices
+
+            If Not IsNothing(Pixels) Then
+                For index2 As Integer = 0 To Pixels.GetUpperBound(1)
+                    For index1 As Integer = 0 To Pixels.GetUpperBound(0)
+                        If startColourIndices(index1, index2) <= UBound(value) Then
+                            Pixels(index1, index2) = value(startColourIndices(index1, index2))
+                        Else        'if colour index is out of range then sets pixel to transparent
+                            Pixels(index1, index2) = Color.Transparent
+                        End If
+                    Next
+                Next
+            End If
+        End Set
+    End Property
+
+    Public Property ColourIndices As Integer(,)
+        'the colour index is where index of where the colour of the pixel appears in the colours array
+
+        Get
+            If Not IsNothing(Pixels) Then
+                Dim result(Pixels.GetUpperBound(0), Pixels.GetUpperBound(1)) As Integer
+
+                For index2 As Integer = 0 To Pixels.GetUpperBound(1)
+                    For index1 As Integer = 0 To Pixels.GetUpperBound(0)
+                        For colourIndex As Integer = 0 To UBound(Colours)       'finds the corresponding colour index
+                            If Colours(colourIndex) = Pixels(index1, index2) Then
+                                result(index1, index2) = colourIndex
+                                Exit For
+                            End If
+                        Next
+                    Next
+                Next
+
+                Return result
+            Else
+                Return Nothing
+            End If
+        End Get
+        Set(value As Integer(,))
+            Dim coloursUsed As Color() = Colours
+            ReDim Pixels(value.GetUpperBound(0), value.GetUpperBound(1))
+
+            For index2 As Integer = 0 To Pixels.GetUpperBound(1)
+                For index1 As Integer = 0 To Pixels.GetUpperBound(0)
+                    'If value(index1, index2) <= UBound(coloursUsed) Then
+                    Pixels(index1, index2) = coloursUsed(value(index1, index2))
+                    'Else        'if colour index is out of range then sets pixel to transparent
+                    '    Pixels(index1, index2) = Color.Transparent
+                    'End If
+                Next
+            Next
         End Set
     End Property
 

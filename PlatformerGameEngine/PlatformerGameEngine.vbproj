@@ -156,6 +156,9 @@
     <EmbeddedResource Include="FrmMenu.resx">
       <DependentUpon>FrmMenu.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FrmSpriteMaker.resx">
+      <DependentUpon>FrmSpriteMaker.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmTagMaker.resx">
       <DependentUpon>FrmTagMaker.vb</DependentUpon>
     </EmbeddedResource>

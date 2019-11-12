@@ -104,6 +104,9 @@ Public Class FrmMenu
         'Dim test As New PanelRenderEngine2.Tag(InputBox("Input Tag"))
         'MsgBox(test.ToString)
         'Dim argument As Object = InterpretValue(test.argument)
+
+        Dim example As String = "[{""tag1""},{""tag2"":[1,61,3,63,52,334]}]"
+        Dim splits() As String = JSONSplit(example, 0)
     End Sub
 
     Private Sub OpenToolsMenu()
@@ -142,7 +145,7 @@ Public Class FrmMenu
         End If
     End Sub
 
-    Private Sub btnMenuBack_Click(sender As Object, e As EventArgs) Handles btnMenuBack.Click
+    Private Sub BtnMenuBack_Click(sender As Object, e As EventArgs) Handles btnMenuBack.Click
         'code for the user pressing the back button
 
         currentMenuIndex = menuLayouts(currentMenuIndex).previousMenuIndex
