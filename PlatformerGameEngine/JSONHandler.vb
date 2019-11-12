@@ -179,8 +179,7 @@ Public Module JSONHandler
         Return result
     End Function
 
-    Public Function InterpretValue(valueString As String,
-                                   Optional fullInterpret As Boolean = False, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As Object
+    Public Function InterpretValue(valueString As String, Optional fullInterpret As Boolean = False, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As Object
         'interprets a value from JSON
         'full interpret means that for tags and arrays the arguments are also interpreted
 
@@ -204,7 +203,7 @@ Public Module JSONHandler
                             'result = InterpretString(valueString)
                             result = valueString
                         Case "{"        'object (another tag)
-                            result = JSONToTag(valueString)
+                            result = JsonToTag(valueString)
                             If fullInterpret Then
                                 result.SetArgument(InterpretValue(result.argument, True, ent, room))
                             End If
@@ -242,20 +241,25 @@ Public Module JSONHandler
 #Region "Misc String Handling"
 
     Public Function ArrayToString(input As Object) As String
-        'turns an array into a string
+        'turns an array into a string, can take jagged arrays cant take multidimensional arrays
 
         Dim result As String = Nothing
 
-        If IsArray(input) Then
-            result = "["
-
+        If Not IsArray(input) Then
             If Not IsNothing(input) Then
+                result = input.ToString
+            End If
+        ElseIf input.Rank > 1 Then
+            PRE2.DisplayError("Cannot turn a multidimensional array into a string")
+        Else
+            result = "["
+            If UBound(input) = 0 Then
+                If Not IsNothing(input(0)) Then
+                    result = input(0).ToString
+                End If
+            Else
                 For index As Integer = 0 To UBound(input)
-                    If IsArray(input(index)) Then
-                        result += ArrayToString(input(index))        'recursive
-                    Else
-                        result += input(index).ToString
-                    End If
+                    result += ArrayToString(input(index))        'recursive
 
                     If index < UBound(input) Then
                         result += ","
@@ -263,10 +267,6 @@ Public Module JSONHandler
                 Next
             End If
             result += "]"
-        Else
-            If Not IsNothing(input) Then
-                result = input.ToString
-            End If
         End If
 
         Return result

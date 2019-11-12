@@ -105,16 +105,16 @@ Public Class FrmActorMaker
 
         LstSprites.Items.Clear()
 
-        If Not IsNothing(loadedSprites) Then
-            For index As Integer = 0 To UBound(loadedSprites)
-                LstSprites.Items.Add(loadedSprites(index).fileName.Remove(0, Len(renderer.spriteFolderLocation)))
+        If Not IsNothing(ActorSprites) Then
+            For index As Integer = 0 To UBound(ActorSprites)
+                LstSprites.Items.Add(ActorSprites(index).fileName.Remove(0, Len(renderer.spriteFolderLocation)))
             Next
         End If
     End Sub
 
     Private Sub LstSprites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstSprites.SelectedIndexChanged
         If LstSprites.SelectedIndex > -1 Then
-            DrawSpritePreview(loadedSprites(LstSprites.SelectedIndex))
+            DrawSpritePreview(ActorSprites(LstSprites.SelectedIndex))
         Else
             DrawSpritePreview(Nothing)
         End If
@@ -124,6 +124,18 @@ Public Class FrmActorMaker
 
     Dim loadedSprites() As Sprite
 
+    Private Property ActorSprites As Sprite()
+        Get
+            Return loadedSprites
+        End Get
+        Set(value As Sprite())
+            loadedSprites = value
+            result.Sprites = value
+
+            RefreshSpritesList()
+        End Set
+    End Property
+
     Private Sub LoadSprite(fileLocation As String)
         'loads a sprite from a given location
 
@@ -132,12 +144,7 @@ Public Class FrmActorMaker
             'Dim fileName As String = newSprite.fileName
 
             If IsNothing(FindLoadedSprite(newSprite.fileName)) Then      'checks that the same sprite isn't already loaded
-                If IsNothing(loadedSprites) = True Then
-                    ReDim loadedSprites(0)
-                Else
-                    ReDim Preserve loadedSprites(UBound(loadedSprites) + 1)
-                End If
-                loadedSprites(UBound(loadedSprites)) = newSprite
+                ActorSprites = InsertItem(ActorSprites, newSprite)
             End If
 
             RefreshSpritesList()
@@ -147,10 +154,10 @@ Public Class FrmActorMaker
     Private Function FindLoadedSprite(fileLocation As String) As Sprite
         'returns a loaded sprite with the given file name if it is already loaded
 
-        If IsNothing(loadedSprites) = False Then
-            For index As Integer = 0 To UBound(loadedSprites)
-                If loadedSprites(index).fileName = fileLocation Then
-                    Return loadedSprites(index)
+        If IsNothing(ActorSprites) = False Then
+            For index As Integer = 0 To UBound(ActorSprites)
+                If ActorSprites(index).fileName = fileLocation Then
+                    Return ActorSprites(index)
                 End If
             Next index
         End If
@@ -170,8 +177,6 @@ Public Class FrmActorMaker
                 For index As Integer = 0 To UBound(openDialog.FileNames)
                     LoadSprite(openDialog.FileNames(index))
                 Next index
-
-                RefreshSpritesList()
             End If
         End Using
     End Sub
@@ -183,19 +188,24 @@ Public Class FrmActorMaker
             Dim oldIndex As Integer = LstSprites.SelectedIndex
             Dim newIndex As Integer = NumSpriteIndex.Value
 
-			Dim ascending As Boolean = newIndex - oldIndex >= 0		'stores whether the sprites need to be moved in ascending or descending order
-			
-            Dim thisSprite As Sprite = loadedSprites(oldIndex)
-            'loadedSprites(oldIndex) = loadedSprites(newIndex)
-            'loadedSprites(newIndex) = thisSprite
+            Dim thisSprite As Sprite = ActorSprites(oldIndex)
 
-			For index As Integer = oldIndex To newIndex Step If(ascending, 1, -1)
-				loadedSprites(index + If(ascending, -1, 1)) = loadedSprites(index)
-			Next
-			
-            LstSprites.SelectedIndex = newIndex
-			
-			RefreshSpritesList()
+            ActorSprites = RemoveItem(ActorSprites, oldIndex)       'removes sprite from old index
+            ActorSprites = InsertItem(ActorSprites, thisSprite, newIndex)   'inserts sprite to new index
+
+            'Dim ascending As Boolean = newIndex - oldIndex >= 0     'stores whether the sprites need to be moved in ascending or descending order
+
+            'Dim thisSprite As Sprite = ActorSprites(oldIndex)
+            ''loadedSprites(oldIndex) = loadedSprites(newIndex)
+            ''loadedSprites(newIndex) = thisSprite
+
+            'For index As Integer = oldIndex To newIndex Step If(ascending, 1, -1)
+            '    ActorSprites(index + If(ascending, -1, 1)) = ActorSprites(index)
+            'Next
+
+            'LstSprites.SelectedIndex = newIndex
+
+            RefreshSpritesList()
         End If
     End Sub
 
@@ -203,12 +213,7 @@ Public Class FrmActorMaker
         'deletes the sprite that the user has selected
 
         If LstSprites.SelectedIndex > -1 Then
-            For index As Integer = LstSprites.SelectedIndex To UBound(loadedSprites) - 1
-                loadedSprites(index) = loadedSprites(index + 1)
-            Next
-            ReDim Preserve loadedSprites(UBound(loadedSprites) - 1)
-
-            RefreshSpritesList()
+            ActorSprites = RemoveItem(ActorSprites, LstSprites.SelectedIndex)
         End If
     End Sub
 
