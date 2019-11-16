@@ -182,11 +182,12 @@ Public Module JSONHandler
         Return result
     End Function
 
-    Public Function InterpretValue(valueString As String, Optional fullInterpret As Boolean = False, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As Object
+    Public Function InterpretValue(valueString As String, desiredType As Type, Optional fullInterpret As Boolean = False, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As Object
         'interprets a value from JSON
         'full interpret means that for tags and arrays the arguments are also interpreted
 
         Dim result As Object = Nothing
+        result = CTypeDynamic(result, desiredType)
 
         If Not IsNothing(valueString) AndAlso Len(valueString.Trim) > 0 Then
             valueString = valueString.Trim
@@ -200,46 +201,118 @@ Public Module JSONHandler
                     result = Nothing
                 Case "nill"
                     result = Nothing
+
                 Case Else
-                    Select Case valueString(0)
-                        Case """"       'string
-                            'result = InterpretString(valueString)
-                            result = valueString
-                        Case "{"        'object (another tag)
-                            result = JsonToTag(valueString)
-                            If fullInterpret Then
-                                result.SetArgument(InterpretValue(result.argument, True, ent, room))
-                            End If
-                        Case "["        'array
-                            'valueString = Mid(valueString, 2, Len(valueString) - 2)
-                            Dim valueStrings() As String = JSONSplit(valueString, 0)   '{""}
-                            Dim values() As Object
-                            ReDim values(UBound(valueStrings))
-                            For index As Integer = 0 To UBound(valueStrings)
-                                values(index) = InterpretValue(valueStrings(index).Trim, fullInterpret, ent, room)  'Mid(valueStrings(index), 2, Len(valueStrings(index)) - 2).Trim)
+                    Dim firstChar As String = Left(valueString, 1)
+                    Dim lastChar As String = Right(valueString, 1)
 
-                                'If fullInterpret Then
-                                '    values(index) = InterpretValue()
-                                'End If
+                    If firstChar = """" And lastChar = """" Then    'string
+                        result = RemoveQuotes(valueString)
+                    ElseIf firstChar = "{" And lastChar = "}" Then  'tag
+                        result = New Tag(valueString)
+                    ElseIf firstChar = "[" And lastChar = "]" Then  'array
+                        If desiredType.IsArray Then
+                            Dim valueSplits As String() = JSONSplit(valueString)
+                            'ReDim result(UBound(valueSplits))
+                            Dim arrayResult As New ArrayList
+
+                            For index As Integer = 0 To UBound(valueSplits)
+                                arrayResult.Add(InterpretValue(valueSplits(index).Trim, desiredType.GetElementType, fullInterpret, ent, room))
                             Next
+                            result = arrayResult.ToArray
+                        Else
+                            PRE2.DisplayError("Tried to convert an array argument" & vbCrLf & valueString & "To a data type which was not an array")
+                        End If
+                    End If
 
-                            result = values
-                        Case Else
-                            If IsNumeric(valueString) Then
-                                result = Val(valueString)
-                            ElseIf fullInterpret Then
-                                result = ProcessCalculation(valueString, ent, room)
-                            End If
-                    End Select
+                    'Select Case valueString(0)
+                    '    Case """"       'string
+                    '        'result = InterpretString(valueString)
+                    '        result = RemoveQuotes(valueString)
+                    '    Case "{"        'object (another tag)
+                    '        result = JsonToTag(valueString)
+                    '        If fullInterpret Then
+                    '            result.SetArgument(InterpretValue(Of Tag)(result.argument, True, ent, room))
+                    '        End If
+                    '    Case "["        'array
+                    '        'valueString = Mid(valueString, 2, Len(valueString) - 2)
+                    '        'Dim valueStrings() As String = JSONSplit(valueString, 0)   '{""}
+                    '        'Dim valuesEvaluated As String()
+                    '        'ReDim valuesEvaluated(UBound(valueStrings))
+                    '        'ReDim result(UBound(valueStrings))
+                    '        'Dim elementType As Type = GetType(t).GetElementType
+                    '        'For index As Integer = 0 To UBound(valueStrings)
+                    '        '    valuesEvaluated(index) = InterpretValue(Of String)(valueStrings(index).Trim, fullInterpret, ent, room)  'Mid(valueStrings(index), 2, Len(valueStrings(index)) - 2).Trim)
+
+                    '        '    result(index) = CTypeDynamic(valuesEvaluated(index), elementType)
+                    '        '    'If fullInterpret Then
+                    '        '    '    values(index) = InterpretValue()
+                    '        '    'End If
+                    '        'Next
+
+                    '        'valuesEvaluated = CTypeDynamic(valuesEvaluated, GetType(t))
+
+                    '        PRE2.DisplayError(valueString & vbCrLf & "Should be using InterpretValueArray()")
+
+                    '        'If valuesEvaluated.GetType <> GetType(t) Then
+                    '        '    PRE2.DisplayError("Type mismatch when attempting to interpret argument " & vbCrLf & valueString & vbCrLf & "Meant to be type " & GetType(t).ToString & " but is actually " & valuesEvaluated.GetType.ToString)
+                    '        '    Return Nothing
+                    '        'End If
+                    '    Case Else
+                    '        If IsNumeric(valueString) Then
+                    '            result = Val(valueString)
+                    '        ElseIf fullInterpret Then
+                    '            result = ProcessCalculation(valueString, ent, room)
+                    '        End If
+                    'End Select
             End Select
         End If
 
-        If Not IsNothing(result) Then
-            Return result
-        Else
-            Return valueString
+        'If Not desiredType.IsArray Then
+        '    Return CTypeDynamic(result, desiredType)
+        'Else
+        Return result
+        'End If
+
+    End Function
+
+    Public Function TempConvert(input As Object, desiredType As Type) As Object
+        Dim result As Object
+
+        If desiredType.IsArray Then
+            For index As Integer = 0 To UBound(input)
+
+            Next
         End If
     End Function
+
+    'Public Function InterpretValueArray(Of t)(valueString As String, Optional fullInterpret As Boolean = False, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As t()
+    '    Dim result As t() = Nothing
+    '    If Not IsNothing(valueString) AndAlso Len(valueString.Trim) > 0 Then
+    '        valueString = valueString.Trim
+    '        If Left(valueString, 1) = "[" AndAlso Right(valueString, 1) = "]" Then      'makes sure input is an array
+    '            Dim valueStrings() As String = JSONSplit(valueString, 0)   '{""}
+    '            'Dim valuesEvaluated(UBound(valueStrings)) As t
+    '            ReDim result(UBound(valueStrings))
+    '            For index As Integer = 0 To UBound(valueStrings)
+
+    '                If GetType(t).IsArray Then
+    '                    result(index) = CTypeDynamic(InterpretValueArray(Of String)(valueStrings(index).Trim, fullInterpret, ent, room), GetType(t))
+    '                Else
+    '                result(index) = InterpretValue(Of t)(valueStrings(index).Trim, fullInterpret, ent, room)
+    '                End If
+    '        'Mid(valueStrings(index), 2, Len(valueStrings(index)) - 2).Trim)
+    '        'If fullInterpret Then
+    '        '    values(index) = InterpretValue()
+    '        'End If
+    '        Next
+    '    Else
+    '            result = {InterpretValue(Of t)(valueString, fullInterpret, ent, room)}
+    '        End If
+    '    End If
+
+    '    Return result
+    'End Function
 #End Region
 
 #Region "Misc String Handling"
@@ -296,7 +369,7 @@ Public Module JSONHandler
         End If
     End Function
 
-    Public Function JSONSplit(input As String, subStructureLevelRequired As Integer, Optional delimiter As Char = ",") As String()
+    Public Function JSONSplit(input As String, Optional subStructureLevelRequired As Integer = 0, Optional delimiter As Char = ",") As String()
         'splits a JSON string into its tags
 
         If Len(input) > 1 Then
@@ -320,9 +393,9 @@ Public Module JSONHandler
                         inString = False
                     ElseIf Not inString And c = """" Then
                         inString = True
-                    ElseIf Not inString And c = "{" Then
+                    ElseIf Not inString And (c = "{" Or c = "[") Then
                         subStructureLevel += 1
-                    ElseIf Not inString And c = "}" Then
+                    ElseIf Not inString And (c = "}" Or c = "]") Then
                         subStructureLevel -= 1
                         'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
                         '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)
@@ -368,3 +441,73 @@ Public Module JSONHandler
     End Function
 #End Region
 End Module
+
+Public Class TagArgument(Of t)
+    'Private strValue As String
+    'Private numValue As Single
+    'Private tagValue As Tag
+    'Private arrayValue As TagArgument(Of t)()
+    Private objValue As Object
+
+    Public Property Value As t
+        Get
+            'Select Case GetType(t)
+            '    Case GetType(Tag)
+            '        Return CTypeDynamic(tagValue, GetType(t))
+            '    Case GetType(Single)
+            '        Return CTypeDynamic(numValue, GetType(t))
+            '    Case GetType(String)
+            '        Return CTypeDynamic(strValue, GetType(t))
+            '    Case GetType(Integer)
+            '        Return CTypeDynamic(numValue, GetType(t))
+            '    Case GetType(Array)
+            '        Return CTypeDynamic(arrayValue, GetType(t))
+            'End Select
+
+            Return CTypeDynamic(objValue, GetType(t))
+        End Get
+        Set(val As t)
+            objValue = CTypeDynamic(val, GetType(t))
+
+            'Select Case GetType(t)
+            '    Case GetType(Tag)
+            '        tagValue = CTypeDynamic(value, GetType(Tag))
+            '    Case GetType(Single)
+            '        numValue = CTypeDynamic(value, GetType(Single))
+            '    Case GetType(String)
+            '        strValue = CTypeDynamic(value, GetType(String))
+            '    Case GetType(Integer)
+            '        numValue = CTypeDynamic(value, GetType(Integer))
+            '    Case GetType(Array)
+            '        arrayValue = CTypeDynamic(value, GetType(Array))
+            'End Select
+        End Set
+    End Property
+
+    'Public Overrides Function ToString() As String
+    '    Select Case GetType(t)
+    '        Case GetType(Tag)
+
+    '        Case GetType(Single)
+
+    '        Case GetType(String)
+    '            Return AddQuotes(value, True)
+    '        Case GetType(Integer)
+
+    '        Case GetType(Array)
+    '            If Not IsNothing(value) Then
+    '                Dim result As String = "["
+    '                For index As Integer = 0 To UBound(valueArray)
+    '                    result += valueArray(index).ToString & ","
+    '                Next
+    '                Return result & "]"
+    '            Else
+    '                Return Nothing
+    '            End If
+    '    End Select
+    'End Function
+
+    Public Sub New(ByVal v As t)
+        Value = v
+    End Sub
+End Class

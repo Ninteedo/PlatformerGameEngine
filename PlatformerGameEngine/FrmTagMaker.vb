@@ -43,7 +43,7 @@ Public Class FrmTagMaker
 
         tagInCreation = startTag
 
-        arguments = InterpretValue(tagInCreation.argument)
+        arguments = InterpretValue(tagInCreation.argument, GetType(Object))
 
         'For argIndex As Integer = 0 To UBound(arguments)
         '    AddArgument(arguments(argIndex))
@@ -159,13 +159,13 @@ Public Class FrmTagMaker
     Public Sub AddArgument(argument As Object)
         'adds the given argument to the user's created tag's arguments
 
-        If IsNothing(tagInCreation.InterpretArgument()) = False Then
+        If IsNothing(arguments) = False Then
             ReDim Preserve arguments(UBound(arguments) + 1)
         Else
             ReDim arguments(0)
         End If
 
-        tagInCreation.InterpretArgument()(UBound(arguments)) = argument
+        arguments(UBound(arguments)) = argument
         RefreshArgumentsList()
     End Sub
 

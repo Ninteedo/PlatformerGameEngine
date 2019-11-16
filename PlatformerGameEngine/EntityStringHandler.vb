@@ -57,7 +57,7 @@ Module ActorStringHandler
             'loads the tags
             'Dim tagStrings() As String = JSONSplit(actorString, 0)
             'Dim temp As Object = JSONToTag(tagStrings(0)).InterpretArgument()
-            Dim temp As Object = New Tag(actorString).InterpretArgument()
+            Dim temp As Object() = New Tag(actorString).InterpretArgument(Of Object)
             For index As Integer = 0 To UBound(temp)
                 result.AddTag(New Tag(temp(index).ToString))
             Next

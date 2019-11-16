@@ -17,7 +17,7 @@ Public Module TagBehaviours
         Select Case LCase(tag.name)
             'basic movement
             Case "velocity"     '[xChange,yChange]
-                Dim velocityTemp As Object = tag.InterpretArgument
+                Dim velocityTemp As Object = tag.InterpretArgument(Of Single())
                 Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
                 VelocityHandling(ent, velocity, room)
@@ -27,13 +27,13 @@ Public Module TagBehaviours
                 Dim newTag As New Tag(FrmGame.GetArgument(tag, ent, room))
                 ent.AddTag(newTag, True)
             Case LCase("removeTag")
-                ent.RemoveTag(tag.InterpretArgument())
+                ent.RemoveTag(tag.InterpretArgument(Of String))
             Case "execute"
-                ProcessTag(New Tag(tag.InterpretArgument.ToString), ent, room, renderEngine)
+                ProcessTag(New Tag(tag.InterpretArgument(Of Object).ToString), ent, room, renderEngine)
 
                 'broadcast event
             Case LCase("broadcast")
-                BroadcastEvent(New Tag(tag.InterpretArgument.ToString), room, renderEngine)
+                BroadcastEvent(New Tag(tag.InterpretArgument(Of Object).ToString), room, renderEngine)
         End Select
         'End If
     End Sub
@@ -61,22 +61,22 @@ Public Module TagBehaviours
 
                         If collisionResult.intersecting Or collisionResult.willIntersect Then
 
-                            Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
+                            Dim entCollisionTypesTemp As Tag() = ent.FindTag(collisionTagName).FindSubTag(collisionTypeTagName).InterpretArgument(Of Tag())
                             Dim entVulnerable As Boolean = False        'stores whether the actor is vulnerable
                             If Not IsNothing(entCollisionTypesTemp) Then
-                                If IsArray(entCollisionTypesTemp) Then
-                                    For index As Integer = 0 To UBound(entCollisionTypesTemp)
+                                'If IsArray(entCollisionTypesTemp) Then
+                                For index As Integer = 0 To UBound(entCollisionTypesTemp)
                                         If entCollisionTypesTemp(index).name = vulnerableTagName Then
                                             entVulnerable = True
                                             Exit For
                                         End If
                                     Next
-                                Else
-                                    entVulnerable = entCollisionTypesTemp.name = vulnerableTagName   'compares the collision type to the stored vulnerable name
-                                End If
+                                'Else
+                                '    entVulnerable = entCollisionTypesTemp.name = vulnerableTagName   'compares the collision type to the stored vulnerable name
+                                'End If
                             End If
 
-                            Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
+                            Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).FindSubTag(collisionTypeTagName).InterpretArgument(Of Tag())
                             Dim otherEntEffect As Tag = Nothing
                             Dim otherEntSolid As Boolean = False
                             If Not IsNothing(otherEntCollisionTypesTemp) Then
@@ -384,21 +384,21 @@ Public Module TagBehaviours
 
 #Region "Tags to other Data Types"
 
-    Public Function TagToRectangleF(rectangleTag As Tag, Optional relativeLocation As PointF = Nothing, Optional scale As Single = 1) As RectangleF
-        'converts a rectangle tag into a rectangle
+    'Public Function TagToRectangleF(rectangleTag As Tag, Optional relativeLocation As PointF = Nothing, Optional scale As Single = 1) As RectangleF
+    '    'converts a rectangle tag into a rectangle
 
-        Dim result As RectangleF = Nothing
+    '    Dim result As RectangleF = Nothing
 
-        If Not IsNothing(rectangleTag) Then
-            Dim originTag As Tag = rectangleTag.InterpretArgument("origin")
-            Dim sizeTag As Tag = rectangleTag.InterpretArgument("size")
+    '    If Not IsNothing(rectangleTag) Then
+    '        Dim originTag As Tag = rectangleTag.InterpretArgument("origin")
+    '        Dim sizeTag As Tag = rectangleTag.InterpretArgument("size")
 
-            result = New RectangleF(New PointF(originTag.InterpretArgument()(0) * scale + relativeLocation.X, originTag.InterpretArgument()(1) * scale + relativeLocation.Y),
-                                    New SizeF(sizeTag.InterpretArgument()(0) * scale, sizeTag.InterpretArgument()(1) * scale))
-        End If
+    '        result = New RectangleF(New PointF(originTag.InterpretArgument()(0) * scale + relativeLocation.X, originTag.InterpretArgument()(1) * scale + relativeLocation.Y),
+    '                                New SizeF(sizeTag.InterpretArgument()(0) * scale, sizeTag.InterpretArgument()(1) * scale))
+    '    End If
 
-        Return result
-    End Function
+    '    Return result
+    'End Function
 
 #End Region
 

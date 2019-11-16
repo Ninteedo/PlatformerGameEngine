@@ -17,7 +17,7 @@ Public Class Level
         tags = Nothing
         rooms = Nothing
 
-        Dim tagStrings() As Object = New Tag(levelString).InterpretArgument 'JSONSplit(levelString, 0)
+        Dim tagStrings() As String = New Tag(levelString).InterpretArgument(Of String()) 'JSONSplit(levelString, 0)
         If Not IsNothing(tagStrings) Then
             Dim tags(UBound(tagStrings)) As Tag
 
@@ -29,7 +29,7 @@ Public Class Level
                 If Not IsNothing(thisTag) Then
                     Select Case thisTag.name
                         Case "tags"
-                            Dim temp() As Object = thisTag.InterpretArgument
+                            Dim temp() As Object = thisTag.InterpretArgument(Of Object)
                             If Not IsNothing(temp) Then
                                 ReDim Me.tags(UBound(temp))
                                 For index As Integer = 0 To UBound(temp)
@@ -45,7 +45,7 @@ Public Class Level
                         '        Next
                         '    End If
                         Case "rooms"
-                            Dim temp() As Object = thisTag.InterpretArgument
+                            Dim temp() As Object = thisTag.InterpretArgument(Of Object)
                             If Not IsNothing(temp) Then
                                 ReDim rooms(UBound(temp))
                                 For index As Integer = 0 To UBound(temp)
@@ -73,7 +73,7 @@ Public Class Level
     Public Property Name As String
         Get
             If HasTag("name") Then
-                Return FindTag("name").InterpretArgument()
+                Return FindTag("name").InterpretArgument(Of String)
             Else
                 Return "UnnamedLevel"
             End If

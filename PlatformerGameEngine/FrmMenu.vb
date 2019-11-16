@@ -2,6 +2,8 @@
 '22/03/2019
 'Menu for platformer engine
 
+Option Infer On
+
 Public Class FrmMenu
 
     Public menuButtons() As Button
@@ -105,8 +107,17 @@ Public Class FrmMenu
         'MsgBox(test.ToString)
         'Dim argument As Object = InterpretValue(test.argument)
 
-        Dim example As String = "[{""tag1""},{""tag2"":[1,61,3,63,52,334]}]"
-        Dim splits() As String = JSONSplit(example, 0)
+        Dim a As String = "abc"
+        Dim b As String = "def"
+        Dim example As Dynamic.DynamicObject
+        example = DirectCast(example, GetType(a))
+        example(0) = a
+        example(1) = b
+        'Dim temp As New ArrayList
+        'temp.AddRange({a, b})
+        'example = temp.Cast(Of temp).ToArray
+        'Dim converted As Object() = CType(example, Object())
+        Dim convertedToString As String() = CType(example, String())
     End Sub
 
     Private Sub OpenToolsMenu()

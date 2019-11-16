@@ -7,6 +7,14 @@
     Private spritesList() As Sprite
     Public spriteFolderLocation As String
 
+    Private Const spriteTagName As String = "sprites"
+    Private Const nameTagName As String = "name"
+    Private Const locationTagName As String = "location"
+    Private Const layerTagName As String = "layer"
+    Private Const scaleTagName As String = "scale"
+    Private Const opacityTagName As String = "opacity"
+    Private Const currentSpriteIndexTagName As string = "currentSpriteIndex"
+
     Public Sub New()
         spritesList = Nothing
         tags = Nothing
@@ -56,11 +64,11 @@
     End Function
 
 
-    Public Sub RefreshSpritesList()
-        'changes what is stored in spriteList() using the "sprites" tag
+    Private Sub RefreshSpritesList()
+        'changes what is stored in spriteList() using the sprites tag
 
-        If HasTag("sprites") Then
-            Dim spritesArgument() As Object = FindTag("sprites").InterpretArgument()
+        If HasTag(spriteTagName) Then
+            Dim spritesArgument() As Tag = FindTag(spriteTagName).InterpretArgument(Of Tag())
 
             If Not IsNothing(spritesArgument) Then
                 Dim newSprites(UBound(spritesArgument)) As Sprite
@@ -82,10 +90,10 @@
         End If
     End Sub
 
-    Public Sub RefreshSpritesTag()
+    Private Sub RefreshSpritesTag()
         'changes the "frames" tag to match what is in framesList()
 
-        AddTag(New Tag("sprites", ArrayToString(spritesList)), True)
+        AddTag(New Tag(spriteTagName, ArrayToString(spritesList)), True)
     End Sub
 
     Public Property Sprites As Sprite()
@@ -98,58 +106,58 @@
         End Set
     End Property
 
-    Property Name As String
+    Public Property Name As String
         Get
-            If HasTag("name") Then
-                Return FindTag("name").InterpretArgument()
+            If HasTag(nameTagName) Then
+                Return FindTag(nameTagName).InterpretArgument(Of String)
             Else
                 Return "unnamed"
             End If
         End Get
         Set(value As String)
-            AddTag(New Tag("name", AddQuotes(value)), True)
+            AddTag(New Tag(nameTagName, AddQuotes(value)), True)
         End Set
     End Property
 
-    Property Location As PointF
+    Public Property Location As PointF
         Get
-            If HasTag("location") Then
+            If HasTag(locationTagName) Then
                 'Dim textForm As String = FindTag("location").InterpretArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
                 'Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
                 '                        Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
-                Return New Point(Val(FindTag("location").InterpretArgument()(0)), Val(FindTag("location").InterpretArgument()(1)))
+                Return New Point(Val(FindTag(locationTagName).InterpretArgument(Of Single())(0)), Val(FindTag("location").InterpretArgument(Of Single())(1)))
             Else
                 Return New PointF(0, 0)
             End If
         End Get
         Set(value As PointF)
-            AddTag(New Tag("location", "[" & value.X & "," & value.Y & "]"), True)
+            AddTag(New Tag(locationTagName, ArrayToString({value.X, value.Y})), True)
         End Set
     End Property
 
-    Property Layer As Integer
+    Public Property Layer As Integer
         Get
-            If HasTag("layer") Then
-                Return FindTag("layer").InterpretArgument()
+            If HasTag(layerTagName) Then
+                Return FindTag(layerTagName).InterpretArgument(Of Integer)
             Else
                 Return 0
             End If
         End Get
         Set(value As Integer)
-            AddTag(New Tag("layer", value), True)
+            AddTag(New Tag(layerTagName, value), True)
         End Set
     End Property
 
-    Property Scale As Single
+    Public Property Scale As Single
         Get
-            If HasTag("scale") Then
-                Return FindTag("scale").InterpretArgument()
+            If HasTag(scaleTagName) Then
+                Return FindTag(scaleTagName).InterpretArgument(Of Single)
             Else
                 Return 1
             End If
         End Get
         Set(value As Single)
-            AddTag(New Tag("scale", value), True)
+            AddTag(New Tag(scaleTagName, value), True)
         End Set
     End Property
 
@@ -184,29 +192,29 @@
     '    End Set
     'End Property
 
-    Property Opacity As Single
+    Public Property Opacity As Single
         Get
-            If HasTag("opacity") Then
-                Return FindTag("opacity").InterpretArgument()
+            If HasTag(opacityTagName) Then
+                Return FindTag(opacityTagName).InterpretArgument(Of Single)
             Else
                 Return 1.0
             End If
         End Get
         Set(value As Single)
-            AddTag(New Tag("opacity", value), True)
+            AddTag(New Tag(opacityTagName, value), True)
         End Set
     End Property
 
-    Property CurrentSprite As UInteger
+    Public Property CurrentSprite As UInteger
         Get
-            If HasTag("currentFrame") Then
-                Return FindTag("currentFrame").InterpretArgument()
+            If HasTag(currentSpriteIndexTagName) Then
+                Return FindTag(currentSpriteIndexTagName).InterpretArgument(Of UInteger)
             Else
                 Return 0
             End If
         End Get
         Set(value As UInteger)
-            AddTag(New Tag("currentFrame", value), True)
+            AddTag(New Tag(currentSpriteIndexTagName, value), True)
         End Set
     End Property
 

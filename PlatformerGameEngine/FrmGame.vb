@@ -176,7 +176,7 @@ Public Class FrmGame
         '    End If
         'End If
 
-        Return InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
+        Return InterpretValue(tag.argument, GetType(Object), fullInterpret:=True, ent:=ent, room:=room).ToString
     End Function
 
     'Public Shared Function FindInstanceByName(name As String, room As Room, Optional thisActor As Actor = Nothing) As Actor

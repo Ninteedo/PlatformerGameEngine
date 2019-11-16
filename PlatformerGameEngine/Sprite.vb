@@ -95,11 +95,11 @@ Public Class Sprite
 
     Public Sub New(ByVal spriteString As String)
         Dim spriteTag As New Tag(spriteString)
-        Dim coloursTag As Tag = spriteTag.InterpretArgument(coloursTagName)
-        Dim pixelsTag As Tag = spriteTag.InterpretArgument(pixelsTagName)
+        Dim coloursTag As Tag = spriteTag.FindSubTag(coloursTagName)
+        Dim pixelsTag As Tag = spriteTag.FindSubTag(pixelsTagName)
 
         If Not IsNothing(coloursTag) Then
-            Dim colourNames() As String = coloursTag.InterpretArgument
+            Dim colourNames() As String = coloursTag.InterpretArgument(Of String())
             Dim coloursUsed() As Color
             If Not IsNothing(colourNames) Then
                 'get colours
@@ -110,11 +110,11 @@ Public Class Sprite
 
                 'gets pixels
                 If Not IsNothing(pixelsTag) Then
-                    Dim colourIndices(,) As Integer = pixelsTag.InterpretArgument
+                    Dim colourIndices()() As Integer = pixelsTag.InterpretArgument(Of Integer()())
 
                     For index2 As Integer = 0 To colourIndices.GetUpperBound(1)
                         For index1 As Integer = 0 To colourIndices.GetUpperBound(0)
-                            Pixels(index1, index2) = coloursUsed(colourIndices(index1, index2))
+                            Pixels(index1, index2) = coloursUsed(colourIndices(index1)(index2))
                         Next
                     Next
                 Else

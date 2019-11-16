@@ -13,7 +13,7 @@ Public Module TagEvents
             Dim ent As Actor = thisRoom.actors(index)
             If Not IsNothing(ent.tags) Then
                 For tagIndex As Integer = 0 To UBound(ent.tags)
-                    If LCase(ent.tags(tagIndex).name) = "listener" AndAlso ent.tags(tagIndex).InterpretArgument("name") = eventTag.InterpretArgument("name") Then   'TODO: fix this condition
+                    If LCase(ent.tags(tagIndex).name) = "listener" AndAlso ent.tags(tagIndex).FindSubTag("name") = eventTag.FindSubTag("name") Then   'TODO: fix this condition
                         ReceiveEvent(ent, ent.tags(tagIndex), renderEngine, thisRoom)
                     End If
                 Next
@@ -26,14 +26,10 @@ Public Module TagEvents
     Public Sub ReceiveEvent(ByRef ent As Actor, listenerTag As Tag, renderEngine As PRE2, Optional room As Room = Nothing)
         'processes a received event
 
-        Dim temp As Object = listenerTag.InterpretArgument("behaviour")
-        If IsArray(temp) Then
-            For index As Integer = 0 To UBound(temp)
-                TagBehaviours.ProcessTag(temp(index).InterpretArgument(), ent, room, renderEngine)
-            Next
-        ElseIf Not IsNothing(temp) Then
-            TagBehaviours.ProcessTag(temp.InterpretArgument(), ent, room, renderEngine)
-        End If
+        Dim temp As Tag() = listenerTag.FindSubTag("behaviour").InterpretArgument(Of Tag())
+        For index As Integer = 0 To UBound(temp)
+            TagBehaviours.ProcessTag(temp(index).InterpretArgument(Of Tag), ent, room, renderEngine)
+        Next
     End Sub
 
 
