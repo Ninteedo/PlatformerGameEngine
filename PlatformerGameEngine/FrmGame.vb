@@ -196,7 +196,7 @@ Public Class FrmGame
     '    Return Nothing
     'End Function
 
-    Public Shared Function FindReference(ent As Actor, refString As String, currentRoom As Room)
+    Public Shared Function FindReference(ent As Actor, refString As String, currentRoom As Room) As Object
         'finds what a reference is referring to
         'ExampleActor.velocity[0]
         'TODO: clean this up

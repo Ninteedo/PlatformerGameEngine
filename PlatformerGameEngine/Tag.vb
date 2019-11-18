@@ -20,25 +20,29 @@
     End Function
 
     Public Function InterpretArgument(Optional subTagName As String = Nothing) As Object
-        Dim result As Object = InterpretValue(argument)
+        If IsNothing(subTagName) Then
+            Return InterpretValue(argument)
+        Else
+            Return FindSubTag(subTagName)
+        End If
+    End Function
 
-        'if subTagName is provided then searches the argument for a tag with the same name
-        If Not IsNothing(subTagName) Then
-            If IsArray(result) Then
-                For index As Integer = 0 To UBound(result)
-                    If Not IsNothing(result(index)) AndAlso result(index).name = subTagName Then
-                        Return result(index)
-                    End If
-                Next
-            ElseIf Not IsNothing(result) AndAlso result.name = subTagName Then
-                Return result
-            End If
+    Public Function FindSubTag(subTagName As String) As Tag
+        'returns a subtag in this tag's argument which has a name which matches the provided subtagname
 
-            'couldn't find a matching sub tag
-            Return Nothing
+        Dim subTagsTemp() As Object = InterpretArgument()
+
+        If Not IsNothing(subTagsTemp) Then
+            For index As Integer = 0 To UBound(subTagsTemp)
+                Dim subTag As Tag = TryCast(subTagsTemp(index), Tag)
+                If Not IsNothing(subTag) AndAlso subTag.name = subTagName Then
+                    Return subTag
+                End If
+            Next
         End If
 
-        Return result
+        'couldn't find a matching sub tag
+        Return Nothing
     End Function
 
     Public Sub SetArgument(newValue As Object)

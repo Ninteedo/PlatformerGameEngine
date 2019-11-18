@@ -557,17 +557,45 @@ Public Module TagBehaviours
         End If
     End Function
 
+#End Region
+
+#Region "Conditions"
+
+    Private Enum Operators As Integer
+        equal
+        notEqual
+        greaterThan
+        equalGreaterThan
+        lessThan
+        equalLessThan
+    End Enum
+
     Public Function AssessCondition(condition As String, Optional ent As Actor = Nothing, Optional thisRoom As Room = Nothing) As Boolean
         If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
+
+
             Dim comparisonOperators() As String = {"=", "<>", ">", ">=", "<", "<="}
             Dim logicOperators() As String = {"and", "or"}
             Dim notOperator As String = "not"
 
             Dim individualComparisons() As String = Nothing      'list of comparisons split by logic operators
 
+            'finds individual comparions
+
+
 
             For comparisonIndex As Integer = 0 To UBound(individualComparisons)
+                Dim leftPart As String
+                Dim rightPart As String
 
+                'Select Case operatorIndex
+                '    Case Operators.equal
+
+                '    Case Operators.notEqual
+
+                '    Case Operators.greaterThan
+
+                'End Select
             Next
 
 
@@ -577,5 +605,6 @@ Public Module TagBehaviours
     End Function
 
 #End Region
+
 
 End Module

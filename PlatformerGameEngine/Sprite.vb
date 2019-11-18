@@ -99,32 +99,39 @@ Public Class Sprite
         Dim pixelsTag As Tag = spriteTag.InterpretArgument(pixelsTagName)
 
         If Not IsNothing(coloursTag) Then
-            Dim colourNames() As String = coloursTag.InterpretArgument
-            Dim coloursUsed() As Color
-            If Not IsNothing(colourNames) Then
-                'get colours
-                ReDim coloursUsed(UBound(colourNames))
-                For colourIndex As Integer = 0 To UBound(colourNames)
-                    coloursUsed(colourIndex) = ColorTranslator.FromHtml(colourNames(colourIndex))
+            Dim temp() As Object = coloursTag.InterpretArgument
+            If Not IsNothing(temp) Then
+                Dim colourNames(UBound(temp)) As String
+                For index As Integer = 0 To UBound(temp)
+                    colourNames(index) = temp(index)
                 Next
-
-                'gets pixels
-                If Not IsNothing(pixelsTag) Then
-                    Dim colourIndices(,) As Integer = pixelsTag.InterpretArgument
-
-                    For index2 As Integer = 0 To colourIndices.GetUpperBound(1)
-                        For index1 As Integer = 0 To colourIndices.GetUpperBound(0)
-                            Pixels(index1, index2) = coloursUsed(colourIndices(index1, index2))
-                        Next
+                If Not IsNothing(colourNames) Then
+                    'get colours
+                    Dim coloursUsed(UBound(colourNames)) As Color
+                    For colourIndex As Integer = 0 To UBound(colourNames)
+                        coloursUsed(colourIndex) = ColorTranslator.FromHtml(colourNames(colourIndex))
                     Next
+
+                    'gets pixels
+                    If Not IsNothing(pixelsTag) Then
+                        Dim colourIndices(,) As Integer = pixelsTag.InterpretArgument
+
+                        For index2 As Integer = 0 To colourIndices.GetUpperBound(1)
+                            For index1 As Integer = 0 To colourIndices.GetUpperBound(0)
+                                Pixels(index1, index2) = coloursUsed(colourIndices(index1, index2))
+                            Next
+                        Next
+                    Else
+                        PRE2.DisplayError("Unable to find tag for pixels in sprite: " & fileName)
+                    End If
                 Else
-                    PRE2.DisplayError("Unable to find tag for pixels in sprite " & fileName)
+                    PRE2.DisplayError("Unable to find colours for sprite: " & fileName)
                 End If
             Else
-                PRE2.DisplayError("Unable to find colours for sprite " & fileName)
+                PRE2.DisplayError("Invalid colour argument: " & coloursTag.argument)
             End If
         Else
-            PRE2.DisplayError("Unable to find tag for colours in sprite " & fileName)
+            PRE2.DisplayError("Unable to find tag for colours in sprite: " & fileName)
         End If
     End Sub
 
