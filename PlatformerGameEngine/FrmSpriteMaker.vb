@@ -18,9 +18,10 @@ Public Class FrmSpriteMaker
     Private Sub Initialisation()
         delayTimer.Stop()
 
-        RedoLayout()
         createdSprite = New Sprite
-        ReDim createdSprite.ColourIndices(gridSize.Width - 1, gridSize.Height - 1)
+        GridSize = New Size(16, 16)
+        RedoLayout()
+        'ReDim createdSprite.ColourIndices(gridSize.Width - 1, gridSize.Height - 1)
         'AddColourOption(Color.Transparent, True)
         ResetColourOptions()
 
@@ -62,7 +63,7 @@ Public Class FrmSpriteMaker
     Dim saveLocation As String
     Dim createdSprite As Sprite
 
-    Private Sub BtnOpen_Click(sender As Button, e As EventArgs) Handles BtnOpen.Click
+    Private Sub BtnOpen_Click(sender As Object, e As EventArgs) Handles BtnOpen.Click
         'asks the user to select a .sprt file and reads it
 
         'cantDraw = True
@@ -77,7 +78,7 @@ Public Class FrmSpriteMaker
         End Using
     End Sub
 
-    Private Sub BtnSaveAs_Click(sender As Button, e As EventArgs) Handles BtnSaveAs.Click
+    Private Sub BtnSaveAs_Click(sender As Object, e As EventArgs) Handles BtnSaveAs.Click
         'asks the user to select a save location, then saves the sprite there and enables the regular save button
 
         'cantDraw = True
@@ -91,7 +92,7 @@ Public Class FrmSpriteMaker
         End Using
     End Sub
 
-    Private Sub BtnSave_Click(sender As Button, e As EventArgs) Handles BtnSave.Click
+    Private Sub BtnSave_Click(sender As Object, e As EventArgs) Handles BtnSave.Click
         'saves the file to the already selected location
 
         PRE2.WriteFile(saveLocation, createdSprite.ToString)
@@ -123,20 +124,28 @@ Public Class FrmSpriteMaker
 #Region "Render"
 
     Dim gridScale As Integer = 24
-    Dim gridSize As New Size(16, 16)
+    'Dim gridSize As New Size(16, 16)
+
+    Private Property GridSize As Size
+        Get
+            Return createdSprite.Dimensions
+        End Get
+        Set(value As Size)
+            createdSprite.Dimensions = value
+        End Set
+    End Property
 
     Private Sub DrawSavedPixels(Optional singleRedrawCoords As Point = Nothing)
         'draws all the colours saved in the sprite
-        createdSprite.Colours = Colours
         Using panelDrawCanvas As New PaintEventArgs(PnlDraw.CreateGraphics, New Rectangle(New Point(0, 0), PnlDraw.Size))
             If singleRedrawCoords.IsEmpty Then       'draws everything
-                For x As Integer = 0 To createdSprite.Pixels.GetUpperBound(0)
-                    For y As Integer = 0 To createdSprite.Pixels.GetUpperBound(1)
-                        DrawSquare(New Point(x, y), createdSprite.Pixels(x, y), panelDrawCanvas)
+                For x As Integer = 0 To GridSize.Width - 1
+                    For y As Integer = 0 To GridSize.Height - 1
+                        DrawSquare(New Point(x, y), createdSprite.GetPixelColour(x, y), panelDrawCanvas)
                     Next
                 Next
             Else            'only draws the pixel at the given coordinates
-                DrawSquare(singleRedrawCoords, createdSprite.Pixels(singleRedrawCoords.X, singleRedrawCoords.Y), panelDrawCanvas)
+                DrawSquare(singleRedrawCoords, createdSprite.GetPixelColour(singleRedrawCoords.X, singleRedrawCoords.Y), panelDrawCanvas)
             End If
         End Using
     End Sub
@@ -144,22 +153,35 @@ Public Class FrmSpriteMaker
     Private Sub DrawSquare(coords As Point, pixelColour As Color, ByRef panelDrawCanvas As PaintEventArgs)
         'draws a square on the grid, colour depends on selected colour index
 
-        If ValidCoords(coords, gridSize) Then
+        If ValidCoords(coords) Then
             If pixelColour <> Color.Transparent Then    'not transparent
                 Dim brush As New SolidBrush(pixelColour)
                 Dim rect As New Rectangle(New Point(coords.X * gridScale, coords.Y * gridScale), New Size(gridScale, gridScale))
 
                 panelDrawCanvas.Graphics.FillRectangle(brush, rect)
-            Else    'draws a 2x2 grid of light and dark grey squares to show that the current square is transparent
+            Else
+                'draws a 2x2 grid of light and dark grey squares to show that the current square is transparent
                 Dim brush1 As New SolidBrush(Color.Gray)
                 Dim brush2 As New SolidBrush(Color.DimGray)
-                Dim rects1() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)),
-                    New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
-                Dim rects2() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)),
-                    New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
+                'Dim rects1() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)),
+                '    New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
+                'Dim rects2() As RectangleF = {New RectangleF(New PointF(coords.X * gridScale + gridScale / 2, coords.Y * gridScale), New SizeF(gridScale / 2, gridScale / 2)),
+                '    New RectangleF(New PointF(coords.X * gridScale, coords.Y * gridScale + gridScale / 2), New SizeF(gridScale / 2, gridScale / 2))}
 
-                panelDrawCanvas.Graphics.FillRectangles(brush1, rects1)
-                panelDrawCanvas.Graphics.FillRectangles(brush2, rects2)
+                For index As Integer = 0 To 3
+                    Dim row As Integer = Math.Floor(index / 2)  'row, either 0 or 1
+                    Dim col As Integer = index Mod 2        'column, either 0 or 1
+                    Dim thisBrush As SolidBrush = If(row = col, brush1, brush2)     'selects the brush to use for this square
+                    panelDrawCanvas.Graphics.FillRectangle(thisBrush,
+                                                New RectangleF(New PointF((coords.X + col / 2) * gridScale, (coords.Y + row / 2) * gridScale),
+                                                New SizeF(gridScale / 2, gridScale / 2)))
+                Next
+
+                brush1.Dispose()
+                brush2.Dispose()
+
+                'panelDrawCanvas.Graphics.FillRectangles(brush1, rects1)
+                'panelDrawCanvas.Graphics.FillRectangles(brush2, rects2)
             End If
         End If
     End Sub
@@ -171,10 +193,10 @@ Public Class FrmSpriteMaker
     End Sub
 
 
-    Public Function ValidCoords(coords As Point, gridSize As Size) As Boolean
+    Public Function ValidCoords(coords As Point) As Boolean
         'returns whether provided coords are within range of the grid
 
-        Return coords.X >= 0 And coords.X < gridSize.Width And coords.Y >= 0 And coords.Y < gridSize.Height
+        Return createdSprite.ValidCoords(coords)
     End Function
 
     Private Sub BtnResize_Click(sender As Object, e As EventArgs) Handles BtnResize.Click
@@ -183,9 +205,9 @@ Public Class FrmSpriteMaker
         'cantDraw = True
 
         If MsgBox("Are you sure you want to resize, this will lead to the loss of unsaved work", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then       'displays a warning to the user
-            gridSize = New Size(NumResizeW.Value, NumResizeH.Value)
+            GridSize = New Size(NumResizeW.Value, NumResizeH.Value)
             gridScale = NumResizeS.Value
-            ReDim createdSprite.ColourIndices(gridSize.Width - 1, gridSize.Height - 1)
+            'ReDim createdSprite.ColourIndices(gridSize.Width - 1, gridSize.Height - 1)
 
             ResetColourOptions()
             RedoLayout()
@@ -204,14 +226,10 @@ Public Class FrmSpriteMaker
     Dim dragEndPoint As Point
     'Dim cantDraw As Boolean = False
 
-    Private Sub SetPixelColourIndex(ByVal pixelCoords As Point, ByVal colourIndex As Integer)
-        If ValidCoords(pixelCoords, gridSize) Then
-            Dim newPixels(,) As Color = createdSprite.Pixels
-            newPixels(pixelCoords.X, pixelCoords.Y) = Colours(colourIndex)
-            createdSprite.Pixels = newPixels
-
-            DrawSavedPixels(pixelCoords)
-        End If
+    Private Sub ChangePixel(ByVal coords As Point)
+        'changes the pixels at the given coordinates to match the selected colour index
+        createdSprite.SetPixelColour(coords, Colours(selectedColourIndex))
+        DrawSavedPixels(coords)
     End Sub
 
     Private Sub PnlDraw_MouseClick(sender As Panel, e As MouseEventArgs) Handles PnlDraw.MouseClick
@@ -220,7 +238,7 @@ Public Class FrmSpriteMaker
         'If cantDraw = False Then
         Dim clickCoords As New Point(Math.Floor(e.X / gridScale), Math.Floor(e.Y / gridScale))
 
-        SetPixelColourIndex(clickCoords, selectedColourIndex)
+        ChangePixel(clickCoords)
         'End If
     End Sub
 
@@ -234,17 +252,17 @@ Public Class FrmSpriteMaker
     Private Sub PnlDraw_MouseMove(sender As Panel, e As MouseEventArgs) Handles PnlDraw.MouseMove
         If mouseDragging = True Then
             dragEndPoint = e.Location
-            SetPixelColourIndex(New Point(Math.Floor(dragStartPoint.X / gridScale), Math.Floor(dragStartPoint.Y / gridScale)), selectedColourIndex)
-            SetPixelColourIndex(New Point(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)), selectedColourIndex)
+            ChangePixel(New Point(Math.Floor(dragStartPoint.X / gridScale), Math.Floor(dragStartPoint.Y / gridScale)))
+            ChangePixel(New Point(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)))
             dragStartPoint = e.Location
         End If
     End Sub
 
     Private Sub PnlDraw_MouseUp(sender As Panel, e As MouseEventArgs) Handles PnlDraw.MouseUp
         'records that the user is no longer dragging along the panel
-        If mouseDragging = True Then
+        If mouseDragging Then
             dragEndPoint = e.Location
-            SetPixelColourIndex(New Point(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)), selectedColourIndex)
+            ChangePixel(New Point(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)))
 
             mouseDragging = False
         End If
@@ -256,16 +274,16 @@ Public Class FrmSpriteMaker
 
     Dim selectedColourIndex As Integer = 0
     Dim colourButtons() As Button
-    Dim coloursUsed() As Color
+    'Dim coloursUsed() As Color
     Const maxColours As Integer = 20
     'Dim colourIndices(,) As Integer
 
     Private Property Colours As Color()
         Get
-            Return coloursUsed
+            Return createdSprite.Colours
         End Get
         Set(value As Color())
-            coloursUsed = value
+            createdSprite.Colours = value
             DisplayColourOptions()
         End Set
     End Property

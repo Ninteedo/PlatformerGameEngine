@@ -122,7 +122,7 @@ Partial Class FrmSpriteMaker
         Me.TblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
         Me.TblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
         Me.TblColourSelect.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667!))
-        Me.TblColourSelect.Size = New System.Drawing.Size(302, 528)
+        Me.TblColourSelect.Size = New System.Drawing.Size(302, 534)
         Me.TblColourSelect.TabIndex = 4
         '
         'NumColourR
@@ -384,7 +384,7 @@ Partial Class FrmSpriteMaker
         Me.TblControls.RowCount = 2
         Me.TblControls.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.TblControls.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.TblControls.Size = New System.Drawing.Size(901, 616)
+        Me.TblControls.Size = New System.Drawing.Size(960, 622)
         Me.TblControls.TabIndex = 18
         '
         'FrmSpriteMaker
@@ -392,7 +392,7 @@ Partial Class FrmSpriteMaker
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.LightGray
-        Me.ClientSize = New System.Drawing.Size(901, 616)
+        Me.ClientSize = New System.Drawing.Size(960, 622)
         Me.Controls.Add(Me.TblControls)
         Me.ForeColor = System.Drawing.SystemColors.ControlText
         Me.Name = "FrmSpriteMaker"

@@ -36,40 +36,7 @@ Public Class Sprite
         Me.fileName = fileName
     End Sub
 
-    Public Overrides Function ToString() As String
-        'converts this sprite to a tag with subtags {file name, colours, colour indices}
 
-        'converts all the colours to names
-        Dim colourNames(UBound(Colours)) As String
-        For index As Integer = 0 To UBound(Colours)
-            Dim colourHex As String = "#"
-            Dim hexSystem() As String = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"}
-            'converts the ARGB values of the colour to hex
-            For Each channel As Integer In {Colours(index).A, Colours(index).R, Colours(index).G, Colours(index).B}
-                'hex conversion
-                Dim hexVersion As String = ""
-                Dim num As Integer = channel
-                Dim remainder As Integer = 0
-
-                Do Until remainder = 0
-                    Dim original As Integer = num
-                    num = Int(num / 16)
-                    remainder = (original / 16 - num) * 16
-
-                    hexVersion += hexSystem(remainder)
-                Loop
-
-                colourHex += hexVersion
-            Next
-            colourNames(index) = colourHex
-        Next
-
-        Return New Tag(spriteTagName, ArrayToString({
-                New Tag(fileTagName, fileName),
-                New Tag(coloursTagName, ArrayToString(colourNames)),
-                New Tag(pixelsTagName, ArrayToString(Indices))
-                                            })).ToString
-    End Function
 
     Public Sub New(ByVal fileLocation As String, ByVal spriteFolderLocation As String)
         Dim fileText As String = PRE2.ReadFile(fileLocation)
@@ -128,6 +95,42 @@ Public Class Sprite
     End Sub
 
 #End Region
+
+    Public Overrides Function ToString() As String
+        'converts this sprite to a tag with subtags {file name, colours, colour indices}
+
+        'converts all the colours to names
+        Dim colourNames(UBound(Colours)) As String
+        For index As Integer = 0 To UBound(Colours)
+            colourNames(index) = ColorTranslator.ToHtml(Colours(index))
+            'Dim colourHex As String = "#"
+            'Dim hexSystem() As String = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"}
+            ''converts the ARGB values of the colour to hex
+            'For Each channel As Integer In {Colours(index).A, Colours(index).R, Colours(index).G, Colours(index).B}
+            '    'hex conversion
+            '    Dim hexVersion As String = ""
+            '    Dim num As Integer = channel
+            '    Dim remainder As Integer = -1
+
+            '    Do While remainder <> 0
+            '        Dim original As Integer = num
+            '        num = Int(num / 16)
+            '        remainder = (original / 16 - num) * 16
+
+            '        hexVersion += hexSystem(remainder)
+            '    Loop
+
+            '    colourHex += hexVersion
+            'Next
+            'colourNames(index) = colourHex
+        Next
+
+        Return New Tag(spriteTagName, ArrayToString({
+                New Tag(fileTagName, fileName),
+                New Tag(coloursTagName, ArrayToString(colourNames)),
+                New Tag(pixelsTagName, ArrayToString(Indices))
+                                            })).ToString
+    End Function
 
     Public ReadOnly Property Bitmap As Image
         Get
@@ -202,11 +205,7 @@ Public Class Sprite
     Public Function ValidCoords(ByVal coords As Point) As Boolean
         'returns whether provided coords are within range of the grid
 
-        If Not IsNothing(colourIndices) Then
-            Return coords.X >= 0 And coords.X <= colourIndices.GetUpperBound(0) And coords.Y >= 0 And coords.Y < colourIndices.GetUpperBound(1)
-        Else
-            Return False
-        End If
+        Return Not IsNothing(colourIndices) AndAlso (coords.X >= 0 And coords.X < Dimensions.Width And coords.Y >= 0 And coords.Y < Dimensions.Height)
     End Function
 
     Public Function ValidCoords(ByVal x As Integer, ByVal y As Integer) As Boolean
@@ -233,90 +232,6 @@ Public Class Sprite
         End Set
     End Property
 
-    'Public Property Colours As Color()
-    '    'the colours present in the sprite
-    '    '0 is always transparent
-    '    'the rest are ordered by first appearance
-    '    Get
-    '        Dim coloursUsed() As Color = {Color.Transparent}
-    '        If Not IsNothing(Pixels) Then
-    '            For index2 As Integer = 0 To Pixels.GetUpperBound(1)
-    '                For index1 As Integer = 0 To Pixels.GetUpperBound(0)
-    '                    'checks if colour has already been added
-    '                    Dim duplicate As Boolean = False
-    '                    For colourIndex As Integer = 0 To UBound(coloursUsed)
-    '                        If Pixels(index1, index2) = coloursUsed(colourIndex) Then
-    '                            duplicate = True
-    '                            Exit For
-    '                        End If
-    '                    Next
-
-    '                    'only adds colour if it isn't a duplicate
-    '                    If Not duplicate Then
-    '                        coloursUsed = InsertItem(coloursUsed, Pixels(index1, index2))
-    '                    End If
-    '                Next
-    '            Next
-    '        End If
-
-    '        Return coloursUsed
-    '    End Get
-    '    Set(value As Color())
-    '        Dim startColourIndices(,) As Integer = ColourIndices
-
-    '        If Not IsNothing(Pixels) Then
-    '            For index2 As Integer = 0 To Pixels.GetUpperBound(1)
-    '                For index1 As Integer = 0 To Pixels.GetUpperBound(0)
-    '                    If startColourIndices(index1, index2) <= UBound(value) Then
-    '                        Pixels(index1, index2) = value(startColourIndices(index1, index2))
-    '                    Else        'if colour index is out of range then sets pixel to transparent
-    '                        Pixels(index1, index2) = Color.Transparent
-    '                    End If
-    '                Next
-    '            Next
-    '        End If
-    '    End Set
-    'End Property
-
-    'Public Property ColourIndices As Integer(,)
-    '    'the colour index is where index of where the colour of the pixel appears in the colours array
-
-    '    Get
-    '        If Not IsNothing(Pixels) Then
-    '            Dim result(Pixels.GetUpperBound(0), Pixels.GetUpperBound(1)) As Integer
-
-    '            For index2 As Integer = 0 To Pixels.GetUpperBound(1)
-    '                For index1 As Integer = 0 To Pixels.GetUpperBound(0)
-    '                    For colourIndex As Integer = 0 To UBound(Colours)       'finds the corresponding colour index
-    '                        If Colours(colourIndex) = Pixels(index1, index2) Then
-    '                            result(index1, index2) = colourIndex
-    '                            Exit For
-    '                        End If
-    '                    Next
-    '                Next
-    '            Next
-
-    '            Return result
-    '        Else
-    '            Return Nothing
-    '        End If
-    '    End Get
-    '    Set(value As Integer(,))
-    '        Dim coloursUsed As Color() = Colours
-    '        ReDim Pixels(value.GetUpperBound(0), value.GetUpperBound(1))
-
-    '        For index2 As Integer = 0 To Pixels.GetUpperBound(1)
-    '            For index1 As Integer = 0 To Pixels.GetUpperBound(0)
-    '                'If value(index1, index2) <= UBound(coloursUsed) Then
-    '                Pixels(index1, index2) = coloursUsed(value(index1, index2))
-    '                'Else        'if colour index is out of range then sets pixel to transparent
-    '                '    Pixels(index1, index2) = Color.Transparent
-    '                'End If
-    '            Next
-    '        Next
-    '    End Set
-    'End Property
-
     Private Function ToBitmap(Optional opacity As Single = 1) As Bitmap
         'returns a bitmap version of this frame
 
@@ -338,16 +253,31 @@ Public Class Sprite
         Return result
     End Function
 
-    Public ReadOnly Property Dimensions As Size
-        'returns the max X and Y of the frame
-
+    Public Property Dimensions As Size
         Get
+            'returns the max X and Y of the frame
             If Not IsNothing(colourIndices) Then
                 Return New Size(colourIndices.GetLength(0), colourIndices.GetLength(1))
             Else
                 Return New Size(0, 0)
             End If
         End Get
+        Set(value As Size)
+            'resizes the sprite, preserving pixels within the old size of the sprite
+            Dim oldIndices(,) As Integer = colourIndices
+            ReDim Indices(value.Width - 1, value.Height - 1)
+
+            For index1 As Integer = 0 To Indices.GetUpperBound(0)
+                For index2 As Integer = 0 To Indices.GetUpperBound(1)
+                    If Not IsNothing(oldIndices) AndAlso index1 <= oldIndices.GetUpperBound(0) AndAlso index2 <= oldIndices.GetUpperBound(1) Then
+                        Indices(index1, index2) = oldIndices(index1, index2)
+                    Else
+                        'if the current pixel is outside the old sprite then fills in with transparent
+                        Indices(index1, index2) = 0
+                    End If
+                Next
+            Next
+        End Set
     End Property
 
     Public ReadOnly Property Centre As PointF
