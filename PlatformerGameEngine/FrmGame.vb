@@ -162,8 +162,8 @@ Public Class FrmGame
         'Dim result As Object = defaultResult
 
         'If Not IsNothing(tag.argument) Then ' AndAlso argIndex <= UBound(tag.args) Then
-        '    Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
-        '    'Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, ent, room)
+        '    Dim rawArg As Object = InterpretValue(tag.argument, fullInterpret:=True, act:=act, room:=room).ToString
+        '    'Dim argCalculated As String = TagBehaviours.ProcessCalculation(rawArg, act, room)
 
         '    If IsNothing(rawArg) Then           'is not anything
         '        result = Nothing
@@ -176,7 +176,7 @@ Public Class FrmGame
         '    End If
         'End If
 
-        Return InterpretValue(tag.argument, fullInterpret:=True, ent:=ent, room:=room).ToString
+        Return InterpretValue(tag.argument, fullInterpret:=True, act:=ent, room:=room).ToString
     End Function
 
     'Public Shared Function FindInstanceByName(name As String, room As Room, Optional thisActor As Actor = Nothing) As Actor

@@ -64,19 +64,20 @@ Public Class Sprite
                 Next
                 If Not IsNothing(colourNames) Then
                     'get colours
-                    Dim coloursUsed(UBound(colourNames)) As Color
+                    ReDim coloursUsed(UBound(colourNames))
                     For colourIndex As Integer = 0 To UBound(colourNames)
                         coloursUsed(colourIndex) = ColorTranslator.FromHtml(colourNames(colourIndex))
                     Next
 
                     'gets pixels
                     If Not IsNothing(pixelsTag) Then
-                        Dim colourIndicesTemp As Object = pixelsTag.InterpretArgument
-                        If Not IsNothing(colourIndicesTemp) AndAlso colourIndicesTemp.Rank = 2 Then
-                            Dim colourIndices(colourIndicesTemp.GetUpperBound(0), colourIndicesTemp.GetUpperBound(1)) As Integer
+                        Dim colourIndicesTemp As Object = pixelsTag.InterpretArgument       'returns as a jagged array of integer
+                        If Not IsNothing(colourIndicesTemp) Then
+                            'Dim colourIndices(colourIndicesTemp.GetUpperBound(0), colourIndicesTemp.GetUpperBound(1)) As Integer
+                            ReDim colourIndices(UBound(colourIndicesTemp), UBound(colourIndicesTemp(0)))
                             For index2 As Integer = 0 To colourIndices.GetUpperBound(1)
                                 For index1 As Integer = 0 To colourIndices.GetUpperBound(0)
-                                    SetPixelColour(New Point(index1, index2), coloursUsed(colourIndicesTemp(index1, index2)))
+                                    SetPixelColour(New Point(index1, index2), coloursUsed(colourIndicesTemp(index1)(index2)))
                                 Next
                             Next
                         End If

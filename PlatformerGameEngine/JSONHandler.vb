@@ -182,7 +182,7 @@ Public Module JSONHandler
         Return result
     End Function
 
-    Public Function InterpretValue(valueString As String, Optional fullInterpret As Boolean = False, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As Object
+    Public Function InterpretValue(valueString As String, Optional fullInterpret As Boolean = False, Optional act As Actor = Nothing, Optional room As Room = Nothing) As Object
         'interprets a value from JSON
         'full interpret means that for tags and arrays the arguments are also interpreted
 
@@ -201,36 +201,24 @@ Public Module JSONHandler
                 Case "nill"
                     result = Nothing
                 Case Else
-                    Select Case valueString(0)
-                        Case """"       'string
-                            'result = InterpretString(valueString)
-                            result = valueString
-                        Case "{"        'object (another tag)
-                            result = JsonToTag(valueString)
-                            If fullInterpret Then
-                                result.SetArgument(InterpretValue(result.argument, True, ent, room))
-                            End If
-                        Case "["        'array
-                            'valueString = Mid(valueString, 2, Len(valueString) - 2)
-                            Dim valueStrings() As String = JSONSplit(valueString, 0)   '{""}
-                            Dim values() As Object
-                            ReDim values(UBound(valueStrings))
-                            For index As Integer = 0 To UBound(valueStrings)
-                                values(index) = InterpretValue(valueStrings(index).Trim, fullInterpret, ent, room)  'Mid(valueStrings(index), 2, Len(valueStrings(index)) - 2).Trim)
+                    Dim firstChar As String = Left(valueString, 1)
+                    Dim lastChar As String = Right(valueString, 1)
 
-                                'If fullInterpret Then
-                                '    values(index) = InterpretValue()
-                                'End If
-                            Next
-
-                            result = values
-                        Case Else
-                            If IsNumeric(valueString) Then
-                                result = Val(valueString)
-                            ElseIf fullInterpret Then
-                                result = ProcessCalculation(valueString, ent, room)
-                            End If
-                    End Select
+                    If firstChar = """" And lastChar = """" Then    'string
+                        result = RemoveQuotes(valueString)
+                    ElseIf firstChar = "{" And lastChar = "}" Then  'tag
+                        result = New Tag(valueString)
+                    ElseIf firstChar = "[" And lastChar = "]" Then  'array
+                        Dim valueSplits As String() = JSONSplit(valueString)
+                        ReDim result(UBound(valueSplits))
+                        For index As Integer = 0 To UBound(valueSplits)
+                            result(index) = InterpretValue(valueSplits(index).Trim, fullInterpret, act, room)
+                        Next
+                    ElseIf IsNumeric(valueString) Then
+                        result = Val(valueString)
+                    ElseIf fullInterpret Then
+                        result = ProcessCalculation(valueString, act, room)
+                    End If
             End Select
         End If
 
@@ -244,33 +232,53 @@ Public Module JSONHandler
 
 #Region "Misc String Handling"
 
-    Public Function ArrayToString(input As Object) As String
-        'turns an array into a string, can take jagged arrays cant take multidimensional arrays
+    Public Function ArrayToString(ByVal input As Object) As String
+        'turns an array into a string e.g. "[63,-34,87]"
 
         Dim result As String = Nothing
+
+        If IsNothing(input) Then
+            Return result
+        End If
 
         If Not IsArray(input) Then
             If Not IsNothing(input) Then
                 result = input.ToString
             End If
-        ElseIf input.Rank > 1 Then
-            PRE2.DisplayError("Cannot turn a multidimensional array into a string")
         Else
-            result = "["
-            If UBound(input) = 0 Then
-                If Not IsNothing(input(0)) Then
-                    result = input(0).ToString
-                End If
-            Else
-                For index As Integer = 0 To UBound(input)
-                    result += ArrayToString(input(index))        'recursive
+            'support for multidimensional arrays
+            Select Case input.Rank
+                Case 1
+                    result = "["
+                    For index As Integer = 0 To UBound(input)
+                        result += input(index).ToString
 
-                    If index < UBound(input) Then
-                        result += ","
-                    End If
-                Next
-            End If
-            result += "]"
+                        If index < UBound(input) Then
+                            result += ","
+                        End If
+                    Next
+                    result += "]"
+                Case 2
+                    result += "["
+                    For index1 As Integer = 0 To input.GetUpperBound(0)
+                        result += "["
+                        For index2 As Integer = 0 To input.GetUpperBound(1)
+                            result += input(index1, index2).ToString
+
+                            If index2 < input.GetUpperBound(1) Then
+                                result += ","
+                            End If
+                        Next
+                        result += "]"
+
+                        If index1 < input.GetUpperBound(0) Then
+                            result += ","
+                        End If
+                    Next
+                    result += "]"
+                Case Else
+                    PRE2.DisplayError("Cannot turn a multidimensional array with more than 2 dimensions into a string")
+            End Select
         End If
 
         Return result
@@ -296,7 +304,7 @@ Public Module JSONHandler
         End If
     End Function
 
-    Public Function JSONSplit(input As String, subStructureLevelRequired As Integer, Optional delimiter As Char = ",") As String()
+    Public Function JSONSplit(input As String, Optional subStructureLevelRequired As Integer = 0, Optional delimiter As Char = ",") As String()
         'splits a JSON string into its tags
 
         If Len(input) > 1 Then
@@ -320,9 +328,9 @@ Public Module JSONHandler
                         inString = False
                     ElseIf Not inString And c = """" Then
                         inString = True
-                    ElseIf Not inString And c = "{" Then
+                    ElseIf Not inString And (c = "{" Or c = "[") Then
                         subStructureLevel += 1
-                    ElseIf Not inString And c = "}" Then
+                    ElseIf Not inString And (c = "}" Or c = "]") Then
                         subStructureLevel -= 1
                         'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
                         '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)
