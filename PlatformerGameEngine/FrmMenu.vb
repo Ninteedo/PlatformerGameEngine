@@ -65,8 +65,10 @@ Public Class FrmMenu
                     OpenSpriteMaker()
                 Case "OpenLevelEditor"
                     OpenLevelEditor()
-                Case "OpenActorMaker"
-                    OpenActorMaker()
+                    'Case "OpenActorMaker"
+                    '    OpenActorMaker()
+                Case Else
+                    MsgBox("Unknown Menu Behaviour")
             End Select
         Else
             MsgBox("This button doesn't do anything")
@@ -173,11 +175,11 @@ Public Class FrmMenu
         End Using
     End Sub
 
-    Private Sub OpenActorMaker()
-        'opens the actor maker tool
+    'Private Sub OpenActorMaker()
+    '    'opens the actor maker tool
 
-        Using actorMaker As New FrmActorMaker
-            actorMaker.ShowDialog()
-        End Using
-    End Sub
+    '    Using actorMaker As New FrmActorMaker
+    '        actorMaker.ShowDialog()
+    '    End Using
+    'End Sub
 End Class
