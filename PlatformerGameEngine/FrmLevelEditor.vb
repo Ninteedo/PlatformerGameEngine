@@ -205,7 +205,7 @@ Public Class FrmLevelEditor
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
-                AddActor(actorMaker.result)
+                AddActor(actorMaker.createdActor)
             End If
         End Using
     End Sub
@@ -220,7 +220,7 @@ Public Class FrmLevelEditor
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
-                SelectedActor = actorMaker.result
+                SelectedActor = actorMaker.createdActor
             End If
         End Using
     End Sub

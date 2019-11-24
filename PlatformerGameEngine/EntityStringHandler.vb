@@ -2,6 +2,8 @@
 '24/03/2019
 'Actor file handler
 
+#If False Then
+
 Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Module ActorStringHandler
@@ -71,3 +73,5 @@ Module ActorStringHandler
     End Function
 
 End Module
+
+#End If

@@ -23,7 +23,7 @@ Public Class FrmActorMaker
 
         LayoutInitialisation()
         'GetFolderLocations()
-        result = New Actor(Nothing, renderer)
+        createdActor = New Actor(Nothing, renderer)
     End Sub
 
     Private Sub LayoutInitialisation()
@@ -39,8 +39,8 @@ Public Class FrmActorMaker
 
 #Region "Constructors"
 
-    Public result As Actor          'the user's created actor
-    Private original As Actor       'used to see if any changes have been made
+    Public createdActor As Actor          'the user's created actor
+    Private ReadOnly originalString As String       'used to see if any changes have been made
     'Dim saveLocation As String = ""
     'Dim gameLocation As String = ""
 
@@ -52,18 +52,15 @@ Public Class FrmActorMaker
 
         ' Add any initialization after the InitializeComponent() call.
 
-        Me.original = actorToModify
+        Me.originalString = actorToModify.ToString
         Me.renderer = renderEngine
     End Sub
 
     Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         'displays a warning to the user if they have unsaved work when they close the form
 
-		'checks if user hasn't finished the created actor is identical to the original one
-        Dim unsavedChanges As Boolean = Not userFinished And result = original  
-		
-        'if there are unsaved changes then warns the user
-        If unsavedChanges Then
+        'checks if user hasn't finished the created actor is identical to the original one
+        If Not userFinished And createdActor.ToString = originalString Then
             If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
                 e.Cancel = True
             End If
@@ -77,11 +74,11 @@ Public Class FrmActorMaker
     Public userFinished As Boolean = False
 
     Private Sub BtnCancel_Click(sender As Object, e As EventArgs) Handles BtnCancel.Click
-        If result <> original Then
+        If createdActor.ToString <> originalString Then
             If MsgBox("Are you sure you wish to cancel with unsaved work?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
                 Exit Sub
             Else
-                result = original
+                createdActor = New Actor(originalString, renderer)
             End If
         End If
 
@@ -130,7 +127,7 @@ Public Class FrmActorMaker
         End Get
         Set(value As Sprite())
             loadedSprites = value
-            result.Sprites = value
+            createdActor.Sprites = value
 
             RefreshSpritesList()
         End Set

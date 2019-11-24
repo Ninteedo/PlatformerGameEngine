@@ -1,11 +1,21 @@
 ﻿Public Class Actor
-    'most things are actors, even if they don't move
-    'each actor has at least 1 sprite and can have lots of tags
 
     Inherits TagContainer
 
     Private spritesList() As Sprite
     Public spriteFolderLocation As String
+
+    Private Const tagsTagName As String = "tags"
+    Private Const spritesTagName As String = "sprites"
+    Private Const nameTagName As String = "name"
+    Private Const locationTagName As String = "location"
+    Private Const layerTagName As String = "layer"
+    Private Const scaleTagName As String = "scale"
+    Private Const opacityTagName As String = "opacity"
+    Private Const currentSpriteTagName As String = "currentSprite"
+
+
+#Region "Constructors"
 
     Public Sub New()
         spritesList = Nothing
@@ -29,38 +39,27 @@
 
         spriteFolderLocation = renderEngine.spriteFolderLocation
         If Not IsNothing(actorString) Then
-            Dim newEnt As Actor = ActorStringHandler.ReadActorString(actorString, renderEngine)
-            Sprites = newEnt.Sprites
-            tags = newEnt.tags
+            Try
+                'loads the tags
+                Dim temp As Object = New Tag(actorString).InterpretArgument()
+                For index As Integer = 0 To UBound(temp)
+                    AddTag(New Tag(temp(index).ToString))
+                Next
+            Catch ex As Exception
+                PanelRenderEngine2.DisplayError("An error occured whilst loading an actor" & vbCrLf & ex.ToString)
+            End Try
         End If
     End Sub
 
-    Public Overrides Function ToString() As String
-        Return CreateActorString(Me)
-    End Function
+#End Region
 
-    Public Function Clone() As Actor
-        'returns a clone of this actor
-
-        Dim newClone As Actor = Nothing
-
-        If Not IsNothing(Me) Then
-            newClone = New Actor With {
-            .spriteFolderLocation = spriteFolderLocation,
-            .tags = tags
-                }
-            RefreshSpritesList()
-        End If
-
-        Return newClone
-    End Function
-
+#Region "Sprites"
 
     Public Sub RefreshSpritesList()
         'changes what is stored in spriteList() using the "sprites" tag
 
-        If HasTag("sprites") Then
-            Dim spritesArgument() As Object = FindTag("sprites").InterpretArgument()
+        If HasTag(spritesTagName) Then
+            Dim spritesArgument() As Object = FindTag(spritesTagName).InterpretArgument()
 
             If Not IsNothing(spritesArgument) Then
                 Dim newSprites(UBound(spritesArgument)) As Sprite
@@ -85,8 +84,12 @@
     Public Sub RefreshSpritesTag()
         'changes the "frames" tag to match what is in framesList()
 
-        AddTag(New Tag("sprites", ArrayToString(spritesList)), True)
+        AddTag(New Tag(spritesTagName, ArrayToString(spritesList)), True)
     End Sub
+
+#End Region
+
+#Region "Key Properties"
 
     Public Property Sprites As Sprite()
         Get
@@ -100,56 +103,56 @@
 
     Property Name As String
         Get
-            If HasTag("name") Then
-                Return FindTag("name").InterpretArgument()
+            If HasTag(nameTagName) Then
+                Return FindTag(nameTagName).InterpretArgument()
             Else
                 Return "unnamed"
             End If
         End Get
         Set(value As String)
-            AddTag(New Tag("name", AddQuotes(value)), True)
+            AddTag(New Tag(nameTagName, AddQuotes(value)), True)
         End Set
     End Property
 
     Property Location As PointF
         Get
-            If HasTag("location") Then
+            If HasTag(locationTagName) Then
                 'Dim textForm As String = FindTag("location").InterpretArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
                 'Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
                 '                        Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
-                Return New Point(Val(FindTag("location").InterpretArgument()(0)), Val(FindTag("location").InterpretArgument()(1)))
+                Return New Point(Val(FindTag(locationTagName).InterpretArgument()(0)), Val(FindTag(locationTagName).InterpretArgument()(1)))
             Else
                 Return New PointF(0, 0)
             End If
         End Get
         Set(value As PointF)
-            AddTag(New Tag("location", "[" & value.X & "," & value.Y & "]"), True)
+            AddTag(New Tag(locationTagName, ArrayToString({value.X, value.Y})), True)
         End Set
     End Property
 
     Property Layer As Integer
         Get
-            If HasTag("layer") Then
-                Return FindTag("layer").InterpretArgument()
+            If HasTag(layerTagName) Then
+                Return FindTag(layerTagName).InterpretArgument()
             Else
                 Return 0
             End If
         End Get
         Set(value As Integer)
-            AddTag(New Tag("layer", value), True)
+            AddTag(New Tag(layerTagName, value), True)
         End Set
     End Property
 
     Property Scale As Single
         Get
-            If HasTag("scale") Then
-                Return FindTag("scale").InterpretArgument()
+            If HasTag(scaleTagName) Then
+                Return FindTag(scaleTagName).InterpretArgument()
             Else
                 Return 1
             End If
         End Get
         Set(value As Single)
-            AddTag(New Tag("scale", value), True)
+            AddTag(New Tag(scaleTagName, value), True)
         End Set
     End Property
 
@@ -186,30 +189,66 @@
 
     Property Opacity As Single
         Get
-            If HasTag("opacity") Then
-                Return FindTag("opacity").InterpretArgument()
+            If HasTag(opacityTagName) Then
+                Return FindTag(opacityTagName).InterpretArgument()
             Else
                 Return 1.0
             End If
         End Get
         Set(value As Single)
-            AddTag(New Tag("opacity", value), True)
+            AddTag(New Tag(opacityTagName, value), True)
         End Set
     End Property
 
     Property CurrentSprite As UInteger
         Get
-            If HasTag("currentFrame") Then
-                Return FindTag("currentFrame").InterpretArgument()
+            If HasTag(currentSpriteTagName) Then
+                Return FindTag(currentSpriteTagName).InterpretArgument()
             Else
                 Return 0
             End If
         End Get
         Set(value As UInteger)
-            AddTag(New Tag("currentFrame", value), True)
+            AddTag(New Tag(currentSpriteTagName, value), True)
         End Set
     End Property
 
+    Public ReadOnly Property Hitbox As RectangleF
+        Get
+            Return New RectangleF(New PointF(Location.X, Location.Y),
+                                    New SizeF(Scale * Sprites(CurrentSprite).Dimensions.Width,
+                                            Scale * Sprites(CurrentSprite).Dimensions.Height))
+        End Get
+    End Property
+
+#End Region
+
+#Region "Other"
+
+    Public Overrides Function ToString() As String
+        'adds each tag to the main tag
+        Return New Tag(tagsTagName, ArrayToString(tags)).ToString
+    End Function
+
+    Public Function Clone() As Actor
+        'returns a clone of this actor
+
+        Dim newClone As Actor = Nothing
+
+        If Not IsNothing(Me) Then
+            newClone = New Actor With {
+            .spriteFolderLocation = spriteFolderLocation,
+            .tags = tags
+                }
+            RefreshSpritesList()
+        End If
+
+        Return newClone
+    End Function
+
+#End Region
+
+#Region "Operators"
 
     Public Shared Operator =(ent1 As Actor, ent2 As Actor)
         Return AreActorsEqual(ent1, ent2)
@@ -229,11 +268,6 @@
         End If
     End Function
 
-    Public ReadOnly Property Hitbox As RectangleF
-        Get
-            Return New RectangleF(New PointF(Location.X, Location.Y),
-                                    New SizeF(Scale * Sprites(CurrentSprite).Dimensions.Width,
-                                            Scale * Sprites(CurrentSprite).Dimensions.Height))
-        End Get
-    End Property
+#End Region
+
 End Class

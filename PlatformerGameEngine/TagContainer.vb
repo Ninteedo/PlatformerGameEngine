@@ -1,6 +1,7 @@
-﻿'A template used for Room and Actor classes
+﻿'A superclass used for Room and Actor classes
 
 Public Class TagContainer
+
     Public tags() As Tag
 
     Public Sub New(Optional startTags() As Tag = Nothing)
