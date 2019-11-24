@@ -7,7 +7,6 @@ Public Class Sprite
     Private coloursUsed() As Color
     Private colourIndices(,) As Integer
     Public fileName As String
-
     Private bitmapVersion As Image
 
     Private Const spriteTagName As String = "sprite"
@@ -27,16 +26,10 @@ Public Class Sprite
     Public Sub New(colourIndices(,) As Integer, colours() As Color, Optional fileName As String = Nothing)
         'uses colours and colour indices to make a sprite
 
-        If colours(0) <> Color.Transparent Then
-            PRE2.DisplayError("Colour index 0 for new sprite is not transparent")
-        End If
-
         Me.colourIndices = colourIndices
         Me.coloursUsed = colours
         Me.fileName = fileName
     End Sub
-
-
 
     Public Sub New(ByVal fileLocation As String, ByVal spriteFolderLocation As String)
         Dim fileText As String = PRE2.ReadFile(fileLocation)
@@ -58,12 +51,13 @@ Public Class Sprite
         If Not IsNothing(coloursTag) Then
             Dim colourNamesTemp() As Object = coloursTag.InterpretArgument
             If Not IsNothing(colourNamesTemp) Then
+                'gets colour names
                 Dim colourNames(UBound(colourNamesTemp)) As String
                 For index As Integer = 0 To UBound(colourNamesTemp)
                     colourNames(index) = colourNamesTemp(index)
                 Next
                 If Not IsNothing(colourNames) Then
-                    'get colours
+                    'converts colour names to colours
                     ReDim coloursUsed(UBound(colourNames))
                     For colourIndex As Integer = 0 To UBound(colourNames)
                         coloursUsed(colourIndex) = ColorTranslator.FromHtml(colourNames(colourIndex))
@@ -73,13 +67,14 @@ Public Class Sprite
                     If Not IsNothing(pixelsTag) Then
                         Dim colourIndicesTemp As Object = pixelsTag.InterpretArgument       'returns as a jagged array of integer
                         If Not IsNothing(colourIndicesTemp) Then
-                            'Dim colourIndices(colourIndicesTemp.GetUpperBound(0), colourIndicesTemp.GetUpperBound(1)) As Integer
                             ReDim colourIndices(UBound(colourIndicesTemp), UBound(colourIndicesTemp(0)))
                             For index2 As Integer = 0 To colourIndices.GetUpperBound(1)
                                 For index1 As Integer = 0 To colourIndices.GetUpperBound(0)
                                     SetPixelColour(New Point(index1, index2), coloursUsed(colourIndicesTemp(index1)(index2)))
                                 Next
                             Next
+                        Else
+                            PRE2.DisplayError("Unable to read pixels in sprite: " & fileName)
                         End If
                     Else
                         PRE2.DisplayError("Unable to find tag for pixels in sprite: " & fileName)
@@ -97,41 +92,7 @@ Public Class Sprite
 
 #End Region
 
-    Public Overrides Function ToString() As String
-        'converts this sprite to a tag with subtags {file name, colours, colour indices}
-
-        'converts all the colours to names
-        Dim colourNames(UBound(Colours)) As String
-        For index As Integer = 0 To UBound(Colours)
-            colourNames(index) = ColorTranslator.ToHtml(Colours(index))
-            'Dim colourHex As String = "#"
-            'Dim hexSystem() As String = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"}
-            ''converts the ARGB values of the colour to hex
-            'For Each channel As Integer In {Colours(index).A, Colours(index).R, Colours(index).G, Colours(index).B}
-            '    'hex conversion
-            '    Dim hexVersion As String = ""
-            '    Dim num As Integer = channel
-            '    Dim remainder As Integer = -1
-
-            '    Do While remainder <> 0
-            '        Dim original As Integer = num
-            '        num = Int(num / 16)
-            '        remainder = (original / 16 - num) * 16
-
-            '        hexVersion += hexSystem(remainder)
-            '    Loop
-
-            '    colourHex += hexVersion
-            'Next
-            'colourNames(index) = colourHex
-        Next
-
-        Return New Tag(spriteTagName, ArrayToString({
-                New Tag(fileTagName, fileName),
-                New Tag(coloursTagName, ArrayToString(colourNames)),
-                New Tag(pixelsTagName, ArrayToString(Indices))
-                                            })).ToString
-    End Function
+#Region "Bitmap"
 
     Public ReadOnly Property Bitmap As Image
         Get
@@ -142,28 +103,35 @@ Public Class Sprite
         End Get
     End Property
 
+    Private Function ToBitmap(Optional opacity As Single = 1) As Bitmap
+        'returns a bitmap version of this frame
+
+        Dim result As New Bitmap(colourIndices.GetUpperBound(0) + 1, colourIndices.GetUpperBound(1) + 1, Imaging.PixelFormat.Format32bppArgb)
+        result.MakeTransparent()        'makes the background of the bitmap transparent
+
+        For pixelY As Integer = 0 To colourIndices.GetUpperBound(1)
+            For pixelX As Integer = 0 To colourIndices.GetUpperBound(0)
+                'updates the alpha channel of the colour
+                Dim pixelColour As Color = GetPixelColour(pixelX, pixelY)
+                If Not pixelColour.A = 0 Then       'doesn't change pixels that are already transparent
+                    pixelColour = Color.FromArgb(opacity * 255, pixelColour)
+                End If
+
+                result.SetPixel(pixelX, pixelY, pixelColour)
+            Next pixelX
+        Next pixelY
+
+        Return result
+    End Function
+
     Private Sub BitmapModified()
         'sets the bitmap to nothing if the colours or colourIndices are changed so the bitmap isnt outdated
         bitmapVersion = Nothing
     End Sub
 
-    'the colours of each individual pixel
-    'Public ReadOnly Property Pixels As Color(,)
-    '    Get
-    '        If Not IsNothing(colourIndices) AndAlso Not IsNothing(coloursUsed) Then
-    '            Dim result(colourIndices.GetUpperBound(0), colourIndices.GetUpperBound(1)) As Color
-    '            For index2 As Integer = 0 To result.GetUpperBound(1)
-    '                For index1 As Integer = 0 To result.GetUpperBound(0)
-    '                    result(index1, index2) = coloursUsed(colourIndices(index1, index2))
-    '                Next
-    '            Next
+#End Region
 
-    '            Return result
-    '        Else
-    '            Return Nothing
-    '        End If
-    '    End Get
-    'End Property
+#Region "Pixels"
 
     Public Function GetPixelColour(ByVal coords As Point) As Color
         'returns the colour of the pixel at the specified coordinates
@@ -233,25 +201,24 @@ Public Class Sprite
         End Set
     End Property
 
-    Private Function ToBitmap(Optional opacity As Single = 1) As Bitmap
-        'returns a bitmap version of this frame
+#End Region
 
-        Dim result As New Bitmap(colourIndices.GetUpperBound(0) + 1, colourIndices.GetUpperBound(1) + 1, Imaging.PixelFormat.Format32bppArgb)
-        result.MakeTransparent()        'makes the background of the bitmap transparent
+#Region "Other"
 
-        For pixelY As Integer = 0 To colourIndices.GetUpperBound(1)
-            For pixelX As Integer = 0 To colourIndices.GetUpperBound(0)
-                'updates the alpha channel of the colour
-                Dim pixelColour As Color = GetPixelColour(pixelX, pixelY)
-                If Not pixelColour.A = 0 Then       'doesn't change pixels that are already transparent
-                    pixelColour = Color.FromArgb(opacity * 255, pixelColour)
-                End If
+    Public Overrides Function ToString() As String
+        'converts this sprite to a tag with subtags {file name, colours, colour indices}
 
-                result.SetPixel(pixelX, pixelY, pixelColour)
-            Next pixelX
-        Next pixelY
+        'converts all the colours to names
+        Dim colourNames(UBound(Colours)) As String
+        For index As Integer = 0 To UBound(Colours)
+            colourNames(index) = ColorTranslator.ToHtml(Colours(index))
+        Next
 
-        Return result
+        Return New Tag(spriteTagName, ArrayToString({
+                New Tag(fileTagName, fileName),
+                New Tag(coloursTagName, ArrayToString(colourNames)),
+                New Tag(pixelsTagName, ArrayToString(Indices))
+                                            })).ToString
     End Function
 
     Public Property Dimensions As Size
@@ -288,4 +255,7 @@ Public Class Sprite
             Return New PointF(Dimensions.Width / 2, Dimensions.Height / 2)
         End Get
     End Property
+
+#End Region
+
 End Class
