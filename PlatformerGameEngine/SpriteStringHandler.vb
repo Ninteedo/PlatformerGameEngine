@@ -2,6 +2,8 @@
 '22/03/2019
 'Creates and reads sprite files
 
+#If False Then
+
 Public Module SpriteStringHandler
     'this is used to create and read sprite strings
 
@@ -211,3 +213,5 @@ Public Module SpriteStringHandler
         End Try
     End Function
 End Module
+
+#end If
