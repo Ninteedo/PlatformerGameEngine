@@ -108,7 +108,6 @@ Public Class Sprite
 
         Dim result As New Bitmap(colourIndices.GetUpperBound(0) + 1, colourIndices.GetUpperBound(1) + 1, Imaging.PixelFormat.Format32bppArgb)
         result.MakeTransparent()        'makes the background of the bitmap transparent
-
         For pixelY As Integer = 0 To colourIndices.GetUpperBound(1)
             For pixelX As Integer = 0 To colourIndices.GetUpperBound(0)
                 'updates the alpha channel of the colour

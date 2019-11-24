@@ -160,8 +160,10 @@ Public Class FrmLevelEditor
 	
     Private Sub RenderCurrentRoom()
         'renders the current room
-        renderer.renderPanel = PnlRender
-        renderer.DoGameRender(SelectedRoom.actors)
+        If Not IsNothing(renderer) Then
+            renderer.renderPanel = PnlRender
+            renderer.DoGameRender(SelectedRoom.actors)
+        End If
     End Sub
 
 #End Region
@@ -362,6 +364,7 @@ Public Class FrmLevelEditor
             SelectedActor.Scale = NumActorScale.Value
         End If
         RefreshTagsList()
+        RenderCurrentRoom()
     End Sub
 
     Private Sub BtnAddActorTag_Click(sender As Object, e As EventArgs) Handles BtnAddActorTag.Click

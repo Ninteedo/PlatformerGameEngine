@@ -18,44 +18,51 @@ Public Class PanelRenderEngine2
 
         Using canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
             canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
-            Dim context As BufferedGraphicsContext = BufferedGraphicsManager.Current
-            context.MaximumBuffer = renderPanel.Size
-            Dim renderLayer As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+            Using context As BufferedGraphicsContext = BufferedGraphicsManager.Current
+                context.MaximumBuffer = renderPanel.Size
+                Using renderLayer As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
+                    renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+                    renderLayer.Graphics.FillRectangle(New SolidBrush(Color.White), New RectangleF(New PointF(0, 0), renderPanel.Size))
 
-            If Not IsNothing(actorList) Then
-                'sorts actorList by layer ascending
-                Dim swaps As Integer = 0
-                Dim passes As Integer = 0
-                Do While swaps > 0 Or passes = 0
-                    swaps = 0
-                    For index As Integer = 1 To UBound(actorList)
-                        If actorList(index).Layer < actorList(index - 1).Layer Then
-                            Dim temp As Actor = actorList(index)
-                            actorList(index) = actorList(index - 1)
-                            actorList(index - 1) = temp
-                            swaps += 1
-                        End If
-                    Next
-                    passes += 1
-                Loop
+                    If Not IsNothing(actorList) Then
+                        'sorts actorList by layer ascending
+                        Dim swaps As Integer = 0
+                        Dim passes As Integer = 0
+                        Do While swaps > 0 Or passes = 0
+                            swaps = 0
+                            For index As Integer = 1 To UBound(actorList)
+                                If actorList(index).Layer < actorList(index - 1).Layer Then
+                                    Dim temp As Actor = actorList(index)
+                                    actorList(index) = actorList(index - 1)
+                                    actorList(index - 1) = temp
+                                    swaps += 1
+                                End If
+                            Next
+                            passes += 1
+                        Loop
 
-                'renders each actor in new sorted order
-                For actorIndex As Integer = 0 To UBound(actorList)
-                    Dim currentActor As Actor = actorList(actorIndex)
-                    If Not IsNothing(currentActor.Sprites) AndAlso currentActor.CurrentSprite <= UBound(currentActor.Sprites) And currentActor.CurrentSprite >= 0 Then
-                        Dim renderSprite As Sprite = currentActor.Sprites(currentActor.CurrentSprite)
-                        'Dim renderSize As SizeF = New SizeF(
-                        '                currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5),
-                        '                currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5))
-                        Dim renderArea As New RectangleF(
-                            New PointF(currentActor.Location.X * RenderScale.Width, currentActor.Location.Y * RenderScale.Height),
-                            New SizeF(currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5), currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5)))
-                        renderLayer.Graphics.DrawImage(renderSprite.Bitmap, renderArea)
+                        'renders each actor in new sorted order
+                        For actorIndex As Integer = 0 To UBound(actorList)
+                            Dim currentActor As Actor = actorList(actorIndex)
+                            If Not IsNothing(currentActor.Sprites) AndAlso currentActor.CurrentSprite <= UBound(currentActor.Sprites) And currentActor.CurrentSprite >= 0 Then
+                                Dim renderSprite As Sprite = currentActor.Sprites(currentActor.CurrentSprite)
+                                'Dim renderSize As SizeF = New SizeF(
+                                '                currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5),
+                                '                currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5))
+                                'Dim renderArea As New RectangleF(
+                                '    New PointF(currentActor.Location.X * RenderScale.Width, currentActor.Location.Y * RenderScale.Height),
+                                '    New SizeF(currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5), currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5)))
+                                Dim actHitbox As RectangleF = currentActor.Hitbox
+                                Dim renderArea As New RectangleF(New PointF(actHitbox.X * RenderScale.Width, actHitbox.Y * RenderScale.Height),
+                                                                New SizeF(actHitbox.Width * RenderScale.Width, actHitbox.Height * RenderScale.Height))
+                                renderLayer.Graphics.DrawImage(renderSprite.Bitmap, renderArea)
+                            End If
+                        Next actorIndex
                     End If
-                Next actorIndex
-            End If
 
-            renderLayer.Render()
+                    renderLayer.Render()
+                End Using
+            End Using
         End Using
     End Sub
 
