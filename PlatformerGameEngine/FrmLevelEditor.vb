@@ -74,7 +74,8 @@ Public Class FrmLevelEditor
 
         If IO.File.Exists(fileLocation) Then
             levelSaveLocation = fileLocation
-            createdLevel = FrmGame.LoadLevelFile(levelSaveLocation, renderer)
+            Dim levelString As String = PRE2.ReadFile(levelSaveLocation)
+            createdLevel = New Level(levelString, renderer)
 
             RefreshRoomsList()
             RefreshActorsList()
@@ -159,7 +160,7 @@ Public Class FrmLevelEditor
 	
     Private Sub RenderCurrentRoom()
         'renders the current room
-
+        renderer.renderPanel = PnlRender
         renderer.DoGameRender(SelectedRoom.actors)
     End Sub
 
@@ -175,7 +176,7 @@ Public Class FrmLevelEditor
             SelectedRoom.actors = value
 
             RefreshActorsList()
-            RefreshActorTagsList()
+            RefreshTagsList()
 
             RenderCurrentRoom()
         End Set
@@ -201,7 +202,7 @@ Public Class FrmLevelEditor
     Private Sub BtnCreateActor_Click(sender As Object, e As EventArgs) Handles BtnCreateActor.Click
         'opens Actor Maker for user and adds created actor to room
 
-        Using actorMaker As New FrmActorMaker(renderEngine:=renderer)
+        Using actorMaker As New FrmActorMaker(Nothing, renderer.spriteFolderLocation)
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
@@ -216,7 +217,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmActorEdit_Click(sender As Object, e As EventArgs) Handles ItmActorEdit.Click
-        Using actorMaker As New FrmActorMaker(SelectedActor, renderer)
+        Using actorMaker As New FrmActorMaker(SelectedActor, renderer.spriteFolderLocation)
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
@@ -229,7 +230,7 @@ Public Class FrmLevelEditor
         AddActor(SelectedActor)
     End Sub
 
-    Private Sub AddActor(ByVal template As Actor)
+    Private Sub AddActor(ByRef template As Actor)
         'creates a new instance from the given actor
 
         Dim newActor As Actor = template.Clone
@@ -243,6 +244,7 @@ Public Class FrmLevelEditor
         End If
 
         Actors = InsertItem(Actors, newActor)
+        LstActors.SelectedIndex = UBound(Actors)
     End Sub
 
     Private Sub RefreshActorsList()
@@ -260,7 +262,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub LstActors_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstActors.SelectedIndexChanged
-        RefreshActorTagsList()
+        RefreshTagsList()
     End Sub
 
 #End Region
@@ -276,13 +278,13 @@ Public Class FrmLevelEditor
         End Get
         Set(value As Tag())
             SelectedActor.tags = value
-            RefreshActorTagsList()
+            RefreshTagsList()
         End Set
     End Property
 
     Private Property SelectedTag As Tag
         Get
-            If LstActorTags.SelectedIndex > -1 And LstActorTags.SelectedIndex < UBound(SelectedActor.tags) Then
+            If LstActorTags.SelectedIndex > -1 And LstActorTags.SelectedIndex <= UBound(SelectedActor.tags) Then
                 Return SelectedActor.tags(LstActorTags.SelectedIndex)
             Else
                 Return New Tag("UnselectedTag", Nothing)
@@ -301,7 +303,7 @@ Public Class FrmLevelEditor
     '    ToggleTagControls(False)
     'End Sub
 
-    Private Sub RefreshActorTagsList()
+    Private Sub RefreshTagsList()
         If Not IsNothing(Tags) Then
             Dim items(UBound(Tags)) As String
             For index As Integer = 0 To UBound(items)
@@ -359,7 +361,7 @@ Public Class FrmLevelEditor
             SelectedActor.Layer = NumActorLayer.Value
             SelectedActor.Scale = NumActorScale.Value
         End If
-        RefreshActorTagsList()
+        RefreshTagsList()
     End Sub
 
     Private Sub BtnAddActorTag_Click(sender As Object, e As EventArgs) Handles BtnAddActorTag.Click
@@ -367,6 +369,7 @@ Public Class FrmLevelEditor
             tagMaker.ShowDialog()
             If tagMaker.userFinished Then
                 Tags = InsertItem(Tags, tagMaker.CreatedTag)
+                LstActorTags.SelectedIndex = UBound(Tags)
             End If
         End Using
     End Sub
@@ -388,6 +391,7 @@ Public Class FrmLevelEditor
 
     Private Sub ItmTagsDuplicate_Click(sender As Object, e As EventArgs) Handles ItmTagsDuplicate.Click
         SelectedActor.AddTag(SelectedTag, False)
+        LstActorTags.SelectedIndex = UBound(Tags)
     End Sub
 
 
@@ -602,6 +606,7 @@ Public Class FrmLevelEditor
 
         If Not IsNothing(roomName) AndAlso roomName.Length > 0 Then
             Rooms = InsertItem(Rooms, New Room With {.name = roomName})
+            LstRooms.SelectedIndex = UBound(Rooms)
         End If
     End Sub
 
@@ -613,6 +618,7 @@ Public Class FrmLevelEditor
 
     Private Sub ItmRoomDuplicate_Click(sender As Object, e As EventArgs) Handles ItmRoomDuplicate.Click
         Rooms = InsertItem(Rooms, SelectedRoom)
+        LstRooms.SelectedIndex = UBound(Rooms)
     End Sub
 
 #End Region
@@ -710,8 +716,5 @@ Public Class FrmLevelEditor
 
 
 #End Region
-
-
-
 
 End Class

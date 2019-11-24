@@ -211,11 +211,11 @@ Public Class Sprite
         'converts all the colours to names
         Dim colourNames(UBound(Colours)) As String
         For index As Integer = 0 To UBound(Colours)
-            colourNames(index) = ColorTranslator.ToHtml(Colours(index))
+            colourNames(index) = AddQuotes(ColorTranslator.ToHtml(Colours(index)))
         Next
 
         Return New Tag(spriteTagName, ArrayToString({
-                New Tag(fileTagName, fileName),
+                New Tag(fileTagName, AddQuotes(fileName)),
                 New Tag(coloursTagName, ArrayToString(colourNames)),
                 New Tag(pixelsTagName, ArrayToString(Indices))
                                             })).ToString

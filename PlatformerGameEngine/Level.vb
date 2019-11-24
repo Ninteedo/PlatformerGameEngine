@@ -7,6 +7,11 @@ Public Class Level
 
     Public rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
 
+    Private Const roomsTagName As String = "rooms"
+    Private Const tagsTagName As String = "tags"
+
+#Region "Constructors"
+
     Public Sub New()
         tags = Nothing
         rooms = Nothing
@@ -17,58 +22,36 @@ Public Class Level
         tags = Nothing
         rooms = Nothing
 
-        Dim tagStrings() As Object = New Tag(levelString).InterpretArgument 'JSONSplit(levelString, 0)
-        If Not IsNothing(tagStrings) Then
-            Dim tags(UBound(tagStrings)) As Tag
-
-            For tagIndex As Integer = 0 To UBound(tagStrings)
-                tags(tagIndex) = New Tag(tagStrings(tagIndex).ToString)
-            Next
-
-            For Each thisTag As Tag In tags
-                If Not IsNothing(thisTag) Then
-                    Select Case thisTag.name
-                        Case "tags"
-                            Dim temp() As Object = thisTag.InterpretArgument
-                            If Not IsNothing(temp) Then
-                                ReDim Me.tags(UBound(temp))
-                                For index As Integer = 0 To UBound(temp)
-                                    Me.tags(index) = New Tag(temp(index).ToString)
-                                Next
-                            End If
-                        'Case "templates"
-                        '    Dim temp() As Object = thisTag.InterpretArgument
-                        '    If Not IsNothing(temp) Then
-                        '        ReDim templates(UBound(temp))
-                        '        For index As Integer = 0 To UBound(temp)
-                        '            templates(index) = New Actor(temp(index).ToString, renderEngine)
-                        '        Next
-                        '    End If
-                        Case "rooms"
-                            Dim temp() As Object = thisTag.InterpretArgument
-                            If Not IsNothing(temp) Then
-                                ReDim rooms(UBound(temp))
-                                For index As Integer = 0 To UBound(temp)
-                                    rooms(index) = New Room(temp(index), renderEngine)
-                                Next
-                            End If
-                        Case Else
-                            PRE2.DisplayError("Unknown tag in level file: " & thisTag.name)
-                    End Select
+        Dim levelTag As Tag = New Tag(levelString)
+        If Not IsNothing(levelTag) Then
+            'loads each room
+            Dim roomsTag As Tag = levelTag.FindSubTag(roomsTagName)
+            If Not IsNothing(roomsTag) Then
+                Dim temp As Object = roomsTag.InterpretArgument
+                If Not IsNothing(temp) Then
+                    ReDim rooms(UBound(temp))
+                    For index As Integer = 0 To UBound(temp)
+                        rooms(index) = New Room(temp(index).ToString, renderEngine)
+                    Next
                 End If
-            Next
+            End If
+
+            'loads each tag
+            Dim tagsTag As Tag = levelTag.FindSubTag(tagsTagName)
+            If Not IsNothing(tagsTag) Then
+                Dim temp As Object = tagsTag.InterpretArgument
+                If IsArray(temp) Then
+                    For index As Integer = 0 To UBound(temp)
+                        AddTag(temp(index))
+                    Next
+                End If
+            End If
         End If
     End Sub
 
-    Public Overrides Function ToString() As String
-        'updated version of level tostring which uses tags better
+#End Region
 
-        Dim parametersTag As New Tag("tags", ArrayToString(tags))
-        'Dim templatesTag As New Tag("templates", ArrayToString(templates))
-        Dim roomsTag As New Tag("rooms", ArrayToString(rooms))
-
-        Return New Tag(Name, ArrayToString({parametersTag, roomsTag})).ToString
-    End Function
+#Region "Key Properties"
 
     Public Property Name As String
         Get
@@ -82,4 +65,20 @@ Public Class Level
             AddTag(New Tag("name", value), True)
         End Set
     End Property
+
+#End Region
+
+#Region "Other"
+
+    Public Overrides Function ToString() As String
+        'updated version of level tostring which uses tags better
+
+        Dim parametersTag As New Tag(tagsTagName, ArrayToString(tags))
+        Dim roomsTag As New Tag(roomsTagName, ArrayToString(rooms))
+
+        Return New Tag(Name, ArrayToString({parametersTag, roomsTag})).ToString
+    End Function
+
+#End Region
+
 End Class

@@ -3,7 +3,6 @@
     Inherits TagContainer
 
     Private spritesList() As Sprite
-    Public spriteFolderLocation As String
 
     Private Const tagsTagName As String = "tags"
     Private Const spritesTagName As String = "sprites"
@@ -20,34 +19,31 @@
     Public Sub New()
         spritesList = Nothing
         tags = Nothing
-        spriteFolderLocation = Nothing
     End Sub
 
-    Public Sub New(startSprites() As Sprite, startTags() As Tag, spriteFolder As String, startLocation As PointF, Optional startScale As Single = 1.0)
-        spriteFolderLocation = spriteFolder
+    Public Sub New(startSprites() As Sprite, startTags() As Tag, startLocation As PointF, Optional startScale As Single = 1.0)
         Sprites = startSprites
         tags = startTags
 
         CurrentSprite = 0
         Location = startLocation
-        'Rotation = startRotation
         Scale = startScale
     End Sub
 
     Public Sub New(actorString As String, renderEngine As PanelRenderEngine2)
         'creates a new actor from an actor string
 
-        spriteFolderLocation = renderEngine.spriteFolderLocation
         If Not IsNothing(actorString) Then
-            Try
-                'loads the tags
-                Dim temp As Object = New Tag(actorString).InterpretArgument()
-                For index As Integer = 0 To UBound(temp)
-                    AddTag(New Tag(temp(index).ToString))
-                Next
-            Catch ex As Exception
-                PanelRenderEngine2.DisplayError("An error occured whilst loading an actor" & vbCrLf & ex.ToString)
-            End Try
+            'Try
+            'loads the tags
+            Dim temp As Object = New Tag(actorString).InterpretArgument()
+            For index As Integer = 0 To UBound(temp)
+                AddTag(New Tag(temp(index).ToString))
+            Next
+            RefreshSpritesList()
+            'Catch ex As Exception
+            '    PanelRenderEngine2.DisplayError("An error occured whilst loading an actor" & vbCrLf & ex.ToString)
+            'End Try
         End If
     End Sub
 
@@ -156,37 +152,6 @@
         End Set
     End Property
 
-    'Property Rotation As Single
-    '    Get
-    '        If HasTag("rotation") Then
-    '            Return FindTag("rotation").InterpretArgument()
-    '        Else
-    '            Return 0
-    '        End If
-    '    End Get
-    '    Set(value As Single)
-    '        AddTag(New Tag("rotation", value), True)
-    '    End Set
-    'End Property
-
-    'Property RotationAnchor As PointF
-    '    Get
-    '        If HasTag("rotationAnchor") Then
-    '            Dim argStrings() As String = {FindTag("rotationAnchor").InterpretArgument()(0), FindTag("rotationAnchor").InterpretArgument()(1)}
-
-    '            If Not IsNothing(argStrings(0)) AndAlso IsNumeric(argStrings(0)) AndAlso
-    '                Not IsNothing(argStrings(1)) AndAlso IsNumeric(argStrings(1)) Then
-    '                Return New PointF(Val(argStrings(0)), Val(argStrings(1)))
-    '            End If
-    '        End If
-
-    '        Return New PointF(Sprites(CurrentSprite).Dimensions.Width / 2, Sprites(CurrentSprite).Dimensions.Height / 2)
-    '    End Get
-    '    Set(value As PointF)
-    '        AddTag(New Tag("rotationAnchor", "[" & value.X & "," & value.Y & "]"), True)
-    '    End Set
-    'End Property
-
     Property Opacity As Single
         Get
             If HasTag(opacityTagName) Then
@@ -236,10 +201,7 @@
         Dim newClone As Actor = Nothing
 
         If Not IsNothing(Me) Then
-            newClone = New Actor With {
-            .spriteFolderLocation = spriteFolderLocation,
-            .tags = tags
-                }
+            newClone = New Actor With {.tags = Me.tags}
             RefreshSpritesList()
         End If
 

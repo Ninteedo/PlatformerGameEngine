@@ -6,6 +6,9 @@ Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
 
 Public Class FrmActorMaker
 
+    Public createdActor As Actor          'the user's created actor
+    Private ReadOnly originalString As String       'used to see if any changes have been made
+
 #Region "Initialisation"
 
     Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
@@ -19,11 +22,8 @@ Public Class FrmActorMaker
         delayTimer.Stop()
         delayTimer.Dispose()
 
-        renderer = New PRE2 With {.renderPanel = pnlFramePreview}
-
+        'renderer = New PRE2 With {.renderPanel = pnlFramePreview}
         LayoutInitialisation()
-        'GetFolderLocations()
-        createdActor = New Actor(Nothing, renderer)
     End Sub
 
     Private Sub LayoutInitialisation()
@@ -39,21 +39,21 @@ Public Class FrmActorMaker
 
 #Region "Constructors"
 
-    Public createdActor As Actor          'the user's created actor
-    Private ReadOnly originalString As String       'used to see if any changes have been made
-    'Dim saveLocation As String = ""
-    'Dim gameLocation As String = ""
-
-
-    Public Sub New(Optional actorToModify As Actor = Nothing, Optional renderEngine As PanelRenderEngine2 = Nothing)
+    Public Sub New(ByVal actorToModify As Actor, ByVal spriteFolderLocation As String)
 
         ' This call is required by the designer.
         InitializeComponent()
 
         ' Add any initialization after the InitializeComponent() call.
 
-        Me.originalString = actorToModify.ToString
-        Me.renderer = renderEngine
+        If Not IsNothing(actorToModify) Then
+            createdActor = actorToModify.Clone()
+        Else
+            createdActor = New Actor(Nothing, renderer)
+        End If
+        originalString = createdActor.ToString
+        renderer = New PRE2 With {.spriteFolderLocation = spriteFolderLocation, .renderPanel = PnlPreview}
+        renderer.renderPanel = PnlPreview
     End Sub
 
     Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -71,18 +71,16 @@ Public Class FrmActorMaker
 
 #Region "Finishing"
 
-    Public userFinished As Boolean = False
+    Public userFinished As Boolean = False      'remains false until the user presses done
 
     Private Sub BtnCancel_Click(sender As Object, e As EventArgs) Handles BtnCancel.Click
+        'displays a warning if there are unsaved changes, giving the user the option to cancel the cancel
         If createdActor.ToString <> originalString Then
             If MsgBox("Are you sure you wish to cancel with unsaved work?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
                 Exit Sub
-            Else
-                createdActor = New Actor(originalString, renderer)
             End If
         End If
 
-        userFinished = False
         Me.Close()
     End Sub
 
@@ -104,7 +102,7 @@ Public Class FrmActorMaker
 
         If Not IsNothing(ActorSprites) Then
             For index As Integer = 0 To UBound(ActorSprites)
-                LstSprites.Items.Add(ActorSprites(index).fileName.Remove(0, Len(renderer.spriteFolderLocation)))
+                LstSprites.Items.Add(ActorSprites(index).fileName)
             Next
         End If
     End Sub
@@ -137,7 +135,7 @@ Public Class FrmActorMaker
         'loads a sprite from a given location
 
         If IO.File.Exists(fileLocation) Then
-            Dim newSprite As New Sprite(fileLocation)
+            Dim newSprite As New Sprite(fileLocation, renderer.spriteFolderLocation)
             'Dim fileName As String = newSprite.fileName
 
             If IsNothing(FindLoadedSprite(newSprite.fileName)) Then      'checks that the same sprite isn't already loaded
@@ -186,21 +184,8 @@ Public Class FrmActorMaker
             Dim newIndex As Integer = NumSpriteIndex.Value
 
             Dim thisSprite As Sprite = ActorSprites(oldIndex)
-
             ActorSprites = RemoveItem(ActorSprites, oldIndex)       'removes sprite from old index
             ActorSprites = InsertItem(ActorSprites, thisSprite, newIndex)   'inserts sprite to new index
-
-            'Dim ascending As Boolean = newIndex - oldIndex >= 0     'stores whether the sprites need to be moved in ascending or descending order
-
-            'Dim thisSprite As Sprite = ActorSprites(oldIndex)
-            ''loadedSprites(oldIndex) = loadedSprites(newIndex)
-            ''loadedSprites(newIndex) = thisSprite
-
-            'For index As Integer = oldIndex To newIndex Step If(ascending, 1, -1)
-            '    ActorSprites(index + If(ascending, -1, 1)) = ActorSprites(index)
-            'Next
-
-            'LstSprites.SelectedIndex = newIndex
 
             RefreshSpritesList()
         End If
@@ -224,10 +209,11 @@ Public Class FrmActorMaker
 
     Private Sub DrawSpritePreview(spriteToDraw As Sprite)
         'draws the given frame in the preview box
+        'TODO: currently being rendered incredibly aliased
 
         If Not IsNothing(spriteToDraw) Then
             Dim previewTags() As Tag = {New Tag("name", "SpritePreview")} '= {New Tag("location", {frameToDraw.Centre.ToString})}
-            Dim previewActor As New Actor({spriteToDraw}, previewTags, renderer.spriteFolderLocation, New PointF(0, 0)) With {
+            Dim previewActor As New Actor({spriteToDraw}, previewTags, New PointF(0, 0)) With {
                 .Location = New PointF(spriteToDraw.Centre.X, spriteToDraw.Centre.Y)
             } 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
             'New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)

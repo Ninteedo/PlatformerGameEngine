@@ -22,7 +22,7 @@ Public Class PanelRenderEngine2
             context.MaximumBuffer = renderPanel.Size
             Dim renderLayer As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
 
-            If IsNothing(actorList) = False Then
+            If Not IsNothing(actorList) Then
                 'sorts actorList by layer ascending
                 Dim swaps As Integer = 0
                 Dim passes As Integer = 0

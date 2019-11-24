@@ -23,35 +23,35 @@ Partial Class FrmActorMaker
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
-        Me.lblSpriteListTitle = New System.Windows.Forms.Label()
+        Me.LblSpriteListTitle = New System.Windows.Forms.Label()
         Me.LstSprites = New System.Windows.Forms.ListBox()
         Me.CntxtLstSprites = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.MenuLstSpriteDelete = New System.Windows.Forms.ToolStripMenuItem()
         Me.BtnSpriteLoad = New System.Windows.Forms.Button()
-        Me.tblControlLayout = New System.Windows.Forms.TableLayoutPanel()
+        Me.TblControlLayout = New System.Windows.Forms.TableLayoutPanel()
         Me.FlwDoneCancel = New System.Windows.Forms.FlowLayoutPanel()
         Me.BtnCancel = New System.Windows.Forms.Button()
         Me.BtnDone = New System.Windows.Forms.Button()
         Me.FlwSpriteNumber = New System.Windows.Forms.FlowLayoutPanel()
         Me.LblSpriteNum = New System.Windows.Forms.Label()
         Me.NumSpriteIndex = New System.Windows.Forms.NumericUpDown()
-        Me.pnlFramePreview = New System.Windows.Forms.Panel()
+        Me.PnlPreview = New System.Windows.Forms.Panel()
         Me.CntxtLstSprites.SuspendLayout()
-        Me.tblControlLayout.SuspendLayout()
+        Me.TblControlLayout.SuspendLayout()
         Me.FlwDoneCancel.SuspendLayout()
         Me.FlwSpriteNumber.SuspendLayout()
         CType(Me.NumSpriteIndex, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
-        'lblSpriteListTitle
+        'LblSpriteListTitle
         '
-        Me.lblSpriteListTitle.AutoSize = True
-        Me.lblSpriteListTitle.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblSpriteListTitle.Location = New System.Drawing.Point(333, 0)
-        Me.lblSpriteListTitle.Name = "lblSpriteListTitle"
-        Me.lblSpriteListTitle.Size = New System.Drawing.Size(89, 29)
-        Me.lblSpriteListTitle.TabIndex = 8
-        Me.lblSpriteListTitle.Text = "Sprites"
+        Me.LblSpriteListTitle.AutoSize = True
+        Me.LblSpriteListTitle.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.LblSpriteListTitle.Location = New System.Drawing.Point(333, 0)
+        Me.LblSpriteListTitle.Name = "LblSpriteListTitle"
+        Me.LblSpriteListTitle.Size = New System.Drawing.Size(89, 29)
+        Me.LblSpriteListTitle.TabIndex = 8
+        Me.LblSpriteListTitle.Text = "Sprites"
         '
         'LstSprites
         '
@@ -90,27 +90,27 @@ Partial Class FrmActorMaker
         Me.BtnSpriteLoad.Text = "Load..."
         Me.BtnSpriteLoad.UseVisualStyleBackColor = True
         '
-        'tblControlLayout
+        'TblControlLayout
         '
-        Me.tblControlLayout.ColumnCount = 2
-        Me.tblControlLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
-        Me.tblControlLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
-        Me.tblControlLayout.Controls.Add(Me.FlwDoneCancel, 1, 4)
-        Me.tblControlLayout.Controls.Add(Me.FlwSpriteNumber, 1, 3)
-        Me.tblControlLayout.Controls.Add(Me.LstSprites, 1, 1)
-        Me.tblControlLayout.Controls.Add(Me.BtnSpriteLoad, 1, 2)
-        Me.tblControlLayout.Controls.Add(Me.lblSpriteListTitle, 1, 0)
-        Me.tblControlLayout.Controls.Add(Me.pnlFramePreview, 0, 0)
-        Me.tblControlLayout.Location = New System.Drawing.Point(16, 17)
-        Me.tblControlLayout.Name = "tblControlLayout"
-        Me.tblControlLayout.RowCount = 5
-        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblControlLayout.Size = New System.Drawing.Size(579, 546)
-        Me.tblControlLayout.TabIndex = 20
+        Me.TblControlLayout.ColumnCount = 2
+        Me.TblControlLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.TblControlLayout.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
+        Me.TblControlLayout.Controls.Add(Me.FlwDoneCancel, 1, 4)
+        Me.TblControlLayout.Controls.Add(Me.FlwSpriteNumber, 1, 3)
+        Me.TblControlLayout.Controls.Add(Me.LstSprites, 1, 1)
+        Me.TblControlLayout.Controls.Add(Me.BtnSpriteLoad, 1, 2)
+        Me.TblControlLayout.Controls.Add(Me.LblSpriteListTitle, 1, 0)
+        Me.TblControlLayout.Controls.Add(Me.PnlPreview, 0, 0)
+        Me.TblControlLayout.Location = New System.Drawing.Point(16, 17)
+        Me.TblControlLayout.Name = "TblControlLayout"
+        Me.TblControlLayout.RowCount = 5
+        Me.TblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TblControlLayout.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.TblControlLayout.Size = New System.Drawing.Size(579, 546)
+        Me.TblControlLayout.TabIndex = 20
         '
         'FlwDoneCancel
         '
@@ -167,15 +167,15 @@ Partial Class FrmActorMaker
         Me.NumSpriteIndex.Size = New System.Drawing.Size(39, 26)
         Me.NumSpriteIndex.TabIndex = 21
         '
-        'pnlFramePreview
+        'PnlPreview
         '
-        Me.pnlFramePreview.BackColor = System.Drawing.Color.Black
-        Me.pnlFramePreview.Location = New System.Drawing.Point(3, 3)
-        Me.pnlFramePreview.MinimumSize = New System.Drawing.Size(150, 154)
-        Me.pnlFramePreview.Name = "pnlFramePreview"
-        Me.tblControlLayout.SetRowSpan(Me.pnlFramePreview, 3)
-        Me.pnlFramePreview.Size = New System.Drawing.Size(324, 317)
-        Me.pnlFramePreview.TabIndex = 0
+        Me.PnlPreview.BackColor = System.Drawing.Color.Black
+        Me.PnlPreview.Location = New System.Drawing.Point(3, 3)
+        Me.PnlPreview.MinimumSize = New System.Drawing.Size(150, 154)
+        Me.PnlPreview.Name = "PnlPreview"
+        Me.TblControlLayout.SetRowSpan(Me.PnlPreview, 3)
+        Me.PnlPreview.Size = New System.Drawing.Size(324, 317)
+        Me.PnlPreview.TabIndex = 0
         '
         'FrmActorMaker
         '
@@ -183,14 +183,14 @@ Partial Class FrmActorMaker
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlDark
         Me.ClientSize = New System.Drawing.Size(748, 580)
-        Me.Controls.Add(Me.tblControlLayout)
+        Me.Controls.Add(Me.TblControlLayout)
         Me.DoubleBuffered = True
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
         Me.Name = "FrmActorMaker"
         Me.Text = "Actor Maker"
         Me.CntxtLstSprites.ResumeLayout(False)
-        Me.tblControlLayout.ResumeLayout(False)
-        Me.tblControlLayout.PerformLayout()
+        Me.TblControlLayout.ResumeLayout(False)
+        Me.TblControlLayout.PerformLayout()
         Me.FlwDoneCancel.ResumeLayout(False)
         Me.FlwSpriteNumber.ResumeLayout(False)
         Me.FlwSpriteNumber.PerformLayout()
@@ -198,10 +198,10 @@ Partial Class FrmActorMaker
         Me.ResumeLayout(False)
 
     End Sub
-    Friend WithEvents lblSpriteListTitle As Label
+    Friend WithEvents LblSpriteListTitle As Label
     Friend WithEvents LstSprites As ListBox
     Friend WithEvents BtnSpriteLoad As Button
-    Friend WithEvents tblControlLayout As TableLayoutPanel
+    Friend WithEvents TblControlLayout As TableLayoutPanel
     Friend WithEvents CntxtLstSprites As System.Windows.Forms.ContextMenuStrip
     Friend WithEvents MenuLstSpriteDelete As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents BtnCancel As System.Windows.Forms.Button
@@ -209,6 +209,6 @@ Partial Class FrmActorMaker
     Friend WithEvents FlwSpriteNumber As FlowLayoutPanel
     Friend WithEvents LblSpriteNum As Label
     Friend WithEvents NumSpriteIndex As NumericUpDown
-    Friend WithEvents pnlFramePreview As Panel
+    Friend WithEvents PnlPreview As Panel
     Friend WithEvents FlwDoneCancel As FlowLayoutPanel
 End Class
