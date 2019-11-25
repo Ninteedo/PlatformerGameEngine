@@ -67,7 +67,7 @@ Module ActorStringHandler
             successfulLoad = True       'so that what calls this function knows the load was successful
             Return result
         Catch ex As Exception
-            PRE2.DisplayError("An error occured whilst loading an actor" & vbCrLf & ex.ToString)
+            DisplayError("An error occured whilst loading an actor" & vbCrLf & ex.ToString)
             Return Nothing
         End Try
     End Function

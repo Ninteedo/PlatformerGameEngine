@@ -85,7 +85,7 @@ Public Class FrmSpriteMaker
         Using saveDialog As New SaveFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt"}
             If saveDialog.ShowDialog = DialogResult.OK Then
                 saveLocation = saveDialog.FileName
-                PRE2.WriteFile(saveLocation, createdSprite.ToString)
+                WriteFile(saveLocation, createdSprite.ToString)
                 BtnSave.Enabled = True
             End If
             'cantDraw = False
@@ -95,7 +95,7 @@ Public Class FrmSpriteMaker
     Private Sub BtnSave_Click(sender As Object, e As EventArgs) Handles BtnSave.Click
         'saves the file to the already selected location
 
-        PRE2.WriteFile(saveLocation, createdSprite.ToString)
+        WriteFile(saveLocation, createdSprite.ToString)
     End Sub
 
     Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -104,7 +104,7 @@ Public Class FrmSpriteMaker
         Dim unsavedChanges As Boolean = False
 
         If Not IsNothing(saveLocation) AndAlso IO.File.Exists(saveLocation) Then
-            Dim savedSpriteString As String = PRE2.ReadFile(saveLocation)
+            Dim savedSpriteString As String = ReadFile(saveLocation)
 
             If savedSpriteString <> createdSprite.ToString Then
                 unsavedChanges = True
@@ -329,14 +329,14 @@ Public Class FrmSpriteMaker
             'only adds colour if it hasn't already been added
             For index As Integer = 0 To UBound(Colours)
                 If Colours(index) = newColour Then
-                    PRE2.DisplayError("This colour is already in the colour palette")
+                    DisplayError("This colour is already in the colour palette")
                     Exit For
                 End If
             Next index
 
             Colours = InsertItem(Colours, newColour)
         Else
-            PRE2.DisplayError("Cannot add any more colours as limit has been reached")
+            DisplayError("Cannot add any more colours as limit has been reached")
         End If
     End Sub
 
@@ -346,7 +346,7 @@ Public Class FrmSpriteMaker
         If colourIndex > 0 Then
             For index As Integer = 0 To UBound(colourButtons)
                 If Colours(index) = newColour Then
-                    PRE2.DisplayError("You have already added that colour to the palette")
+                    DisplayError("You have already added that colour to the palette")
                     Exit Sub
                 End If
             Next index
@@ -354,7 +354,7 @@ Public Class FrmSpriteMaker
             Colours(colourIndex) = newColour
             DrawSavedPixels()
         Else
-            PRE2.DisplayError("Please select a custom colour to swap out for, index " & selectedColourIndex & " is not viable")
+            DisplayError("Please select a custom colour to swap out for, index " & selectedColourIndex & " is not viable")
         End If
     End Sub
 

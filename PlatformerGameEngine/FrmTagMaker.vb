@@ -86,7 +86,7 @@ Public Class FrmTagMaker
 
                 If userInput.Length > 0 Then
                     If IsNumeric(userInput) = False Then
-                        PRE2.DisplayError(userInput & " is not a number")
+                        DisplayError(userInput & " is not a number")
                     Else
                         AddArgument(Val(userInput))
                     End If

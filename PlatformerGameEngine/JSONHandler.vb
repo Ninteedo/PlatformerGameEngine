@@ -277,7 +277,7 @@ Public Module JSONHandler
                     Next
                     result += "]"
                 Case Else
-                    PRE2.DisplayError("Cannot turn a multidimensional array with more than 2 dimensions into a string")
+                    DisplayError("Cannot turn a multidimensional array with more than 2 dimensions into a string")
             End Select
         End If
 

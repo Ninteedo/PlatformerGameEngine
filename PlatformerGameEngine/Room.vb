@@ -35,7 +35,7 @@ Public Class Room
                 End If
             End If
             'Catch ex As Exception
-            '    PRE2.DisplayError("An error occured whilst loading an room" & vbCrLf & ex.ToString)
+            '    DisplayError("An error occured whilst loading an room" & vbCrLf & ex.ToString)
             'End Try
         End If
     End Sub

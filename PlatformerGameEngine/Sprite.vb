@@ -32,7 +32,7 @@ Public Class Sprite
     End Sub
 
     Public Sub New(ByVal fileLocation As String, ByVal spriteFolderLocation As String)
-        Dim fileText As String = PRE2.ReadFile(fileLocation)
+        Dim fileText As String = ReadFile(fileLocation)
         If Not IsNothing(fileText) Then
             fileName = fileLocation.Remove(0, Len(spriteFolderLocation))
             Dim spriteTag As New Tag(fileText)
@@ -74,19 +74,19 @@ Public Class Sprite
                                 Next
                             Next
                         Else
-                            PRE2.DisplayError("Unable to read pixels in sprite: " & fileName)
+                            DisplayError("Unable to read pixels in sprite: " & fileName)
                         End If
                     Else
-                        PRE2.DisplayError("Unable to find tag for pixels in sprite: " & fileName)
+                        DisplayError("Unable to find tag for pixels in sprite: " & fileName)
                     End If
                 Else
-                    PRE2.DisplayError("Unable to find colours for sprite: " & fileName)
+                    DisplayError("Unable to find colours for sprite: " & fileName)
                 End If
             Else
-                PRE2.DisplayError("Invalid colour argument: " & coloursTag.argument)
+                DisplayError("Invalid colour argument: " & coloursTag.argument)
             End If
         Else
-            PRE2.DisplayError("Unable to find tag for colours in sprite: " & fileName)
+            DisplayError("Unable to find tag for colours in sprite: " & fileName)
         End If
     End Sub
 

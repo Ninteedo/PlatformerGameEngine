@@ -51,19 +51,19 @@ Public Class FrmGame
     Private Sub LoadGame()      'this loads the game
         'TODO: redo this entirely
         If IO.File.Exists(loaderFileLocation) = True Then
-            Dim loaderFileText As String = PRE2.ReadFile(loaderFileLocation)
+            Dim loaderFileText As String = ReadFile(loaderFileLocation)
 
             'loads locations of each folder
             Dim topLevelFolder As String = loaderFileLocation.Remove(loaderFileLocation.LastIndexOf("\") + 1)
-            renderer.levelFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "levelFolder")
-            renderer.actorFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "actorFolder")
-            renderer.spriteFolderLocation = topLevelFolder & renderer.FindProperty(loaderFileText, "spriteFolder")
+            renderer.levelFolderLocation = topLevelFolder & FindProperty(loaderFileText, "levelFolder")
+            'renderer.actorFolderLocation = topLevelFolder & FindProperty(loaderFileText, "actorFolder")
+            renderer.spriteFolderLocation = topLevelFolder & FindProperty(loaderFileText, "spriteFolder")
 
             'loads the file names of each level, keeps going until a level isn't provided
             Dim index As Integer = 0
             Dim finished As Boolean = False
             Do
-                Dim currentFile As String = renderer.FindProperty(loaderFileText, "level" & Trim(Str(index + 1)))
+                Dim currentFile As String = FindProperty(loaderFileText, "level" & Trim(Str(index + 1)))
                 If IsNothing(currentFile) = False Then
                     ReDim Preserve levelFiles(index)
                     levelFiles(index) = currentFile
@@ -77,7 +77,7 @@ Public Class FrmGame
             'loads level 1
             PlayLevel(1)
         Else
-            PRE2.DisplayError("Could not find file: " & loaderFileLocation)
+            DisplayError("Could not find file: " & loaderFileLocation)
         End If
     End Sub
 
@@ -85,7 +85,7 @@ Public Class FrmGame
         'loads the level into memory and starts playing it
 
         If IsNothing(levelFiles(levelNumber - 1)) = True Then
-            PRE2.DisplayError("No known level number " & levelNumber)
+            DisplayError("No known level number " & levelNumber)
         Else
             'currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer, levelDelimiters, roomDelimiters)
             currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer)
@@ -100,12 +100,12 @@ Public Class FrmGame
     Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2) As Level
         'loads a level from a given file location
         If IO.File.Exists(fileLocation) Then
-            Dim levelString As String = PRE2.ReadFile(fileLocation)
+            Dim levelString As String = ReadFile(fileLocation)
             If Not IsNothing(levelString) Then
                 Return New Level(levelString, renderEngine)
             End If
         Else
-            PRE2.DisplayError("Could not find level file at " & fileLocation)
+            DisplayError("Could not find level file at " & fileLocation)
         End If
 
         Return Nothing

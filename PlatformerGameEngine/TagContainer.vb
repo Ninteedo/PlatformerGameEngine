@@ -42,7 +42,7 @@ Public Class TagContainer
             Next
         End If
 
-        Return Nothing
+        Return result
     End Function
 
     Public Sub AddTag(ByVal newTag As Tag, Optional ByVal removeDuplicates As Boolean = False)

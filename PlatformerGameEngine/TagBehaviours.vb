@@ -265,7 +265,7 @@ Public Module TagBehaviours
 
         '        Return New RectangleF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y)
         '    Else
-        '        PRE2.DisplayError("Tried to convert a polygon with " & points.Length & " sides to a polygon")
+        '        DisplayError("Tried to convert a polygon with " & points.Length & " sides to a polygon")
         '        Return Nothing
         '    End If
         'End Function
