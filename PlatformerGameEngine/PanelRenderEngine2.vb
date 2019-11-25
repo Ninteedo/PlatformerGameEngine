@@ -8,7 +8,7 @@ Public Class PanelRenderEngine2
     Public renderResolution As Size = New Size(640, 480)      'how many pixels the game is played at, scaled afterwards to the size of the render panel
 
     Public spriteFolderLocation As String
-    Public actorFolderLocation As String
+    'Public actorFolderLocation As String
     Public levelFolderLocation As String
 
 #Region "Rendering"
@@ -74,66 +74,7 @@ Public Class PanelRenderEngine2
 
 #End Region
 
-#Region "Error Handling"
 
-    Shared Sub DisplayError(message As String)
-        'displays a given error message to the user
-
-        MsgBox(message, MsgBoxStyle.Exclamation)
-    End Sub
-
-    Public Sub Log(message As String, warnLevel As Integer)
-        'logs something noteworthy, eg an error or a warning or a debug
-        'warn levels are 0:info, 1:warn, 2:error, 3:fatal
-    End Sub
-
-#End Region
-
-#Region "File Handling"
-
-    Public Shared Function ReadFile(fileLocation As String) As String
-        'returns the contents of a text file at a given location
-
-        If IO.File.Exists(fileLocation) = True Then
-            Dim reader As New IO.StreamReader(fileLocation)
-            Dim fileText As String = reader.ReadToEnd()
-            reader.Close()
-
-            Return fileText
-        Else
-            DisplayError("Couldn't find file " & fileLocation)
-            Return Nothing
-        End If
-    End Function
-
-    Public Shared Sub WriteFile(fileLocation As String, message As String)
-        'writes a message to a file
-
-        Dim writer As New IO.StreamWriter(fileLocation)
-
-        For Each c As Char In message
-            writer.Write(c)
-        Next c
-
-        writer.Close()
-    End Sub
-
-    Public Function FindProperty(fileText As String, propertyName As String) As String     'returns the property in a file with a given name, property: value
-        Dim lines() As String = fileText.Split(Environment.NewLine)
-
-        For Each line As String In lines
-            Dim currentProperty As String = line.Split(":")(0).Replace(vbLf, "")
-
-            If currentProperty = propertyName Then
-                Return Trim(line.Split(":")(1))         'issue: cant have colons anywhere else in the line
-            End If
-        Next line
-
-        'DisplayError("Couldn't find property " & propertyName)
-
-        Return Nothing
-    End Function
-#End Region
 End Class
 
 
