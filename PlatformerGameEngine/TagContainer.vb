@@ -17,15 +17,31 @@ Public Class TagContainer
     Public Function FindTag(ByVal tagName As String) As Tag
         'returns the first tag this container has which matches the given name
 
-        If IsNothing(tags) = False Then
+        Dim matchingTags() As Tag = FindTags(tagName)
+
+        If Not IsNothing(matchingTags) Then
+            'returns first matching tag
+            Return matchingtags(0)
+        Else
+            'returns nothing if no matching tags found
+            Return Nothing
+        End if
+    End Function
+
+    Public Function FindTags(ByVal tagName As String) As Tag()
+        'returns all the tags this container has which match a given name
+        'useful for things such as listeners where there are multiple tags with the same name
+
+        Dim result() As Tag = Nothing
+
+        If Not IsNothing(tags) Then
             For index As Integer = 0 To UBound(tags)
                 If LCase(tags(index).name) = LCase(tagName) Then
-                    Return tags(index)
+                    result = InsertItem(result, tags(index))
                 End If
-            Next index
+            Next
         End If
 
-        'returns nothing if no matching tag found
         Return Nothing
     End Function
 
