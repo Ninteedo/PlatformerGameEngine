@@ -72,7 +72,6 @@
   <ItemGroup>
     <Compile Include="Actor.vb" />
     <Compile Include="GeneralProcedures.vb" />
-    <Compile Include="EntityStringHandler.vb" />
     <Compile Include="FrmActorMaker.Designer.vb">
       <DependentUpon>FrmActorMaker.vb</DependentUpon>
     </Compile>
@@ -137,7 +136,6 @@
     <Compile Include="PanelRenderEngine2.vb" />
     <Compile Include="Room.vb" />
     <Compile Include="Sprite.vb" />
-    <Compile Include="SpriteStringHandler.vb" />
     <Compile Include="Tag.vb" />
     <Compile Include="TagBehaviours.vb" />
     <Compile Include="TagContainer.vb" />
