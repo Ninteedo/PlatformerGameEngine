@@ -21,15 +21,6 @@
         tags = Nothing
     End Sub
 
-    Public Sub New(startSprites() As Sprite, startTags() As Tag, startLocation As PointF, Optional startScale As Single = 1.0)
-        Sprites = startSprites
-        tags = startTags
-
-        CurrentSprite = 0
-        Location = startLocation
-        Scale = startScale
-    End Sub
-
     Public Sub New(actorString As String, renderEngine As PanelRenderEngine2)
         'creates a new actor from an actor string
 
@@ -51,10 +42,24 @@
 
 #Region "Sprites"
 
+    Public Property Sprites As Sprite()
+        Get
+            If IsNothing(spritesList) Then
+                RefreshSpritesList()
+            End If
+            Return spritesList
+        End Get
+        Set(value As Sprite())
+            spritesList = value
+            RefreshSpritesTag()
+        End Set
+    End Property
+
     Public Sub RefreshSpritesList()
         'changes what is stored in spriteList() using the "sprites" tag
 
         If HasTag(spritesTagName) Then
+            Dim spritesTag As Tag = FindTag(spritesTagName)
             Dim spritesArgument() As Object = FindTag(spritesTagName).InterpretArgument()
 
             If Not IsNothing(spritesArgument) Then
@@ -64,9 +69,7 @@
                     newSprites(spriteIndex) = New Sprite(spriteTag.ToString)
                 Next
 
-                If newSprites IsNot Sprites Then
-                    spritesList = newSprites
-                End If
+                spritesList = newSprites
             Else
                 If Not IsNothing(Sprites) Then
                     spritesList = Nothing
@@ -78,24 +81,18 @@
     End Sub
 
     Public Sub RefreshSpritesTag()
-        'changes the "frames" tag to match what is in framesList()
+        'changes the "sprites" tag to match what is in framesList()
 
         AddTag(New Tag(spritesTagName, ArrayToString(spritesList)), True)
     End Sub
 
+    Public Function GetCurrentSprite() As Sprite
+        Return Sprites(CurrentSprite)
+    End Function
+
 #End Region
 
 #Region "Key Properties"
-
-    Public Property Sprites As Sprite()
-        Get
-            Return spritesList
-        End Get
-        Set(value As Sprite())
-            spritesList = value
-            RefreshSpritesTag()
-        End Set
-    End Property
 
     Property Name As String
         Get

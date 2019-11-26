@@ -98,13 +98,15 @@ Public Class FrmActorMaker
     Private Sub RefreshSpritesList()
         'empties and refills the sprites list
 
-        LstSprites.Items.Clear()
-
+        Dim items() As String = Nothing
         If Not IsNothing(ActorSprites) Then
+            ReDim items(UBound(ActorSprites))
             For index As Integer = 0 To UBound(ActorSprites)
-                LstSprites.Items.Add(ActorSprites(index).fileName)
+                items(index) = ActorSprites(index).fileName
             Next
         End If
+
+        RefreshList(LstSprites, items)
     End Sub
 
     Private Sub LstSprites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstSprites.SelectedIndexChanged
@@ -209,14 +211,12 @@ Public Class FrmActorMaker
 
     Private Sub DrawSpritePreview(spriteToDraw As Sprite)
         'draws the given frame in the preview box
-        'TODO: currently being rendered incredibly aliased
 
         If Not IsNothing(spriteToDraw) Then
-            Dim previewTags() As Tag = {New Tag("name", "SpritePreview")} '= {New Tag("location", {frameToDraw.Centre.ToString})}
-            Dim previewActor As New Actor({spriteToDraw}, previewTags, New PointF(0, 0)) With {
-                .Location = New PointF(spriteToDraw.Centre.X, spriteToDraw.Centre.Y)
-            } 'New PointF(renderer.panelCanvasGameArea.ClipRectangle.Width / 2, renderer.panelCanvasGameArea.ClipRectangle.Height / 2))
-            'New PointF(frameToDraw.Centre.X, frameToDraw.Centre.Y)
+            Dim previewActor As New Actor() With {
+                .Name = "SpritePreview",
+                .Sprites = {spriteToDraw}
+                }
             renderer.renderResolution = spriteToDraw.Dimensions
             LayoutInitialisation()
 
