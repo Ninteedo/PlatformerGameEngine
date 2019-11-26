@@ -45,9 +45,16 @@ Public Class Sprite
 
     Public Sub New(ByVal spriteString As String)
         Dim spriteTag As New Tag(spriteString)
+        Dim fileTag As Tag = spriteTag.InterpretArgument(fileTagName)
         Dim coloursTag As Tag = spriteTag.InterpretArgument(coloursTagName)
         Dim pixelsTag As Tag = spriteTag.InterpretArgument(pixelsTagName)
 
+        'gets the file name
+        If Not IsNothing(fileTag) Then
+            fileName = fileTag.InterpretArgument
+        End If
+
+        'gets the colour and pixels
         If Not IsNothing(coloursTag) Then
             Dim colourNamesTemp() As Object = coloursTag.InterpretArgument
             If Not IsNothing(colourNamesTemp) Then
@@ -254,6 +261,28 @@ Public Class Sprite
             Return New PointF(Dimensions.Width / 2, Dimensions.Height / 2)
         End Get
     End Property
+
+#End Region
+
+#Region "Operators"
+
+    Public Shared Operator =(sprite1 As Sprite, sprite2 As Sprite)
+        Return AreSpritesEqual(sprite1, sprite2)
+    End Operator
+
+    Public Shared Operator <>(sprite1 As Sprite, sprite2 As Sprite)
+        Return Not AreSpritesEqual(sprite1, sprite2)
+    End Operator
+
+    Public Shared Function AreSpritesEqual(sprite1 As Sprite, sprite2 As Sprite) As Boolean
+        'returns whether 2 provided frames are identical
+
+        If IsNothing(sprite1) Or IsNothing(sprite2) Then
+            Return IsNothing(sprite2) = IsNothing(sprite2)
+        Else
+            Return Not (sprite1.fileName <> sprite2.fileName OrElse sprite1.coloursUsed IsNot sprite2.coloursUsed OrElse sprite1.colourIndices IsNot sprite2.colourIndices)
+        End If
+    End Function
 
 #End Region
 
