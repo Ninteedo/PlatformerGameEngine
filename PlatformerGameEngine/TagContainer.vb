@@ -52,29 +52,24 @@ Public Class TagContainer
             RemoveTag(newTag.name)
         End If
 
-        If IsNothing(tags) Then
-            ReDim tags(0)
-        Else
-            ReDim Preserve tags(UBound(tags) + 1)
-        End If
-        tags(UBound(tags)) = newTag
+        tags = InsertItem(tags, newTag)
     End Sub
 
     Public Sub RemoveTag(ByVal tagName As String)
         'removes all tags with the given name
 
-        Dim tagIndex As Integer = 0
-
-        If Not IsNothing(tags) Then
+        If Not IsNothing(tags) AndAlso UBound(tags) >= 0 Then
+            Dim tagIndex As Integer = 0
             Do While tagIndex <= UBound(tags)
                 If tags(tagIndex).name = tagName Then
-                    For removeIndex As Integer = tagIndex To UBound(tags) - 1
-                        tags(removeIndex) = tags(removeIndex + 1)
-                    Next removeIndex
+                    tags = RemoveItem(tags, tagIndex)
 
-                    ReDim Preserve tags(UBound(tags) - 1)
-                Else
-                    tagIndex += 1       'tag index isn't incremented when a tag with matching name is found so none are skipped
+                    'breaks out of for if there are no elements left in the tag array
+                    If IsNothing(tags) Then
+                        Exit Do
+                    End If
+                Else        'tag index is only incremented if a tag isn't removed as the list shifts
+                    tagIndex += 1
                 End If
             Loop
         End If
