@@ -115,4 +115,32 @@
 
 #End Region
 
+#Region "Other"
+
+    Public Sub RefreshList(list As ListBox, values() As String)
+        'empties a list and fills it with given values
+
+        If Not IsNothing(list) Then
+            Dim startSelectedIndex As Integer = list.SelectedIndex
+            list.SelectedIndex = -1
+            list.Items.Clear()
+
+            If Not IsNothing(values) Then
+                For Each value As String In values
+                    If Not IsNothing(value) Then
+                        list.Items.Add(value)
+                    End If
+                Next value
+
+                If startSelectedIndex < list.Items.Count Then
+                    list.SelectedIndex = startSelectedIndex
+                End If
+            End If
+        Else
+            'DisplayError("A list tried to refresh but doesn't exist")
+        End If
+    End Sub
+
+#End Region
+
 End Module

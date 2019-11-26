@@ -2,8 +2,6 @@
 '29/03/2019
 'Level editor for platformer game engine
 
-Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
 Public Class FrmLevelEditor
 
 #Region "Initialisation"
@@ -20,7 +18,7 @@ Public Class FrmLevelEditor
         delayTimer.Stop()
         delayTimer.Dispose()
 
-        renderer = New PRE2 With {.renderPanel = PnlRender}
+        renderEngine = New PanelRenderEngine2 With {.renderPanel = PnlRender}
         createdLevel = New Level
 
         'LayoutInitialisation()
@@ -59,9 +57,9 @@ Public Class FrmLevelEditor
 
                 'loads locations of each folder
                 Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
-                renderer.levelFolderLocation = topLevelFolder & FindProperty(loaderFileText, "levelFolder")
+                renderEngine.levelFolderLocation = topLevelFolder & FindProperty(loaderFileText, "levelFolder")
                 'renderer.actorFolderLocation = topLevelFolder & FindProperty(loaderFileText, "actorFolder")
-                renderer.spriteFolderLocation = topLevelFolder & FindProperty(loaderFileText, "spriteFolder")
+                renderEngine.spriteFolderLocation = topLevelFolder & FindProperty(loaderFileText, "spriteFolder")
                 'renderer.roomFolderLocation = topLevelFolder & FindProperty(loaderFileText, "roomFolder")
             Else
                 Me.Close()     'might need to change this
@@ -75,11 +73,9 @@ Public Class FrmLevelEditor
         If IO.File.Exists(fileLocation) Then
             levelSaveLocation = fileLocation
             Dim levelString As String = ReadFile(levelSaveLocation)
-            createdLevel = New Level(levelString, renderer)
+            createdLevel = New Level(levelString, renderEngine)
 
-            RefreshRoomsList()
-            RefreshActorsList()
-            RefreshParameterList()
+            RefreshAllLists()
 
             RefreshControlsEnabled()
         Else
@@ -99,7 +95,7 @@ Public Class FrmLevelEditor
         Dim fileName As String = InputBox("Enter file name for level")
 
         If fileName.Length >= 1 Then        'checks that the user actually entered something
-            levelSaveLocation = renderer.levelFolderLocation & fileName & ".lvl"
+            levelSaveLocation = renderEngine.levelFolderLocation & fileName & ".lvl"
             SaveLevel(createdLevel, levelSaveLocation)
         End If
     End Sub
@@ -107,7 +103,7 @@ Public Class FrmLevelEditor
     Private Sub ToolBarFileOpen_Click(sender As Object, e As EventArgs) Handles ToolBarFileOpen.Click
         'opens a level file selected by the user
 
-        Using openDialog As New OpenFileDialog With {.Filter = "Level file (*.lvl)|*.lvl", .InitialDirectory = renderer.levelFolderLocation}
+        Using openDialog As New OpenFileDialog With {.Filter = "Level file (*.lvl)|*.lvl", .InitialDirectory = renderEngine.levelFolderLocation}
             If openDialog.ShowDialog() = DialogResult.OK Then
                 LoadLevel(openDialog.FileName)
             End If
@@ -139,7 +135,7 @@ Public Class FrmLevelEditor
             If savedLevelString <> createdLevel.ToString Then
                 unsavedChanges = True
             End If
-        ElseIf Not IsNothing(renderer.levelFolderLocation) Then     'no level folder location if form isnt finished loading
+        ElseIf Not IsNothing(renderEngine.levelFolderLocation) Then     'no level folder location if form isnt finished loading
             unsavedChanges = True
         End If
 
@@ -154,21 +150,22 @@ Public Class FrmLevelEditor
 #End Region
 
 #Region "Render"
-    'render
 
-    Dim renderer As PRE2
+    Dim renderEngine As PanelRenderEngine2
 
     Private Sub RenderCurrentRoom()
         'renders the current room
-        If Not IsNothing(renderer) Then
-            renderer.renderPanel = PnlRender
-            renderer.DoGameRender(SelectedRoom.actors)
+        If Not IsNothing(renderEngine) Then
+            renderEngine.renderPanel = PnlRender
+            renderEngine.DoGameRenderNoSort(SelectedRoom.actors)
         End If
     End Sub
 
 #End Region
 
 #Region "Actors"
+
+    Private ReadOnly unselectedActor As New Actor With {.Name = "UnselectedActor"}
 
     Private Property Actors As Actor()
         Get
@@ -189,7 +186,7 @@ Public Class FrmLevelEditor
             If LstActors.SelectedIndex > -1 Then
                 Return SelectedRoom.actors(LstActors.SelectedIndex)
             Else
-                Return New Actor With {.Name = "UnselectedActor"}
+                Return unselectedActor
             End If
         End Get
         Set(value As Actor)
@@ -204,7 +201,7 @@ Public Class FrmLevelEditor
     Private Sub BtnCreateActor_Click(sender As Object, e As EventArgs) Handles BtnCreateActor.Click
         'opens Actor Maker for user and adds created actor to room
 
-        Using actorMaker As New FrmActorMaker(Nothing, renderer.spriteFolderLocation)
+        Using actorMaker As New FrmActorMaker(Nothing, renderEngine.spriteFolderLocation)
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
@@ -219,7 +216,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmActorEdit_Click(sender As Object, e As EventArgs) Handles ItmActorEdit.Click
-        Using actorMaker As New FrmActorMaker(SelectedActor, renderer.spriteFolderLocation)
+        Using actorMaker As New FrmActorMaker(SelectedActor, renderEngine.spriteFolderLocation)
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
@@ -325,7 +322,7 @@ Public Class FrmLevelEditor
         Dim tagControls() As Control = {TxtActorName, NumActorLocX, NumActorLocY,
             NumActorLayer, NumActorScale, LstActorTags, BtnAddActorTag}
 
-        For Each ctrl As Object In tagControls
+        For Each ctrl As Control In tagControls
             ctrl.Enabled = enabled
         Next
     End Sub
@@ -336,7 +333,7 @@ Public Class FrmLevelEditor
         disableTagChangedEvent = True
 
         If IsNothing(displayActor) Then      'if no actor provided then uses an empty actor
-            displayActor = New Actor With {.Name = "No Actor Selected"}       'this doesn't work as actors have some default properties
+            displayActor = New Actor       'this doesn't work as actors have some default properties
             'ToggleTagControls(False)
         End If
 
@@ -354,10 +351,12 @@ Public Class FrmLevelEditor
         'updates the key tags (location, layer, scale) of selected actor using the key tags controls' values
 
         If Not disableTagChangedEvent Then
+            disableTagChangedEvent = True
             SelectedActor.Name = TxtActorName.Text
             SelectedActor.Location = New PointF(NumActorLocX.Value, NumActorLocY.Value)
             SelectedActor.Layer = NumActorLayer.Value
             SelectedActor.Scale = NumActorScale.Value
+            disableTagChangedEvent = False
         End If
         RefreshTagsList()
         RenderCurrentRoom()
@@ -403,7 +402,7 @@ Public Class FrmLevelEditor
         'mouse starts holding the instance underneath it
 
         'gets the relative mouse location in the game render
-        Dim mouseLocationInRender As New PointF(e.X / renderer.RenderScale.Width, e.Y / renderer.RenderScale.Height)
+        Dim mouseLocationInRender As New PointF(e.X / renderEngine.RenderScale.Width, e.Y / renderEngine.RenderScale.Height)
 
         'finds which instances the mouse is over
         Dim possibleInstanceIndices() As Integer = Nothing
@@ -441,8 +440,8 @@ Public Class FrmLevelEditor
         'mouse moves the held instance
 
         If heldInstanceIndex >= 0 Then
-            SelectedRoom.actors(heldInstanceIndex).Location = New PointF(e.X / renderer.RenderScale.Width + relativeHoldLocation.X,
-                                                                            e.Y / renderer.RenderScale.Height + relativeHoldLocation.Y)
+            SelectedRoom.actors(heldInstanceIndex).Location = New PointF(e.X / renderEngine.RenderScale.Width + relativeHoldLocation.X,
+                                                                            e.Y / renderEngine.RenderScale.Height + relativeHoldLocation.Y)
             RenderCurrentRoom()
             ShowActorTags(SelectedRoom.actors(heldInstanceIndex))
         End If
@@ -624,30 +623,6 @@ Public Class FrmLevelEditor
 
 #Region "General Procedures"
 
-    Private Sub RefreshList(list As ListBox, values() As String)
-        'empties a list and fills it with given values
-
-        If Not IsNothing(list) Then
-            Dim startSelectedIndex As Integer = list.SelectedIndex
-            list.SelectedIndex = -1
-            list.Items.Clear()
-
-            If Not IsNothing(values) Then
-                For Each value As String In values
-                    If Not IsNothing(value) Then
-                        list.Items.Add(value)
-                    End If
-                Next value
-
-                If startSelectedIndex < list.Items.Count Then
-                    list.SelectedIndex = startSelectedIndex
-                End If
-            End If
-        Else
-            'DisplayError("A list tried to refresh but doesn't exist")
-        End If
-    End Sub
-
     Private Sub AnySelectionChanged(sender As Object, e As EventArgs) Handles _
         LstActors.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged,
         LstRooms.SelectedIndexChanged, LstActorTags.SelectedIndexChanged
@@ -656,59 +631,12 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub RefreshControlsEnabled()
-        'enables or disables controls based on current condition
+        'enables or disables controls based on which lists have a selected item
 
-        'Dim templateSelected As Boolean = lstTemplates.SelectedIndex > -1
         Dim actorSelected As Boolean = LstActors.SelectedIndex > -1
         Dim roomSelected As Boolean = LstRooms.SelectedIndex > -1
         Dim actorTagSelected As Boolean = LstActorTags.SelectedIndex > -1
         Dim paramSelected As Boolean = LstLevelParams.SelectedIndex > -1
-        'Dim levelParamSelected As Boolean = LstLevelParams.SelectedIndex > -1
-        'Dim levelSaveLocationSelected As Boolean = Not IsNothing(levelSaveLocation) AndAlso IO.File.Exists(levelSaveLocation)
-
-        ' Dim controlsDefaultDisabled() As Object = {
-        '     BtnCreateActor, ItmActorDuplicate, ItmActorDelete, ItmActorDuplicate, BtnAddActorTag,
-        '     ItmTagsEdit, ItmTagsDelete, ItmTagsDuplicate, BtnAddLevelParam, ItmParameterDelete,
-        '     ItmParameterDuplicate, ItmParameterEdit
-        ' }
-        ' Dim controlsDefaultEnabled() As Object = {
-        '     BtnRoomAdd, BtnAddLevelParam
-        ' }
-        ' For Each ctrl As Object In controlsDefaultDisabled
-        '     ctrl.Enabled = False
-        ' Next ctrl
-        ' For Each ctrl As Object In controlsDefaultEnabled
-        '     ctrl.Enabled = True
-        ' Next
-        ' ToggleTagControls(False)
-
-        ' If roomSelected Then
-        '     BtnCreateActor.Enabled = True
-        '     ItmRoomDelete.Enabled = True
-        '     ItmRoomDuplicate.Enabled = True
-
-        '     If actorSelected Then
-        '         ToggleTagControls(True)
-
-        '         ItmActorDelete.Enabled = True
-        '         ItmActorDuplicate.Enabled = True
-        '         ItmActorEdit.Enabled = True
-        '         BtnAddActorTag.Enabled = True
-
-        '         BtnAddActorTag.Enabled = True
-        '         If actorTagSelected Then
-        '             ItmTagsDelete.Enabled = True
-        '             ItmTagsDuplicate.Enabled = True
-        '             ItmTagsEdit.Enabled = True
-        '         End If
-        '     End If
-        ' End If
-
-        ' If paramSelected Then
-        '     ItmParameterDelete.Enabled = True
-        '     ItmParameterDuplicate.Enabled = True
-        '     ItmParameterEdit.Enabled = True
-        ' End If
 
         'enabled if a room is selected
         BtnCreateActor.Enabled = roomSelected
@@ -731,6 +659,14 @@ Public Class FrmLevelEditor
         ItmParameterDelete.Enabled = paramSelected
         ItmParameterDuplicate.Enabled = paramSelected
         ItmParameterEdit.Enabled = paramSelected
+    End Sub
+
+    Private Sub RefreshAllLists()
+        RefreshParameterList()
+        RefreshRoomsList()
+        RefreshActorsList()
+        RefreshTagsList()
+        Refresh()
     End Sub
 
 #End Region
