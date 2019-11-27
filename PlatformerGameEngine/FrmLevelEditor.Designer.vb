@@ -68,6 +68,7 @@ Partial Class FrmLevelEditor
         Me.CntxtRooms = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.ItmRoomDelete = New System.Windows.Forms.ToolStripMenuItem()
         Me.ItmRoomDuplicate = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ItmRoomEdit = New System.Windows.Forms.ToolStripMenuItem()
         Me.CntxtActors.SuspendLayout()
         CType(Me.NumActorLocX, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.NumActorLocY, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -86,11 +87,10 @@ Partial Class FrmLevelEditor
         Me.PnlRender.BackColor = System.Drawing.Color.Black
         Me.TblControlsOverall.SetColumnSpan(Me.PnlRender, 2)
         Me.PnlRender.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.PnlRender.Location = New System.Drawing.Point(2, 27)
-        Me.PnlRender.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.PnlRender.Location = New System.Drawing.Point(3, 37)
         Me.PnlRender.Name = "PnlRender"
         Me.TblControlsOverall.SetRowSpan(Me.PnlRender, 3)
-        Me.PnlRender.Size = New System.Drawing.Size(400, 292)
+        Me.PnlRender.Size = New System.Drawing.Size(600, 449)
         Me.PnlRender.TabIndex = 1
         '
         'LstActors
@@ -98,10 +98,10 @@ Partial Class FrmLevelEditor
         Me.LstActors.BorderStyle = System.Windows.Forms.BorderStyle.None
         Me.LstActors.ContextMenuStrip = Me.CntxtActors
         Me.LstActors.FormattingEnabled = True
-        Me.LstActors.Location = New System.Drawing.Point(2, 349)
-        Me.LstActors.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.LstActors.ItemHeight = 20
+        Me.LstActors.Location = New System.Drawing.Point(3, 529)
         Me.LstActors.Name = "LstActors"
-        Me.LstActors.Size = New System.Drawing.Size(133, 195)
+        Me.LstActors.Size = New System.Drawing.Size(200, 300)
         Me.LstActors.TabIndex = 19
         '
         'CntxtActors
@@ -109,34 +109,33 @@ Partial Class FrmLevelEditor
         Me.CntxtActors.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.CntxtActors.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ItmActorDelete, Me.ItmActorEdit, Me.ItmActorDuplicate})
         Me.CntxtActors.Name = "CntxtActors"
-        Me.CntxtActors.Size = New System.Drawing.Size(125, 70)
+        Me.CntxtActors.Size = New System.Drawing.Size(159, 100)
         '
         'ItmActorDelete
         '
         Me.ItmActorDelete.Name = "ItmActorDelete"
-        Me.ItmActorDelete.Size = New System.Drawing.Size(124, 22)
+        Me.ItmActorDelete.Size = New System.Drawing.Size(158, 32)
         Me.ItmActorDelete.Text = "Delete"
         '
         'ItmActorEdit
         '
         Me.ItmActorEdit.Name = "ItmActorEdit"
-        Me.ItmActorEdit.Size = New System.Drawing.Size(124, 22)
+        Me.ItmActorEdit.Size = New System.Drawing.Size(158, 32)
         Me.ItmActorEdit.Text = "Edit"
         '
         'ItmActorDuplicate
         '
         Me.ItmActorDuplicate.Name = "ItmActorDuplicate"
-        Me.ItmActorDuplicate.Size = New System.Drawing.Size(124, 22)
+        Me.ItmActorDuplicate.Size = New System.Drawing.Size(158, 32)
         Me.ItmActorDuplicate.Text = "Duplicate"
         '
         'LblActors
         '
         Me.LblActors.AutoSize = True
         Me.LblActors.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!)
-        Me.LblActors.Location = New System.Drawing.Point(2, 321)
-        Me.LblActors.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
+        Me.LblActors.Location = New System.Drawing.Point(3, 489)
         Me.LblActors.Name = "LblActors"
-        Me.LblActors.Size = New System.Drawing.Size(74, 26)
+        Me.LblActors.Size = New System.Drawing.Size(109, 37)
         Me.LblActors.TabIndex = 6
         Me.LblActors.Text = "Actors"
         '
@@ -145,62 +144,56 @@ Partial Class FrmLevelEditor
         Me.LblActorProperties.AutoSize = True
         Me.TblActorProperties.SetColumnSpan(Me.LblActorProperties, 3)
         Me.LblActorProperties.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!)
-        Me.LblActorProperties.Location = New System.Drawing.Point(2, 0)
-        Me.LblActorProperties.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
+        Me.LblActorProperties.Location = New System.Drawing.Point(3, 0)
         Me.LblActorProperties.Name = "LblActorProperties"
-        Me.LblActorProperties.Size = New System.Drawing.Size(168, 26)
+        Me.LblActorProperties.Size = New System.Drawing.Size(247, 37)
         Me.LblActorProperties.TabIndex = 8
         Me.LblActorProperties.Text = "Actor Properties"
         '
         'LblActorLocation
         '
         Me.LblActorLocation.AutoSize = True
-        Me.LblActorLocation.Location = New System.Drawing.Point(2, 47)
-        Me.LblActorLocation.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
+        Me.LblActorLocation.Location = New System.Drawing.Point(3, 70)
         Me.LblActorLocation.Name = "LblActorLocation"
-        Me.LblActorLocation.Size = New System.Drawing.Size(48, 13)
+        Me.LblActorLocation.Size = New System.Drawing.Size(70, 20)
         Me.LblActorLocation.TabIndex = 9
         Me.LblActorLocation.Text = "Location"
         '
         'NumActorLocX
         '
         Me.NumActorLocX.DecimalPlaces = 1
-        Me.NumActorLocX.Location = New System.Drawing.Point(54, 49)
-        Me.NumActorLocX.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.NumActorLocX.Location = New System.Drawing.Point(79, 73)
         Me.NumActorLocX.Maximum = New Decimal(New Integer() {32767, 0, 0, 0})
         Me.NumActorLocX.Minimum = New Decimal(New Integer() {32768, 0, 0, -2147483648})
         Me.NumActorLocX.Name = "NumActorLocX"
-        Me.NumActorLocX.Size = New System.Drawing.Size(56, 20)
+        Me.NumActorLocX.Size = New System.Drawing.Size(84, 26)
         Me.NumActorLocX.TabIndex = 24
         '
         'NumActorLocY
         '
         Me.NumActorLocY.DecimalPlaces = 1
-        Me.NumActorLocY.Location = New System.Drawing.Point(114, 49)
-        Me.NumActorLocY.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.NumActorLocY.Location = New System.Drawing.Point(169, 73)
         Me.NumActorLocY.Maximum = New Decimal(New Integer() {32767, 0, 0, 0})
         Me.NumActorLocY.Minimum = New Decimal(New Integer() {32768, 0, 0, -2147483648})
         Me.NumActorLocY.Name = "NumActorLocY"
-        Me.NumActorLocY.Size = New System.Drawing.Size(56, 20)
+        Me.NumActorLocY.Size = New System.Drawing.Size(84, 26)
         Me.NumActorLocY.TabIndex = 25
         '
         'NumActorLayer
         '
-        Me.NumActorLayer.Location = New System.Drawing.Point(54, 70)
-        Me.NumActorLayer.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.NumActorLayer.Location = New System.Drawing.Point(79, 106)
         Me.NumActorLayer.Maximum = New Decimal(New Integer() {32767, 0, 0, 0})
         Me.NumActorLayer.Minimum = New Decimal(New Integer() {32768, 0, 0, -2147483648})
         Me.NumActorLayer.Name = "NumActorLayer"
-        Me.NumActorLayer.Size = New System.Drawing.Size(56, 20)
+        Me.NumActorLayer.Size = New System.Drawing.Size(84, 26)
         Me.NumActorLayer.TabIndex = 26
         '
         'LblActorLayer
         '
         Me.LblActorLayer.AutoSize = True
-        Me.LblActorLayer.Location = New System.Drawing.Point(2, 68)
-        Me.LblActorLayer.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
+        Me.LblActorLayer.Location = New System.Drawing.Point(3, 103)
         Me.LblActorLayer.Name = "LblActorLayer"
-        Me.LblActorLayer.Size = New System.Drawing.Size(33, 13)
+        Me.LblActorLayer.Size = New System.Drawing.Size(48, 20)
         Me.LblActorLayer.TabIndex = 12
         Me.LblActorLayer.Text = "Layer"
         '
@@ -208,21 +201,19 @@ Partial Class FrmLevelEditor
         '
         Me.NumActorScale.DecimalPlaces = 2
         Me.NumActorScale.Increment = New Decimal(New Integer() {10, 0, 0, 131072})
-        Me.NumActorScale.Location = New System.Drawing.Point(54, 91)
-        Me.NumActorScale.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.NumActorScale.Location = New System.Drawing.Point(79, 139)
         Me.NumActorScale.Maximum = New Decimal(New Integer() {255, 0, 0, 0})
         Me.NumActorScale.Name = "NumActorScale"
-        Me.NumActorScale.Size = New System.Drawing.Size(56, 20)
+        Me.NumActorScale.Size = New System.Drawing.Size(84, 26)
         Me.NumActorScale.TabIndex = 27
         Me.NumActorScale.Value = New Decimal(New Integer() {1, 0, 0, 0})
         '
         'LblActorScale
         '
         Me.LblActorScale.AutoSize = True
-        Me.LblActorScale.Location = New System.Drawing.Point(2, 89)
-        Me.LblActorScale.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
+        Me.LblActorScale.Location = New System.Drawing.Point(3, 136)
         Me.LblActorScale.Name = "LblActorScale"
-        Me.LblActorScale.Size = New System.Drawing.Size(34, 13)
+        Me.LblActorScale.Size = New System.Drawing.Size(49, 20)
         Me.LblActorScale.TabIndex = 14
         Me.LblActorScale.Text = "Scale"
         '
@@ -231,10 +222,10 @@ Partial Class FrmLevelEditor
         Me.LblRooms.Anchor = System.Windows.Forms.AnchorStyles.Left
         Me.LblRooms.AutoSize = True
         Me.LblRooms.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.LblRooms.Location = New System.Drawing.Point(406, 25)
-        Me.LblRooms.Margin = New System.Windows.Forms.Padding(2, 0, 7, 0)
+        Me.LblRooms.Location = New System.Drawing.Point(609, 34)
+        Me.LblRooms.Margin = New System.Windows.Forms.Padding(3, 0, 10, 0)
         Me.LblRooms.Name = "LblRooms"
-        Me.LblRooms.Size = New System.Drawing.Size(82, 26)
+        Me.LblRooms.Size = New System.Drawing.Size(118, 37)
         Me.LblRooms.TabIndex = 4
         Me.LblRooms.Text = "Rooms"
         '
@@ -255,8 +246,7 @@ Partial Class FrmLevelEditor
         Me.TblActorProperties.Controls.Add(Me.LblActorName, 0, 1)
         Me.TblActorProperties.Controls.Add(Me.TxtActorName, 1, 1)
         Me.TblActorProperties.Dock = System.Windows.Forms.DockStyle.Top
-        Me.TblActorProperties.Location = New System.Drawing.Point(139, 323)
-        Me.TblActorProperties.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.TblActorProperties.Location = New System.Drawing.Point(209, 492)
         Me.TblActorProperties.Name = "TblActorProperties"
         Me.TblActorProperties.RowCount = 5
         Me.TblControlsOverall.SetRowSpan(Me.TblActorProperties, 2)
@@ -265,38 +255,35 @@ Partial Class FrmLevelEditor
         Me.TblActorProperties.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
         Me.TblActorProperties.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
         Me.TblActorProperties.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-        Me.TblActorProperties.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 13.0!))
-        Me.TblActorProperties.Size = New System.Drawing.Size(263, 112)
+        Me.TblActorProperties.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+        Me.TblActorProperties.Size = New System.Drawing.Size(394, 172)
         Me.TblActorProperties.TabIndex = 17
         '
         'LblActorName
         '
         Me.LblActorName.AutoSize = True
-        Me.LblActorName.Location = New System.Drawing.Point(2, 26)
-        Me.LblActorName.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
+        Me.LblActorName.Location = New System.Drawing.Point(3, 37)
         Me.LblActorName.Name = "LblActorName"
-        Me.LblActorName.Size = New System.Drawing.Size(35, 13)
+        Me.LblActorName.Size = New System.Drawing.Size(51, 20)
         Me.LblActorName.TabIndex = 16
         Me.LblActorName.Text = "Name"
         '
         'TxtActorName
         '
         Me.TblActorProperties.SetColumnSpan(Me.TxtActorName, 2)
-        Me.TxtActorName.Location = New System.Drawing.Point(54, 28)
-        Me.TxtActorName.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.TxtActorName.Location = New System.Drawing.Point(79, 40)
         Me.TxtActorName.MaxLength = 32
         Me.TxtActorName.Name = "TxtActorName"
-        Me.TxtActorName.Size = New System.Drawing.Size(117, 20)
+        Me.TxtActorName.Size = New System.Drawing.Size(174, 26)
         Me.TxtActorName.TabIndex = 23
         '
         'BtnCreateActor
         '
         Me.BtnCreateActor.Enabled = False
         Me.BtnCreateActor.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.BtnCreateActor.Location = New System.Drawing.Point(2, 548)
-        Me.BtnCreateActor.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.BtnCreateActor.Location = New System.Drawing.Point(3, 835)
         Me.BtnCreateActor.Name = "BtnCreateActor"
-        Me.BtnCreateActor.Size = New System.Drawing.Size(133, 45)
+        Me.BtnCreateActor.Size = New System.Drawing.Size(200, 69)
         Me.BtnCreateActor.TabIndex = 20
         Me.BtnCreateActor.Text = "Create Actor"
         Me.BtnCreateActor.UseVisualStyleBackColor = True
@@ -306,10 +293,10 @@ Partial Class FrmLevelEditor
         Me.LstActorTags.BorderStyle = System.Windows.Forms.BorderStyle.None
         Me.LstActorTags.ContextMenuStrip = Me.CntxtTags
         Me.LstActorTags.FormattingEnabled = True
-        Me.LstActorTags.Location = New System.Drawing.Point(406, 349)
-        Me.LstActorTags.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.LstActorTags.ItemHeight = 20
+        Me.LstActorTags.Location = New System.Drawing.Point(609, 529)
         Me.LstActorTags.Name = "LstActorTags"
-        Me.LstActorTags.Size = New System.Drawing.Size(133, 195)
+        Me.LstActorTags.Size = New System.Drawing.Size(200, 300)
         Me.LstActorTags.TabIndex = 28
         '
         'CntxtTags
@@ -317,34 +304,33 @@ Partial Class FrmLevelEditor
         Me.CntxtTags.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.CntxtTags.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ItmTagsDelete, Me.ItmTagsEdit, Me.ItmTagsDuplicate})
         Me.CntxtTags.Name = "CntxtActors"
-        Me.CntxtTags.Size = New System.Drawing.Size(125, 70)
+        Me.CntxtTags.Size = New System.Drawing.Size(159, 100)
         '
         'ItmTagsDelete
         '
         Me.ItmTagsDelete.Name = "ItmTagsDelete"
-        Me.ItmTagsDelete.Size = New System.Drawing.Size(124, 22)
+        Me.ItmTagsDelete.Size = New System.Drawing.Size(158, 32)
         Me.ItmTagsDelete.Text = "Delete"
         '
         'ItmTagsEdit
         '
         Me.ItmTagsEdit.Name = "ItmTagsEdit"
-        Me.ItmTagsEdit.Size = New System.Drawing.Size(124, 22)
+        Me.ItmTagsEdit.Size = New System.Drawing.Size(158, 32)
         Me.ItmTagsEdit.Text = "Edit"
         '
         'ItmTagsDuplicate
         '
         Me.ItmTagsDuplicate.Name = "ItmTagsDuplicate"
-        Me.ItmTagsDuplicate.Size = New System.Drawing.Size(124, 22)
+        Me.ItmTagsDuplicate.Size = New System.Drawing.Size(158, 32)
         Me.ItmTagsDuplicate.Text = "Duplicate"
         '
         'BtnAddActorTag
         '
         Me.BtnAddActorTag.Enabled = False
         Me.BtnAddActorTag.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.BtnAddActorTag.Location = New System.Drawing.Point(406, 548)
-        Me.BtnAddActorTag.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.BtnAddActorTag.Location = New System.Drawing.Point(609, 835)
         Me.BtnAddActorTag.Name = "BtnAddActorTag"
-        Me.BtnAddActorTag.Size = New System.Drawing.Size(133, 45)
+        Me.BtnAddActorTag.Size = New System.Drawing.Size(200, 69)
         Me.BtnAddActorTag.TabIndex = 29
         Me.BtnAddActorTag.Text = "Add Tag"
         Me.BtnAddActorTag.UseVisualStyleBackColor = True
@@ -373,7 +359,6 @@ Partial Class FrmLevelEditor
         Me.TblControlsOverall.Controls.Add(Me.LstActorTags, 2, 5)
         Me.TblControlsOverall.Dock = System.Windows.Forms.DockStyle.Fill
         Me.TblControlsOverall.Location = New System.Drawing.Point(0, 0)
-        Me.TblControlsOverall.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
         Me.TblControlsOverall.Name = "TblControlsOverall"
         Me.TblControlsOverall.RowCount = 7
         Me.TblControlsOverall.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -383,7 +368,7 @@ Partial Class FrmLevelEditor
         Me.TblControlsOverall.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.TblControlsOverall.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.TblControlsOverall.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.TblControlsOverall.Size = New System.Drawing.Size(685, 573)
+        Me.TblControlsOverall.Size = New System.Drawing.Size(1028, 882)
         Me.TblControlsOverall.TabIndex = 24
         '
         'ToolBar
@@ -393,8 +378,8 @@ Partial Class FrmLevelEditor
         Me.ToolBar.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolBarFile})
         Me.ToolBar.Location = New System.Drawing.Point(0, 0)
         Me.ToolBar.Name = "ToolBar"
-        Me.ToolBar.Padding = New System.Windows.Forms.Padding(0, 0, 2, 0)
-        Me.ToolBar.Size = New System.Drawing.Size(685, 25)
+        Me.ToolBar.Padding = New System.Windows.Forms.Padding(0, 0, 3, 0)
+        Me.ToolBar.Size = New System.Drawing.Size(1028, 34)
         Me.ToolBar.TabIndex = 0
         Me.ToolBar.Text = "ToolBar"
         '
@@ -404,34 +389,33 @@ Partial Class FrmLevelEditor
         Me.ToolBarFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolBarFileOpen, Me.ToolBarFileSaveAs, Me.ToolBarFileSave})
         Me.ToolBarFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolBarFile.Name = "ToolBarFile"
-        Me.ToolBarFile.Size = New System.Drawing.Size(38, 22)
+        Me.ToolBarFile.Size = New System.Drawing.Size(56, 29)
         Me.ToolBarFile.Text = "File"
         '
         'ToolBarFileOpen
         '
         Me.ToolBarFileOpen.Name = "ToolBarFileOpen"
-        Me.ToolBarFileOpen.Size = New System.Drawing.Size(123, 22)
+        Me.ToolBarFileOpen.Size = New System.Drawing.Size(188, 34)
         Me.ToolBarFileOpen.Text = "Open..."
         '
         'ToolBarFileSaveAs
         '
         Me.ToolBarFileSaveAs.Name = "ToolBarFileSaveAs"
-        Me.ToolBarFileSaveAs.Size = New System.Drawing.Size(123, 22)
+        Me.ToolBarFileSaveAs.Size = New System.Drawing.Size(188, 34)
         Me.ToolBarFileSaveAs.Text = "Save As..."
         '
         'ToolBarFileSave
         '
         Me.ToolBarFileSave.Name = "ToolBarFileSave"
-        Me.ToolBarFileSave.Size = New System.Drawing.Size(123, 22)
+        Me.ToolBarFileSave.Size = New System.Drawing.Size(188, 34)
         Me.ToolBarFileSave.Text = "Save"
         '
         'BtnAddLevelParam
         '
         Me.BtnAddLevelParam.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.BtnAddLevelParam.Location = New System.Drawing.Point(543, 252)
-        Me.BtnAddLevelParam.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.BtnAddLevelParam.Location = New System.Drawing.Point(815, 380)
         Me.BtnAddLevelParam.Name = "BtnAddLevelParam"
-        Me.BtnAddLevelParam.Size = New System.Drawing.Size(133, 45)
+        Me.BtnAddLevelParam.Size = New System.Drawing.Size(200, 69)
         Me.BtnAddLevelParam.TabIndex = 33
         Me.BtnAddLevelParam.Text = "Add Parameter"
         Me.BtnAddLevelParam.UseVisualStyleBackColor = True
@@ -441,10 +425,10 @@ Partial Class FrmLevelEditor
         Me.LblLevelParams.Anchor = System.Windows.Forms.AnchorStyles.Left
         Me.LblLevelParams.AutoSize = True
         Me.LblLevelParams.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.LblLevelParams.Location = New System.Drawing.Point(543, 25)
-        Me.LblLevelParams.Margin = New System.Windows.Forms.Padding(2, 0, 7, 0)
+        Me.LblLevelParams.Location = New System.Drawing.Point(815, 34)
+        Me.LblLevelParams.Margin = New System.Windows.Forms.Padding(3, 0, 10, 0)
         Me.LblLevelParams.Name = "LblLevelParams"
-        Me.LblLevelParams.Size = New System.Drawing.Size(125, 26)
+        Me.LblLevelParams.Size = New System.Drawing.Size(182, 37)
         Me.LblLevelParams.TabIndex = 34
         Me.LblLevelParams.Text = "Parameters"
         '
@@ -453,10 +437,10 @@ Partial Class FrmLevelEditor
         Me.LstLevelParams.BorderStyle = System.Windows.Forms.BorderStyle.None
         Me.LstLevelParams.ContextMenuStrip = Me.CntxtParameters
         Me.LstLevelParams.FormattingEnabled = True
-        Me.LstLevelParams.Location = New System.Drawing.Point(543, 53)
-        Me.LstLevelParams.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.LstLevelParams.ItemHeight = 20
+        Me.LstLevelParams.Location = New System.Drawing.Point(815, 74)
         Me.LstLevelParams.Name = "LstLevelParams"
-        Me.LstLevelParams.Size = New System.Drawing.Size(133, 195)
+        Me.LstLevelParams.Size = New System.Drawing.Size(200, 300)
         Me.LstLevelParams.TabIndex = 32
         '
         'CntxtParameters
@@ -464,44 +448,42 @@ Partial Class FrmLevelEditor
         Me.CntxtParameters.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.CntxtParameters.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ItmParameterDelete, Me.ItmParameterEdit, Me.ItmParameterDuplicate})
         Me.CntxtParameters.Name = "CntxtActors"
-        Me.CntxtParameters.Size = New System.Drawing.Size(125, 70)
+        Me.CntxtParameters.Size = New System.Drawing.Size(159, 100)
         '
         'ItmParameterDelete
         '
         Me.ItmParameterDelete.Name = "ItmParameterDelete"
-        Me.ItmParameterDelete.Size = New System.Drawing.Size(124, 22)
+        Me.ItmParameterDelete.Size = New System.Drawing.Size(158, 32)
         Me.ItmParameterDelete.Text = "Delete"
         '
         'ItmParameterEdit
         '
         Me.ItmParameterEdit.Name = "ItmParameterEdit"
-        Me.ItmParameterEdit.Size = New System.Drawing.Size(124, 22)
+        Me.ItmParameterEdit.Size = New System.Drawing.Size(158, 32)
         Me.ItmParameterEdit.Text = "Edit"
         '
         'ItmParameterDuplicate
         '
         Me.ItmParameterDuplicate.Name = "ItmParameterDuplicate"
-        Me.ItmParameterDuplicate.Size = New System.Drawing.Size(124, 22)
+        Me.ItmParameterDuplicate.Size = New System.Drawing.Size(158, 32)
         Me.ItmParameterDuplicate.Text = "Duplicate"
         '
         'LblActorTags
         '
         Me.LblActorTags.AutoSize = True
         Me.LblActorTags.Font = New System.Drawing.Font("Microsoft Sans Serif", 16.0!)
-        Me.LblActorTags.Location = New System.Drawing.Point(406, 321)
-        Me.LblActorTags.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
+        Me.LblActorTags.Location = New System.Drawing.Point(609, 489)
         Me.LblActorTags.Name = "LblActorTags"
-        Me.LblActorTags.Size = New System.Drawing.Size(116, 26)
+        Me.LblActorTags.Size = New System.Drawing.Size(174, 37)
         Me.LblActorTags.TabIndex = 28
         Me.LblActorTags.Text = "Actor Tags"
         '
         'BtnRoomAdd
         '
         Me.BtnRoomAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.BtnRoomAdd.Location = New System.Drawing.Point(406, 252)
-        Me.BtnRoomAdd.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.BtnRoomAdd.Location = New System.Drawing.Point(609, 380)
         Me.BtnRoomAdd.Name = "BtnRoomAdd"
-        Me.BtnRoomAdd.Size = New System.Drawing.Size(133, 45)
+        Me.BtnRoomAdd.Size = New System.Drawing.Size(200, 69)
         Me.BtnRoomAdd.TabIndex = 12
         Me.BtnRoomAdd.Text = "Add Room"
         Me.BtnRoomAdd.UseVisualStyleBackColor = True
@@ -511,40 +493,45 @@ Partial Class FrmLevelEditor
         Me.LstRooms.BorderStyle = System.Windows.Forms.BorderStyle.None
         Me.LstRooms.ContextMenuStrip = Me.CntxtRooms
         Me.LstRooms.FormattingEnabled = True
-        Me.LstRooms.Location = New System.Drawing.Point(406, 53)
-        Me.LstRooms.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
+        Me.LstRooms.ItemHeight = 20
+        Me.LstRooms.Location = New System.Drawing.Point(609, 74)
         Me.LstRooms.Name = "LstRooms"
-        Me.LstRooms.Size = New System.Drawing.Size(133, 195)
+        Me.LstRooms.Size = New System.Drawing.Size(200, 300)
         Me.LstRooms.TabIndex = 11
         '
         'CntxtRooms
         '
         Me.CntxtRooms.ImageScalingSize = New System.Drawing.Size(24, 24)
-        Me.CntxtRooms.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ItmRoomDelete, Me.ItmRoomDuplicate})
+        Me.CntxtRooms.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ItmRoomDelete, Me.ItmRoomEdit, Me.ItmRoomDuplicate})
         Me.CntxtRooms.Name = "CntxtActors"
-        Me.CntxtRooms.Size = New System.Drawing.Size(125, 48)
+        Me.CntxtRooms.Size = New System.Drawing.Size(241, 133)
         '
         'ItmRoomDelete
         '
         Me.ItmRoomDelete.Name = "ItmRoomDelete"
-        Me.ItmRoomDelete.Size = New System.Drawing.Size(124, 22)
+        Me.ItmRoomDelete.Size = New System.Drawing.Size(240, 32)
         Me.ItmRoomDelete.Text = "Delete"
         '
         'ItmRoomDuplicate
         '
         Me.ItmRoomDuplicate.Name = "ItmRoomDuplicate"
-        Me.ItmRoomDuplicate.Size = New System.Drawing.Size(124, 22)
+        Me.ItmRoomDuplicate.Size = New System.Drawing.Size(240, 32)
         Me.ItmRoomDuplicate.Text = "Duplicate"
+        '
+        'ItmRoomEdit
+        '
+        Me.ItmRoomEdit.Name = "ItmRoomEdit"
+        Me.ItmRoomEdit.Size = New System.Drawing.Size(240, 32)
+        Me.ItmRoomEdit.Text = "Edit"
         '
         'FrmLevelEditor
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlDark
-        Me.ClientSize = New System.Drawing.Size(685, 573)
+        Me.ClientSize = New System.Drawing.Size(1028, 882)
         Me.Controls.Add(Me.TblControlsOverall)
         Me.DoubleBuffered = True
-        Me.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
         Me.Name = "FrmLevelEditor"
         Me.Text = "Level Editor"
         Me.CntxtActors.ResumeLayout(False)
@@ -610,4 +597,5 @@ Partial Class FrmLevelEditor
     Friend WithEvents ItmTagsDelete As ToolStripMenuItem
     Friend WithEvents ItmTagsEdit As ToolStripMenuItem
     Friend WithEvents ItmTagsDuplicate As ToolStripMenuItem
+    Friend WithEvents ItmRoomEdit As ToolStripMenuItem
 End Class

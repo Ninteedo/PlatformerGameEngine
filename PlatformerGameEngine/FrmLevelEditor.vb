@@ -75,7 +75,7 @@ Public Class FrmLevelEditor
             Dim levelString As String = ReadFile(levelSaveLocation)
             createdLevel = New Level(levelString, renderEngine)
 
-            RefreshAllLists()
+            RefreshEverything()
 
             RefreshControlsEnabled()
         Else
@@ -247,11 +247,11 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub RefreshActorsList()
-        If Not IsNothing(SelectedRoom.actors) Then
-            Dim names(UBound(SelectedRoom.actors)) As String
+        If Not IsNothing(Actors) Then
+            Dim names(UBound(Actors)) As String
 
-            For index As Integer = 0 To UBound(SelectedRoom.actors)
-                names(index) = SelectedRoom.actors(index).Name
+            For index As Integer = 0 To UBound(Actors)
+                names(index) = Actors(index).Name
             Next
 
             RefreshList(LstActors, names)
@@ -290,7 +290,7 @@ Public Class FrmLevelEditor
             End If
         End Get
         Set(value As Tag)
-            If LstActorTags.SelectedIndex > -1 And LstActorTags.SelectedIndex <= UBound(Rooms) Then
+            If LstActorTags.SelectedIndex > -1 Then
                 Tags(LstActorTags.SelectedIndex) = value
             End If
         End Set
@@ -356,8 +356,9 @@ Public Class FrmLevelEditor
             SelectedActor.Location = New PointF(NumActorLocX.Value, NumActorLocY.Value)
             SelectedActor.Layer = NumActorLayer.Value
             SelectedActor.Scale = NumActorScale.Value
+
             disableTagChangedEvent = False
-        End If
+            End If
         RefreshTagsList()
         RenderCurrentRoom()
     End Sub
@@ -406,8 +407,8 @@ Public Class FrmLevelEditor
 
         'finds which instances the mouse is over
         Dim possibleInstanceIndices() As Integer = Nothing
-        For index As Integer = 0 To UBound(SelectedRoom.actors)
-            Dim instanceArea As RectangleF = SelectedRoom.actors(index).Hitbox()
+        For index As Integer = 0 To UBound(Actors)
+            Dim instanceArea As RectangleF = Actors(index).Hitbox()
 
             If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
                 And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
@@ -420,18 +421,21 @@ Public Class FrmLevelEditor
             End If
         Next
 
-        'finds which instance has the highest index
         If Not IsNothing(possibleInstanceIndices) Then
+            'finds which instance has the highest index
             Dim topMostInstanceIndex As Integer = possibleInstanceIndices(0)
             For index As Integer = 0 To UBound(possibleInstanceIndices)
-                If SelectedRoom.actors(possibleInstanceIndices(index)).Layer > SelectedRoom.actors(topMostInstanceIndex).Layer Then
+                If Actors(possibleInstanceIndices(index)).Layer > Actors(topMostInstanceIndex).Layer Then
                     topMostInstanceIndex = possibleInstanceIndices(index)
                 End If
             Next
 
+            'starts holding the top most actor
             heldInstanceIndex = topMostInstanceIndex
-            relativeHoldLocation = New PointF(SelectedRoom.actors(heldInstanceIndex).Hitbox.Left - mouseLocationInRender.X,
-                                              SelectedRoom.actors(heldInstanceIndex).Hitbox.Top - mouseLocationInRender.Y)
+            relativeHoldLocation = New PointF(Actors(heldInstanceIndex).Hitbox.Left - mouseLocationInRender.X,
+                                              Actors(heldInstanceIndex).Hitbox.Top - mouseLocationInRender.Y)
+            
+            'show the user which actor is selected by changing the selected actor in the actor list
             LstActors.SelectedIndex = heldInstanceIndex
         End If
     End Sub
@@ -440,10 +444,11 @@ Public Class FrmLevelEditor
         'mouse moves the held instance
 
         If heldInstanceIndex >= 0 Then
-            SelectedRoom.actors(heldInstanceIndex).Location = New PointF(e.X / renderEngine.RenderScale.Width + relativeHoldLocation.X,
-                                                                            e.Y / renderEngine.RenderScale.Height + relativeHoldLocation.Y)
+            'calculates where the mouse has moved the held actor to
+            Actors(heldInstanceIndex).Location = New PointF(e.X / renderEngine.RenderScale.Width + relativeHoldLocation.X,
+                                                            e.Y / renderEngine.RenderScale.Height + relativeHoldLocation.Y)
             RenderCurrentRoom()
-            ShowActorTags(SelectedRoom.actors(heldInstanceIndex))
+            ShowActorTags(Actors(heldInstanceIndex))
         End If
     End Sub
 
@@ -466,25 +471,23 @@ Public Class FrmLevelEditor
         Set(value As Tag())
             createdLevel.tags = value
 
-            RefreshParameterList()
-
-            RenderCurrentRoom()
+            RefreshEverything()
         End Set
     End Property
 
     Private Property SelectedParameter As Tag
         Get
             If LstLevelParams.SelectedIndex > -1 Then
-                Return SelectedActor.tags(LstLevelParams.SelectedIndex)
+                Return createdLevel.tags(LstLevelParams.SelectedIndex)
             Else
                 Return New Tag("UnselectedTag")
             End If
         End Get
         Set(value As Tag)
-            If LstActors.SelectedIndex > -1 Then
-                SelectedActor.tags(LstLevelParams.SelectedIndex) = value
-                'Else
-                '    DisplayError("Tried to modify an tag but none were selected")
+            If LstLevelParams.SelectedIndex > -1 Then
+                createdLevel.tags(LstLevelParams.SelectedIndex) = value
+
+                RefreshEverything()
             End If
         End Set
     End Property
@@ -502,7 +505,6 @@ Public Class FrmLevelEditor
         Else
             RefreshList(LstLevelParams, Nothing)
         End If
-
     End Sub
 
     Private Sub LstLevelParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstLevelParams.SelectedIndexChanged
@@ -555,10 +557,7 @@ Public Class FrmLevelEditor
         Set(value As Room())
             createdLevel.rooms = value
 
-            RefreshRoomsList()
-            RefreshActorsList()
-
-            RenderCurrentRoom()
+            RefreshEverything()
         End Set
     End Property
 
@@ -573,19 +572,19 @@ Public Class FrmLevelEditor
         Set(value As Room)
             If LstRooms.SelectedIndex > -1 And LstRooms.SelectedIndex <= UBound(Rooms) Then
                 Rooms(LstRooms.SelectedIndex) = value
+                RefreshEverything()
             End If
         End Set
     End Property
 
     Private Sub RefreshRoomsList()
-        If IsNothing(Rooms) = False Then
-            Dim roomNames(UBound(Rooms)) As String
-
+        If Not IsNothing(Rooms) Then
+            Dim items(UBound(Rooms)) As String
             For index As Integer = 0 To UBound(Rooms)
-                roomNames(index) = Rooms(index).name
+                items(index) = Rooms(index).name
             Next
 
-            RefreshList(LstRooms, roomNames)
+            RefreshList(LstRooms, items)
         End If
     End Sub
 
@@ -604,7 +603,7 @@ Public Class FrmLevelEditor
 
         If Not IsNothing(roomName) AndAlso roomName.Length > 0 Then
             Rooms = InsertItem(Rooms, New Room With {.name = roomName})
-            LstRooms.SelectedIndex = UBound(Rooms)
+            LstRooms.SelectedIndex = UBound(Rooms)      'automatically selects the new room
         End If
     End Sub
 
@@ -614,9 +613,18 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
+    Private Sub ItmRoomEdit_Click(sender As Object, e As EventArgs) Handles ItmRoomEdit.Click
+        Dim newName As String = InputBox("Please enter the new name for " & SelectedRoom.name)
+
+        If Not IsNothing(newName) AndAlso newName.Length > 0 Then
+            SelectedRoom.name = newName
+            RefreshEverything()
+        End If
+    End Sub
+
     Private Sub ItmRoomDuplicate_Click(sender As Object, e As EventArgs) Handles ItmRoomDuplicate.Click
         Rooms = InsertItem(Rooms, SelectedRoom)
-        LstRooms.SelectedIndex = UBound(Rooms)
+        LstRooms.SelectedIndex = UBound(Rooms)  'automatically selects the new room
     End Sub
 
 #End Region
@@ -661,12 +669,15 @@ Public Class FrmLevelEditor
         ItmParameterEdit.Enabled = paramSelected
     End Sub
 
-    Private Sub RefreshAllLists()
+    Private Sub RefreshEverything()
+        'updates all the lists and renders the current room
+        'used to show the current state of the level to the user
+
         RefreshParameterList()
         RefreshRoomsList()
         RefreshActorsList()
         RefreshTagsList()
-        Refresh()
+        RenderCurrentRoom()
     End Sub
 
 #End Region
