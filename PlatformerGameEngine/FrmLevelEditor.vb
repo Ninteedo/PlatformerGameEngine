@@ -161,6 +161,10 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
+    Private Sub FrmLevelEditor_SizeChanged(sender As Object, e As EventArgs) Handles MyBase.SizeChanged
+        RenderCurrentRoom()
+    End Sub
+
 #End Region
 
 #Region "Actors"
