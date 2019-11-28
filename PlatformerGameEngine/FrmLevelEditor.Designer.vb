@@ -69,6 +69,8 @@ Partial Class FrmLevelEditor
         Me.ItmRoomDelete = New System.Windows.Forms.ToolStripMenuItem()
         Me.ItmRoomEdit = New System.Windows.Forms.ToolStripMenuItem()
         Me.ItmRoomDuplicate = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ToolStripTest = New System.Windows.Forms.ToolStripDropDownButton()
+        Me.ToolBarTestStart = New System.Windows.Forms.ToolStripMenuItem()
         Me.CntxtActors.SuspendLayout()
         CType(Me.NumActorLocX, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.NumActorLocY, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -382,7 +384,7 @@ Partial Class FrmLevelEditor
         '
         Me.TblControlsOverall.SetColumnSpan(Me.ToolBar, 4)
         Me.ToolBar.ImageScalingSize = New System.Drawing.Size(24, 24)
-        Me.ToolBar.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolBarFile})
+        Me.ToolBar.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolBarFile, Me.ToolStripTest})
         Me.ToolBar.Location = New System.Drawing.Point(0, 0)
         Me.ToolBar.Name = "ToolBar"
         Me.ToolBar.Padding = New System.Windows.Forms.Padding(0, 0, 3, 0)
@@ -396,25 +398,25 @@ Partial Class FrmLevelEditor
         Me.ToolBarFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolBarFileOpen, Me.ToolBarFileSaveAs, Me.ToolBarFileSave})
         Me.ToolBarFile.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolBarFile.Name = "ToolBarFile"
-        Me.ToolBarFile.Size = New System.Drawing.Size(56, 29)
+        Me.ToolBarFile.Size = New System.Drawing.Size(56, 33)
         Me.ToolBarFile.Text = "File"
         '
         'ToolBarFileOpen
         '
         Me.ToolBarFileOpen.Name = "ToolBarFileOpen"
-        Me.ToolBarFileOpen.Size = New System.Drawing.Size(188, 34)
+        Me.ToolBarFileOpen.Size = New System.Drawing.Size(270, 34)
         Me.ToolBarFileOpen.Text = "Open..."
         '
         'ToolBarFileSaveAs
         '
         Me.ToolBarFileSaveAs.Name = "ToolBarFileSaveAs"
-        Me.ToolBarFileSaveAs.Size = New System.Drawing.Size(188, 34)
+        Me.ToolBarFileSaveAs.Size = New System.Drawing.Size(270, 34)
         Me.ToolBarFileSaveAs.Text = "Save As..."
         '
         'ToolBarFileSave
         '
         Me.ToolBarFileSave.Name = "ToolBarFileSave"
-        Me.ToolBarFileSave.Size = New System.Drawing.Size(188, 34)
+        Me.ToolBarFileSave.Size = New System.Drawing.Size(270, 34)
         Me.ToolBarFileSave.Text = "Save"
         '
         'BtnAddLevelParam
@@ -537,6 +539,21 @@ Partial Class FrmLevelEditor
         Me.ItmRoomDuplicate.Size = New System.Drawing.Size(158, 32)
         Me.ItmRoomDuplicate.Text = "Duplicate"
         '
+        'ToolStripTest
+        '
+        Me.ToolStripTest.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
+        Me.ToolStripTest.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolBarTestStart})
+        Me.ToolStripTest.ImageTransparentColor = System.Drawing.Color.Magenta
+        Me.ToolStripTest.Name = "ToolStripTest"
+        Me.ToolStripTest.Size = New System.Drawing.Size(60, 33)
+        Me.ToolStripTest.Text = "Test"
+        '
+        'ToolBarTestStart
+        '
+        Me.ToolBarTestStart.Name = "ToolBarTestStart"
+        Me.ToolBarTestStart.Size = New System.Drawing.Size(270, 34)
+        Me.ToolBarTestStart.Text = "Start Test"
+        '
         'FrmLevelEditor
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
@@ -611,4 +628,6 @@ Partial Class FrmLevelEditor
     Friend WithEvents ItmTagsEdit As ToolStripMenuItem
     Friend WithEvents ItmTagsDuplicate As ToolStripMenuItem
     Friend WithEvents ItmRoomEdit As ToolStripMenuItem
+    Friend WithEvents ToolStripTest As ToolStripDropDownButton
+    Friend WithEvents ToolBarTestStart As ToolStripMenuItem
 End Class

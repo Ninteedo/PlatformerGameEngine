@@ -411,36 +411,38 @@ Public Class FrmLevelEditor
 
         'finds which instances the mouse is over
         Dim possibleInstanceIndices() As Integer = Nothing
-        For index As Integer = 0 To UBound(Actors)
-            Dim instanceArea As RectangleF = Actors(index).Hitbox()
+        If Not IsNothing(Actors) Then
+            For index As Integer = 0 To UBound(Actors)
+                Dim instanceArea As RectangleF = Actors(index).Hitbox()
 
-            If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
-                And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
-                If IsNothing(possibleInstanceIndices) Then
-                    possibleInstanceIndices = {index}
-                Else
-                    ReDim Preserve possibleInstanceIndices(UBound(possibleInstanceIndices) + 1)
-                    possibleInstanceIndices(UBound(possibleInstanceIndices)) = index
-                End If
-            End If
-        Next
-
-        If Not IsNothing(possibleInstanceIndices) Then
-            'finds which instance has the highest index
-            Dim topMostInstanceIndex As Integer = possibleInstanceIndices(0)
-            For index As Integer = 0 To UBound(possibleInstanceIndices)
-                If Actors(possibleInstanceIndices(index)).Layer > Actors(topMostInstanceIndex).Layer Then
-                    topMostInstanceIndex = possibleInstanceIndices(index)
+                If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
+                    And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
+                    If IsNothing(possibleInstanceIndices) Then
+                        possibleInstanceIndices = {index}
+                    Else
+                        ReDim Preserve possibleInstanceIndices(UBound(possibleInstanceIndices) + 1)
+                        possibleInstanceIndices(UBound(possibleInstanceIndices)) = index
+                    End If
                 End If
             Next
 
-            'starts holding the top most actor
-            heldInstanceIndex = topMostInstanceIndex
-            relativeHoldLocation = New PointF(Actors(heldInstanceIndex).Hitbox.Left - mouseLocationInRender.X,
-                                              Actors(heldInstanceIndex).Hitbox.Top - mouseLocationInRender.Y)
-            
-            'show the user which actor is selected by changing the selected actor in the actor list
-            LstActors.SelectedIndex = heldInstanceIndex
+            If Not IsNothing(possibleInstanceIndices) Then
+                'finds which instance has the highest index
+                Dim topMostInstanceIndex As Integer = possibleInstanceIndices(0)
+                For index As Integer = 0 To UBound(possibleInstanceIndices)
+                    If Actors(possibleInstanceIndices(index)).Layer > Actors(topMostInstanceIndex).Layer Then
+                        topMostInstanceIndex = possibleInstanceIndices(index)
+                    End If
+                Next
+
+                'starts holding the top most actor
+                heldInstanceIndex = topMostInstanceIndex
+                relativeHoldLocation = New PointF(Actors(heldInstanceIndex).Hitbox.Left - mouseLocationInRender.X,
+                                                  Actors(heldInstanceIndex).Hitbox.Top - mouseLocationInRender.Y)
+
+                'show the user which actor is selected by changing the selected actor in the actor list
+                LstActors.SelectedIndex = heldInstanceIndex
+            End If
         End If
     End Sub
 
@@ -682,6 +684,21 @@ Public Class FrmLevelEditor
         RefreshActorsList()
         RefreshTagsList()
         RenderCurrentRoom()
+    End Sub
+
+
+
+
+#End Region
+
+#Region "Testing"
+
+    Private Sub ToolBarTestStart_Click(sender As Object, e As EventArgs) Handles ToolBarTestStart.Click
+        'opens game executor with the current level
+
+        Using executor As New FrmGame(createdLevel.ToString)
+            executor.ShowDialog()
+        End Using
     End Sub
 
 #End Region
