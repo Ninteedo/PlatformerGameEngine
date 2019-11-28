@@ -8,28 +8,28 @@ Public Module TagBehaviours
 
     'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
 
-    Public Sub ProcessTag(tag As Tag, ByRef ent As Actor, ByRef room As Room, renderEngine As PRE2)
+    Public Sub ProcessTag(ByVal tag As Tag, ByRef act As Actor, ByRef room As Room, ByRef renderEngine As PRE2)
         'processes a single tag and modifies the actor accordingly
 
         'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
         'Dim tag As Tag = ent.tags(tagIndex)
 
         Select Case LCase(tag.name)
-            'basic movement
+                'basic movement
             Case "velocity"     '[xChange,yChange]
-                Dim velocityTemp As Object = tag.InterpretArgument
+                Dim velocityTemp As Object = FrmGame.GetArgument(tag, act, room, {0, 0})
                 Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
-                VelocityHandling(ent, velocity, room)
+                VelocityHandling(act, velocity, room)
 
                 'meta
             Case LCase("addTag")
-                Dim newTag As New Tag(FrmGame.GetArgument(tag, ent, room))
-                ent.AddTag(newTag, True)
+                Dim newTag As Tag = FrmGame.GetArgument(tag, act, room)
+                act.AddTag(newTag, True)
             Case LCase("removeTag")
-                ent.RemoveTag(tag.InterpretArgument())
+                act.RemoveTag(tag.InterpretArgument())
             Case "execute"
-                ProcessTag(New Tag(tag.InterpretArgument.ToString), ent, room, renderEngine)
+                ProcessTag(New Tag(tag.InterpretArgument.ToString), act, room, renderEngine)
 
                 'broadcast event
             Case LCase("broadcast")
@@ -561,41 +561,113 @@ Public Module TagBehaviours
 
 #Region "Conditions"
 
-    Private Enum Operators As Integer
+    Private Enum LogicOp As Integer
+        'logical operators
+
+        andOp
+        orOp
+        notOp
+    End Enum
+
+    Private Enum CompareOp As Integer
+        'comparison operators
+
+        equalGreaterThan
+        equalLessThan
         equal
         notEqual
         greaterThan
-        equalGreaterThan
         lessThan
-        equalLessThan
     End Enum
 
-    Public Function AssessCondition(condition As String, Optional ent As Actor = Nothing, Optional thisRoom As Room = Nothing) As Boolean
+    Public Function AssessCondition(ByVal condition As String, Optional ByVal act As Actor = Nothing, Optional ByVal thisRoom As Room = Nothing) As Boolean
         If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
+            condition = LCase(condition)    'conditions are not case sensitive
+
+            Dim comparisonOperators() As String = {">=", "<=", "=", "<>", ">", "<"}     'ordered so there are no conflicts (eg >= goes before > and =)
+            Dim logicOperators() As String = {" and ", " or "}
+            Dim notOperator As String = "not "
 
 
-            Dim comparisonOperators() As String = {"=", "<>", ">", ">=", "<", "<="}
-            Dim logicOperators() As String = {"and", "or"}
-            Dim notOperator As String = "not"
+            Dim indCompars() As String = {condition}      'list of individual comparisons split by logic operators
+            Dim comparTypes() As LogicOp = Nothing      'list of the order of comparisons used
 
-            Dim individualComparisons() As String = Nothing      'list of comparisons split by logic operators
+            'finds individual comparisons
+            For opIndex As Integer = 0 To UBound(logicOperators)
+                Dim comIndex As Integer = 0
+                Do While comIndex <= UBound(indCompars)
+                    Dim splits() As String = JSONSplit(indCompars(comIndex), 0, logicOperators(opIndex))
 
-            'finds individual comparions
+                    'checks if there was any split made
+                    If UBound(splits) > 0 Then
+                        'removes the overall comparison, then inserts the split version
+                        indCompars = RemoveItem(indCompars, comIndex)
+                        For splitIndex As Integer = 0 To UBound(splits)
+                            'adds the comparison type used if it is in the middle of 2 splits
+                            If splitIndex < UBound(splits) Then
+                                comparTypes = InsertItem(comparTypes, opIndex, comIndex)
+                            End If
 
+                            indCompars = InsertItem(indCompars, splits(splitIndex), comIndex)
+                            comIndex += 1
+                        Next
+                    Else
+                        'if not split made then moves onto the next comparison
+                        comIndex += 1
+                    End If
+                Loop
+            Next
 
+            'evaluates each comparison to a boolean
+            For comIndex As Integer = 0 To UBound(indCompars) - 1
+                Dim leftPart As String = Nothing
+                Dim rightPart As String = Nothing
 
-            For comparisonIndex As Integer = 0 To UBound(individualComparisons)
-                Dim leftPart As String
-                Dim rightPart As String
+                'finds which (if any) comparison operator is used
+                Dim opIndex As Integer = 0
+                Do While opIndex <= UBound(logicOperators)
+                    Dim splits() = JSONSplit(indCompars(comIndex), 0, logicOperators(opIndex))
 
-                'Select Case operatorIndex
-                '    Case Operators.equal
+                    'checks if there are multiple splits when operator is used to split
+                    If UBound(splits) = 1 Then
+                        leftPart = splits(0)
+                        rightPart = splits(1)
 
-                '    Case Operators.notEqual
+                        Exit Do
+                    ElseIf UBound(splits) > 1 Then
+                        'multiple comparisons used without a logic operators
+                        DisplayError("A condition used multiple comparisons without a logic operator" & vbCrLf & condition)
+                    End If
+                Loop
 
-                '    Case Operators.greaterThan
+                'Dim bothNumeric As Boolean = IsNumeric(leftPart) And IsNumeric(rightPart)
 
-                'End Select
+                'opIndex is set to -1 if no operator found
+                If opIndex > UBound(logicOperators) Then
+                    opIndex = -1
+                    leftPart = indCompars(comIndex)
+                End If
+
+                Dim comResult As Boolean = False    'stores the result of this comparison
+                'compares left and right part using the chosen operator
+                Select opIndex
+                    Case CompareOp.equalGreaterThan
+                        comResult = leftPart >= rightPart
+                    Case CompareOp.equalLessThan
+                        comResult = leftPart <= rightPart
+                    Case CompareOp.equal
+                        comResult = leftPart = rightPart
+                    Case CompareOp.notEqual
+                        comResult = leftPart <> rightPart
+                    Case CompareOp.greaterThan
+                        comResult = leftPart > rightPart
+                    Case CompareOp.lessThan
+                        comResult = leftPart < rightPart
+                    Case Else
+                        comResult = CType(leftPart, Boolean)
+                End Select
+
+                indCompars(comIndex) = comResult.ToString
             Next
 
 

@@ -78,10 +78,10 @@ Public Class FrmMenu
     Private Sub LoadGame()
         'loads the game selected by the user
 
-        Using openDialog As New OpenFileDialog With {.Filter = "Loader File (*.ldr)|*.ldr", .Multiselect = False}
-            MsgBox("Please select the game loader file")
+        Using openDialog As New OpenFileDialog With {.Filter = "Level File (*.lvl)|*.lvl", .Multiselect = False}
+            MsgBox("Please select the level file")
             If openDialog.ShowDialog() = Windows.Forms.DialogResult.OK Then
-                Using game As New FrmGame With {.loaderFileLocation = openDialog.FileName}
+                Using game As New FrmGame(ReadFile(openDialog.FileName))
                     game.ShowDialog()
                 End Using
             End If
@@ -103,12 +103,8 @@ Public Class FrmMenu
 
         'open FrmOptions
 
-        'Dim test As New PanelRenderEngine2.Tag(InputBox("Input Tag"))
-        'MsgBox(test.ToString)
-        'Dim argument As Object = InterpretValue(test.argument)
-
-        Dim example As String = "[{""tag1""},{""tag2"":[1,61,3,63,52,334]}]"
-        Dim splits() As String = JSONSplit(example, 0)
+        Dim example As String = "0 < 1 AND 1 < 2 OR 2 < 3 AND 3 < 4 OR 4 < 5 OR 5 < 6"
+        Dim result As Boolean = AssessCondition(example)
     End Sub
 
     Private Sub OpenToolsMenu()

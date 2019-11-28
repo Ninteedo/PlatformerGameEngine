@@ -207,7 +207,13 @@ Public Module JSONHandler
                     If firstChar = """" And lastChar = """" Then    'string
                         result = RemoveQuotes(valueString)
                     ElseIf firstChar = "{" And lastChar = "}" Then  'tag
-                        result = New Tag(valueString)
+                        Dim resultTag = New Tag(valueString)
+
+                        If fullInterpret Then
+                            resultTag.SetArgument(InterpretValue(resultTag.argument, fullInterpret, act, room))
+                        End If
+
+                        result = resultTag
                     ElseIf firstChar = "[" And lastChar = "]" Then  'array
                         Dim valueSplits As String() = JSONSplit(valueString)
                         ReDim result(UBound(valueSplits))
@@ -246,7 +252,7 @@ Public Module JSONHandler
                 result = input.ToString
             End If
         Else
-            'support for multidimensional arrays
+            'support for multidimensional arrays, only up to 2D
             Select Case input.Rank
                 Case 1
                     result = "["
@@ -284,11 +290,11 @@ Public Module JSONHandler
         Return result
     End Function
 
-    Public Function HasQuotes(input As String) As Boolean
+    Public Function HasQuotes(ByVal input As String) As Boolean
         Return Not IsNothing(input) AndAlso Len(input) > 1 AndAlso (Mid(input, 1, 1) = """" And Mid(input, Len(input), 1) = """")
     End Function
 
-    Public Function AddQuotes(initial As String, Optional ignoreAlreadyQuoted As Boolean = False) As String
+    Public Function AddQuotes(ByVal initial As String, Optional ByVal ignoreAlreadyQuoted As Boolean = False) As String
         If ignoreAlreadyQuoted OrElse Not HasQuotes(initial) Then
             Return """" & initial & """"
         Else
@@ -296,7 +302,7 @@ Public Module JSONHandler
         End If
     End Function
 
-    Public Function RemoveQuotes(initial As String) As String
+    Public Function RemoveQuotes(ByVal initial As String) As String
         If HasQuotes(initial) Then
             Return Mid(initial, 2, Len(initial) - 2)
         Else
@@ -304,7 +310,7 @@ Public Module JSONHandler
         End If
     End Function
 
-    Public Function JSONSplit(input As String, Optional subStructureLevelRequired As Integer = 0, Optional delimiter As Char = ",") As String()
+    Public Function JSONSplit(ByVal input As String, Optional ByVal subStructureLevelRequired As Integer = 0, Optional ByVal delimiter As String = ",") As String()
         'splits a JSON string into its tags
 
         If Len(input) > 1 Then
@@ -314,26 +320,43 @@ Public Module JSONHandler
             End If
             Dim inString As Boolean = False
             Dim subStructureLevel As Integer = 0
+            Dim delimiterProgress As Integer = 0        'used for tracking multicharacter delimiters
 
             For cIndex As Integer = 0 To Len(input) - 1
                 Dim c As String = input(cIndex)
 
-                If Not inString And subStructureLevel = subStructureLevelRequired And c = delimiter Then  'only splits when it is at the required sub-structure level
-                    ReDim Preserve result(UBound(result) + 1)
-                    result(UBound(result)) = ""
-                Else
-                    result(UBound(result)) += c
+                result(UBound(result)) += c
 
-                    If inString And c = """" AndAlso input(cIndex - 1) <> "\" Then
-                        inString = False
-                    ElseIf Not inString And c = """" Then
-                        inString = True
-                    ElseIf Not inString And (c = "{" Or c = "[") Then
-                        subStructureLevel += 1
-                    ElseIf Not inString And (c = "}" Or c = "]") Then
-                        subStructureLevel -= 1
-                        'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
-                        '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)
+                If inString And c = """" AndAlso input(cIndex - 1) <> "\" Then
+                    inString = False
+                ElseIf Not inString And c = """" Then
+                    inString = True
+                ElseIf Not inString And {"{", "["}.Contains(c) Then
+                    subStructureLevel += 1
+                ElseIf Not inString And {"}", "]"}.Contains(c) Then
+                    subStructureLevel -= 1
+                    'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
+                    '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)
+                End If
+
+                'only splits when not in a string and at the required substructure level
+                If Not inString And subStructureLevel = subStructureLevelRequired Then
+                    'checks if current char makes any delimiter progress
+                    If c = delimiter(delimiterProgress) Then
+                        delimiterProgress += 1
+
+                        'checks if delimiter has been found
+                        If delimiterProgress = Len(delimiter) Then
+                            'removes the delimiter from the result
+                            Dim lastElement As String = result(UBound(result))
+                            result(UBound(result)) = Left(lastElement, Len(lastElement) - Len(delimiter))
+
+                            result = InsertItem(result, "")
+                            delimiterProgress = 0
+                        End If
+                    Else
+                        'resets delimiter progress as does not match delimiter
+                        delimiterProgress = 0
                     End If
                 End If
             Next
@@ -374,5 +397,7 @@ Public Module JSONHandler
 
         Return result
     End Function
+
 #End Region
+
 End Module

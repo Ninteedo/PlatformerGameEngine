@@ -182,7 +182,7 @@ Partial Class FrmActorMaker
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlDark
-        Me.ClientSize = New System.Drawing.Size(748, 580)
+        Me.ClientSize = New System.Drawing.Size(625, 580)
         Me.Controls.Add(Me.TblControlLayout)
         Me.DoubleBuffered = True
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
