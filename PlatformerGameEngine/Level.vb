@@ -1,14 +1,14 @@
-﻿Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
-Public Class Level
+﻿Public Class Level
     'class to store actor defaults and rooms
 
     Inherits TagContainer
 
     Public rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
 
+    Private Const namesTagName As String = "name"
     Private Const roomsTagName As String = "rooms"
     Private Const tagsTagName As String = "tags"
+    Private Const roomIndexTagName As String = "roomIndex"
 
 #Region "Constructors"
 
@@ -17,7 +17,7 @@ Public Class Level
         rooms = Nothing
     End Sub
 
-    Public Sub New(levelString As String, renderEngine As PRE2)
+    Public Sub New(levelString As String, renderEngine As PanelRenderEngine2)
         'templates = Nothing
         tags = Nothing
         rooms = Nothing
@@ -55,16 +55,31 @@ Public Class Level
 
     Public Property Name As String
         Get
-            If HasTag("name") Then
-                Return FindTag("name").InterpretArgument()
+            If HasTag(namesTagName) Then
+                Return FindTag(namesTagName).InterpretArgument()
             Else
                 Return "UnnamedLevel"
             End If
         End Get
         Set(value As String)
-            AddTag(New Tag("name", value), True)
+            AddTag(New Tag(namesTagName, value), True)
         End Set
     End Property
+
+    Public Property RoomIndex As Integer
+        'the index of the current room in the rooms list
+        Get
+            If HasTag(roomIndexTagName) Then
+                Return FindTag(roomIndexTagName).InterpretArgument
+            Else
+                Return 0
+            End If
+        End Get
+        Set(value As Integer)
+            AddTag(New Tag(roomIndexTagName, value), True)
+        End Set
+    End Property
+
 
 #End Region
 
