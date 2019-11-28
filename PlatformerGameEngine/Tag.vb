@@ -30,15 +30,22 @@
     Public Function FindSubTag(subTagName As String) As Tag
         'returns a subtag in this tag's argument which has a name which matches the provided subtagname
 
-        Dim subTagsTemp() As Object = InterpretArgument()
+        Dim subTagsTemp As Object = InterpretArgument()
 
-        If Not IsNothing(subTagsTemp) Then
+        If IsArray(subTagsTemp) Then
             For index As Integer = 0 To UBound(subTagsTemp)
                 Dim subTag As Tag = TryCast(subTagsTemp(index), Tag)
                 If Not IsNothing(subTag) AndAlso subTag.name = subTagName Then
                     Return subTag
                 End If
             Next
+        ElseIf Not IsNothing(subTagsTemp) Then
+            'checks if a single tag was given instead of an array, and returns it if the name matches
+            If subTagsTemp.GetType() = GetType(Tag) Then
+                If CType(subTagsTemp, Tag).name = subTagName Then
+                    Return CType(subTagsTemp, Tag)
+                End If
+            End If
         End If
 
         'couldn't find a matching sub tag
