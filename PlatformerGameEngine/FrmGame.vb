@@ -2,157 +2,91 @@
 '23/03/2019
 'Game loader and executor, uses PanelRenderEngine2
 
-Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
 Public Class FrmGame
-
-#Region "Initialisation"
-
-    Dim delayTimer As New Timer With {.Interval = 1, .Enabled = False}
-
-    Private Sub FrmGame_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        'used because issues can arise if using the form load event for lots of code
-
-        AddHandler delayTimer.Tick, AddressOf Initialisation
-        delayTimer.Start()
-        AddHandler frameTimer.Tick, AddressOf GameTick
-    End Sub
-
-    Private Sub Initialisation()
-        'executed once the form loads
-
-        delayTimer.Stop()
-
-        'renderer = New PRE2 With {.panelCanvasGameArea = New PaintEventArgs(pnlGame.CreateGraphics, New Rectangle(New Point(0, 0), pnlGame.Size))}
-        renderer = New PRE2 With {.renderPanel = pnlGame}
-        LoadGame()
-
-        AddHandler frameTimer.Tick, AddressOf GameTick
-    End Sub
-
-#End Region
 
 #Region "Disposing"
 
     Protected Overrides Sub OnFormClosed(ByVal e As FormClosedEventArgs)
         frameTimer.Stop()
         frameTimer.Dispose()
-        renderer = Nothing
+        renderEngine = Nothing
         MyBase.OnFormClosed(e)
     End Sub
 
 #End Region
 
-#Region "Loading"
+#Region "Constructors"
 
-    Public loaderFileLocation As String
-    Public levelFiles(0) As String
+    Public Sub New(ByVal levelTagString As String)
 
-    Private Sub LoadGame()      'this loads the game
-        'TODO: redo this entirely
-        If IO.File.Exists(loaderFileLocation) = True Then
-            Dim loaderFileText As String = ReadFile(loaderFileLocation)
+        ' This call is required by the designer.
+        InitializeComponent()
 
-            'loads locations of each folder
-            Dim topLevelFolder As String = loaderFileLocation.Remove(loaderFileLocation.LastIndexOf("\") + 1)
-            renderer.levelFolderLocation = topLevelFolder & FindProperty(loaderFileText, "levelFolder")
-            'renderer.actorFolderLocation = topLevelFolder & FindProperty(loaderFileText, "actorFolder")
-            renderer.spriteFolderLocation = topLevelFolder & FindProperty(loaderFileText, "spriteFolder")
+        ' Add any initialization after the InitializeComponent() call.
 
-            'loads the file names of each level, keeps going until a level isn't provided
-            Dim index As Integer = 0
-            Dim finished As Boolean = False
-            Do
-                Dim currentFile As String = FindProperty(loaderFileText, "level" & Trim(Str(index + 1)))
-                If IsNothing(currentFile) = False Then
-                    ReDim Preserve levelFiles(index)
-                    levelFiles(index) = currentFile
+        renderEngine = New PanelRenderEngine2 With {.renderPanel = pnlGame}
+        currentLevel = New Level(levelTagString, renderEngine)
 
-                    index += 1
-                Else
-                    finished = True
-                End If
-            Loop Until finished = True
-
-            'loads level 1
-            PlayLevel(1)
-        Else
-            DisplayError("Could not find file: " & loaderFileLocation)
-        End If
+        AddHandler frameTimer.Tick, AddressOf GameTick
+        frameTimer.Start()
     End Sub
-
-    Public Sub PlayLevel(levelNumber As UInteger)
-        'loads the level into memory and starts playing it
-
-        If IsNothing(levelFiles(levelNumber - 1)) = True Then
-            DisplayError("No known level number " & levelNumber)
-        Else
-            'currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer, levelDelimiters, roomDelimiters)
-            currentLevel = LoadLevelFile(renderer.levelFolderLocation & levelFiles(levelNumber - 1), renderer)
-            currentRoom = currentLevel.rooms(0) 'currentLevel.RoomWithCoords(New Point(0, 0))      'sets the starting room to the one with coords 0,0
-            Const frameRate As Single = 60
-
-            frameTimer.Interval = 1000 / frameRate
-            frameTimer.Start()
-        End If
-    End Sub
-
-    Public Shared Function LoadLevelFile(fileLocation As String, renderEngine As PRE2) As Level
-        'loads a level from a given file location
-        If IO.File.Exists(fileLocation) Then
-            Dim levelString As String = ReadFile(fileLocation)
-            If Not IsNothing(levelString) Then
-                Return New Level(levelString, renderEngine)
-            End If
-        Else
-            DisplayError("Could not find level file at " & fileLocation)
-        End If
-
-        Return Nothing
-    End Function
 
 #End Region
 
 #Region "Render Control"
 
-    Dim renderer As PRE2            'panel render engine 2
+    Dim renderEngine As PanelRenderEngine2            'panel render engine 2
+    Dim currentLevel As Level
 
-    Public currentLevel As Level
-    Public currentRoom As Room      'should probably make this a property
-    'Public playerActor As Actor
+    Private ReadOnly Property CurrentRoom As Room
+        Get
+            If Not IsNothing(currentLevel) AndAlso Not IsNothing(currentLevel.rooms) AndAlso currentLevel.RoomIndex >= 0 AndAlso currentLevel.RoomIndex <= UBound(currentLevel.rooms) Then
+                Return currentLevel.rooms(currentLevel.RoomIndex)
+            Else
+                Return Nothing
+            End If
+        End Get
+    End Property
+
     Dim frameTimer As New Timer
 
     Private Sub GameTick()
+        'advances the game state by 1 frame, with respect to keys held and actor tags
+        'then renders the new game state to the player
+
+        'broadcasts an event for the game tick
+        BroadcastEvent(New Tag("event", New Tag("name", AddQuotes("tick")).ToString), CurrentRoom, renderEngine)
+
         'broadcasts the key held event for each key currently held
-        BroadcastEvent(New Tag("event", New Tag("name", AddQuotes("tick")).ToString), currentRoom, renderer)
-        For keyIndex As Integer = 0 To UBound(keysHeld)
-            If keysHeld(keyIndex) <> Keys.None Then
-                BroadcastEvent(New Tag("event", New Tag("name", AddQuotes("key" & ChrW(keysHeld(keyIndex)))).ToString), currentRoom, renderer)
-            End If
-        Next keyIndex
+        If Not IsNothing(keysHeld) Then
+            Dim kc As New KeysConverter     'used to convert the held key to a string
+            For Each keyHeld As Keys In keysHeld
+                If keyHeld <> Keys.None Then
+                    BroadcastEvent(New Tag("event", New Tag("name", AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString), CurrentRoom, renderEngine)
+                End If
+            Next
+        End If
 
-        For actorIndex As Integer = 0 To UBound(currentRoom.actors)
-            ActorTick(currentRoom.actors(actorIndex))
-        Next
+        'processes each actor's tags
+        If Not IsNothing(CurrentRoom.actors) Then
+            For Each act As Actor In CurrentRoom.actors
+                'processes the actor's actions for this tick
+                Dim tagIndex As Integer = 0
+                Do
+                    ProcessTag(act.tags(tagIndex), act, CurrentRoom, renderEngine)
+                    tagIndex += 1
+                Loop Until tagIndex > UBound(act.tags)
+            Next
+        End If
 
-        renderer.DoGameRender(currentRoom.actors)
-    End Sub
-
-    Private Sub ActorTick(ByRef ent As Actor)
-        'processes the actor's actions for this tick
-        Dim tagIndex As Integer = 0
-        Do
-            TagBehaviours.ProcessTag(ent.tags(tagIndex), ent, currentRoom, renderer)
-
-            tagIndex += 1
-        Loop Until tagIndex > UBound(ent.tags)
+        renderEngine.DoGameRender(CurrentRoom.actors)
     End Sub
 
 #End Region
 
 #Region "Higher Level Actor Control"
 
-    Public Function GetArgument(tag As Tag, Optional ent As Actor = Nothing,
+    Public Shared Function GetArgument(tag As Tag, Optional ent As Actor = Nothing,
                                       Optional room As Room = Nothing, Optional defaultResult As Object = Nothing) As Object
         'returns a processed actor argument
         'TODO: this doesnt work with arrays
@@ -176,7 +110,7 @@ Public Class FrmGame
         '    End If
         'End If
 
-        Return InterpretValue(tag.argument, fullInterpret:=True, act:=ent, room:=room).ToString
+        Return InterpretValue(tag.argument, fullInterpret:=True, act:=ent, room:=room)
     End Function
 
     'Public Shared Function FindInstanceByName(name As String, room As Room, Optional thisActor As Actor = Nothing) As Actor
@@ -196,7 +130,7 @@ Public Class FrmGame
     '    Return Nothing
     'End Function
 
-    Public Shared Function FindReference(ent As Actor, refString As String, currentRoom As Room) As Object
+    Public Shared Function FindReference(act As Actor, refString As String, currentRoom As Room) As Object
         'finds what a reference is referring to
         'ExampleActor.velocity[0]
         'TODO: clean this up
@@ -208,18 +142,19 @@ Public Class FrmGame
         'find object (actor or room) which the reference is coming from
         Select Case LCase(parts(0))
             Case "me"
-                result = ent
+                result = act
 
                 If UBound(parts) >= 1 Then
                     If parts(1).Contains(arrayBoundsCharacters(0)) Then
                         Dim temp As String = parts(1).Remove(parts(1).IndexOf(arrayBoundsCharacters(0)))
-                        result = ent.FindTag(temp)
+                        result = act.FindTag(temp)
                     Else
-                        result = ent.FindTag(parts(1))
+                        result = act.FindTag(parts(1))
                     End If
                 End If
             Case "room"
                 'result = currentRoom.FindTag(parts(1))
+                result = currentRoom
             Case Else
                 For index As Integer = 0 To UBound(currentRoom.actors)
                     If currentRoom.actors(index).Name = parts(0) Then
@@ -233,7 +168,7 @@ Public Class FrmGame
 
                 For index As Integer = 1 To UBound(parts)
                     If parts(index).Contains(arrayBoundsCharacters(0)) Then
-                        Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf(arrayBoundsCharacters(0)) + 1, parts(index).IndexOf(arrayBoundsCharacters(1)) - parts(index).IndexOf(arrayBoundsCharacters(0))), ent, currentRoom)
+                        Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf(arrayBoundsCharacters(0)) + 1, parts(index).IndexOf(arrayBoundsCharacters(1)) - parts(index).IndexOf(arrayBoundsCharacters(0))), act, currentRoom)
                         result = result.InterpretArgument(parts(index).Remove(parts(index).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
                     Else
                         result = result.InterpretArgument(parts(index))
@@ -244,7 +179,7 @@ Public Class FrmGame
                 If parts(1).Contains(arrayBoundsCharacters(0)) Then
                     Dim start As Integer = parts(1).IndexOf(arrayBoundsCharacters(0)) + 2
                     Dim length As Integer = parts(1).IndexOf(arrayBoundsCharacters(1)) - parts(1).IndexOf(arrayBoundsCharacters(0)) - 1
-                    Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), ent, currentRoom))
+                    Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), act, currentRoom))
                     'result = result.InterpretArgument(parts(1).Remove(parts(1).IndexOf(arrayBoundsCharacters(0))))(arrayIndex)
                     result = result.InterpretArgument()(arrayIndex)
                 Else
@@ -260,37 +195,38 @@ Public Class FrmGame
 
 #Region "Player Input"
 
-    Dim keysHeld(0) As Keys
+    Dim keysHeld() As Keys
 
     Private Sub FrmGame_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
         'if the key is pressed down then it is added to the list of held keys
 
-        If Not keysHeld.Contains(e.KeyCode) Then
-            Dim addedToList As Boolean = False
+        'checks that key isn't already in keys held list
+        Dim addedToList As Boolean = False
+        If Not IsNothing(keysHeld) Then
             For index As Integer = 0 To UBound(keysHeld)
                 If keysHeld(index) = Keys.None Then
                     keysHeld(index) = e.KeyCode
                     addedToList = True
                     Exit For
                 End If
-            Next index
+            Next
+        End If
 
-            If Not addedToList Then
-                ReDim Preserve keysHeld(UBound(keysHeld) + 1)
-                keysHeld(UBound(keysHeld)) = e.KeyCode
-            End If
+        If Not addedToList Then
+            keysHeld = InsertItem(keysHeld, e.KeyCode)
         End If
     End Sub
 
     Private Sub FrmGame_KeyUp(sender As Object, e As KeyEventArgs) Handles MyBase.KeyUp
         'when the key is no longer being pressed by the user it is removed from the list of held keys
 
-        If keysHeld.Contains(e.KeyCode) Then
+        If Not IsNothing(keysHeld) Then
             For index As Integer = 0 To UBound(keysHeld)
                 If keysHeld(index) = e.KeyCode Then
-                    keysHeld(index) = Keys.None
+                    keysHeld = RemoveItem(keysHeld, index)
+                    Exit For
                 End If
-            Next index
+            Next
         End If
     End Sub
 
