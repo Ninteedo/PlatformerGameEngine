@@ -7,37 +7,17 @@ Public Class FrmLevelEditor
 #Region "Initialisation"
     'initialisation
 
-    Private ReadOnly delayTimer As New Timer With {.Interval = 1, .Enabled = False}
-
     Private Sub FrmLevelEditor_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        AddHandler delayTimer.Tick, AddressOf Initialisation
-        delayTimer.Start()
+        Initialisation()
     End Sub
 
     Private Sub Initialisation()
-        delayTimer.Stop()
-        delayTimer.Dispose()
-
         renderEngine = New PanelRenderEngine2 With {.renderPanel = PnlRender}
         createdLevel = New Level
 
-        'LayoutInitialisation()
-        'ControlInitialisation()
         LoadInitialisation()
         RefreshControlsEnabled()
     End Sub
-
-    'Private Sub LayoutInitialisation()
-    '    'TblControlsOverall.Location = New Point(PnlRender.Right + 10, PnlRender.Top)
-    '    'TblRooms.Location = New Point(PnlRender.Left, PnlRender.Bottom + 10)
-
-    '    'Me.Size = New Size(TblControlsOverall.Right + 20, TblControlsOverall.Bottom + 40)
-
-    '    'flwSaveLoad.Location = New Point(pnlRender.Right + 10, pnlRender.Top)
-    '    'tblActors.Location = New Point(flwSaveLoad.Left, flwSaveLoad.Bottom + 5)
-    '    'tblTagsSummary.Location = New Point(tblActors.Right + 10, tblActors.Top)
-    '    'tblTagsDetailed.Location = New Point(tblTagsSummary.Left, tblTagsSummary.Bottom + 5)
-    'End Sub
 
 #End Region
 

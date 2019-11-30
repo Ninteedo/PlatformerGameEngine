@@ -2,8 +2,6 @@
 '24/03/2019
 'Tag editor for actor maker
 
-Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
 Public Class FrmTagMaker
 
     'TODO: clean this all up

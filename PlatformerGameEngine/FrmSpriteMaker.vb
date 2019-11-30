@@ -2,31 +2,25 @@
 '20/03/2019
 'Sprite Maker
 
-Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
 Public Class FrmSpriteMaker
 
 #Region "Initialisation"
 
-    Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
-
     Private Sub FrmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        AddHandler delayTimer.Tick, AddressOf Initialisation
-        delayTimer.Start()
+        Initialisation()
+    End Sub
+
+    Private Sub FrmMain_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
+        'this is here because drawing only works when the form is open, not when loading
+
+        DrawSavedPixels()
     End Sub
 
     Private Sub Initialisation()
-        delayTimer.Stop()
-
         createdSprite = New Sprite
         GridSize = New Size(16, 16)
         RedoLayout()
-        'ReDim createdSprite.ColourIndices(gridSize.Width - 1, gridSize.Height - 1)
-        'AddColourOption(Color.Transparent, True)
         ResetColourOptions()
-
-        'DrawGridOutline()
-        DrawSavedPixels()
     End Sub
 
     Private Sub RedoLayout()
@@ -51,10 +45,9 @@ Public Class FrmSpriteMaker
 
 #Region "Disposing"
 
-    Protected Overrides Sub OnFormClosed(ByVal e As FormClosedEventArgs)
-        delayTimer.Dispose()
-        MyBase.OnFormClosed(e)
-    End Sub
+    'Protected Overrides Sub OnFormClosed(ByVal e As FormClosedEventArgs)
+    '    MyBase.OnFormClosed(e)
+    'End Sub
 
 #End Region
 

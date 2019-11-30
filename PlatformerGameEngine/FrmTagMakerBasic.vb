@@ -2,8 +2,6 @@
 '07/09/2019
 'Tag maker for direct editing of the JSON string
 
-Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
 Public Class FrmTagMakerBasic
 
     Public userFinished As Boolean = False

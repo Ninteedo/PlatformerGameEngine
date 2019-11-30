@@ -2,8 +2,6 @@
 '24/03/2019
 'Actor creator for platformer game engine
 
-Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
 Public Class FrmActorMaker
 
     Public createdActor As Actor          'the user's created actor
@@ -11,18 +9,11 @@ Public Class FrmActorMaker
 
 #Region "Initialisation"
 
-    Dim delayTimer As New Timer With {.Enabled = False, .Interval = 1}
-
     Private Sub FrmActorMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        AddHandler delayTimer.Tick, AddressOf Initialisation
-        delayTimer.Start()
+        Initialisation()
     End Sub
 
     Private Sub Initialisation()
-        delayTimer.Stop()
-        delayTimer.Dispose()
-
-        'renderer = New PRE2 With {.renderPanel = pnlFramePreview}
         LayoutInitialisation()
     End Sub
 
@@ -52,7 +43,7 @@ Public Class FrmActorMaker
             createdActor = New Actor(Nothing, renderer)
         End If
         originalString = createdActor.ToString
-        renderer = New PRE2 With {.spriteFolderLocation = spriteFolderLocation, .renderPanel = PnlPreview}
+        renderer = New PanelRenderEngine2 With {.spriteFolderLocation = spriteFolderLocation, .renderPanel = PnlPreview}
         renderer.renderPanel = PnlPreview
     End Sub
 
@@ -207,7 +198,7 @@ Public Class FrmActorMaker
 
 #Region "Render"
 
-    Dim renderer As PRE2
+    Dim renderer As PanelRenderEngine2
 
     Private Sub DrawSpritePreview(spriteToDraw As Sprite)
         'draws the given frame in the preview box
