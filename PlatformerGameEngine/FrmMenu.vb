@@ -4,121 +4,104 @@
 
 Public Class FrmMenu
 
-    Public menuButtons() As Button
+    Dim menuButtons() As Button
     Dim menuLayouts() As MenuOptions
     Dim currentMenuIndex As Integer = 0
-    Dim delayTimer As New Timer With {.Interval = 1, .Enabled = False}
 
-    Private Structure MenuOptions
+    Private Class MenuOptions
         'this is used to store the layout of each menu, so the same buttons can be reused
 
-        Dim buttonText() As String      'the text that is displayed on each button
-        Dim behaviours() As String      'the actual behaviour performed when the user clicks the button
-        Dim previousMenuIndex As Integer        'stores the layout index of the menu to go to when the back button is pressed
-    End Structure
+        Public buttonText() As String      'the text that is displayed on each button
+        Public behaviours() As MenuLink      'the behaviour performed when the user clicks the button
+        Public previousMenuIndex As Integer        'stores the index of the menu to go to when the back button is pressed
+
+        Public Sub New(buttonText() As String, behaviours() As MenuLink, previousMenuIndex As Integer)
+            Me.buttonText = buttonText
+            Me.behaviours = behaviours
+            Me.previousMenuIndex = previousMenuIndex
+        End Sub
+    End Class
+
+    Private Enum MenuLink As Integer
+        'the behaviours available for when a button is pressed
+
+        loadGame
+        optionsMenu
+        toolsMenu
+        spriteMaker
+        levelEditor
+    End Enum
 
     Private Sub FrmMenu_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        'starts the delay timer for the proper initialisation
-
-        AddHandler delayTimer.Tick, AddressOf Initialisation
-        delayTimer.Start()
+        Initialisation()
     End Sub
 
     Private Sub Initialisation()
-        'proper of initialisation of the form
-
-        delayTimer.Stop()
-
         menuButtons = {btnMenu1, btnMenu2, btnMenu3}
-        menuLayouts = {New MenuOptions With {
-            .buttonText = {"Load Game", "Options", "Tools"},
-            .behaviours = {"LoadGame", "OpenOptionsMenu", "OpenToolsMenu"},
-            .previousMenuIndex = -1
-        }}
+
+        'sets up the menu layouts
+        Dim mainMenu As New MenuOptions({"Load Game", "Options", "Tools"}, {MenuLink.loadGame, MenuLink.optionsMenu, MenuLink.toolsMenu}, -1)
+        Dim toolsMenu As New MenuOptions({"Sprite Maker", "Level Editor"}, {MenuLink.spriteMaker, MenuLink.levelEditor}, 0)
+        menuLayouts = {mainMenu, toolsMenu}
         SetMenu(0)
+
+        'assigns the click event of all the menu buttons to the MenuButtonClicked procedure
         For index As Integer = 0 To UBound(menuButtons)
             AddHandler menuButtons(index).Click, AddressOf MenuButtonClicked
         Next index
     End Sub
 
-    Private Sub MenuButtonClicked(sender As Button, e As EventArgs)
+    Private Sub MenuButtonClicked(sender As Object, e As EventArgs)
         'handles the click event for menu buttons 1-3
 
         Dim buttonIndex As Integer = -1
         Dim layout As MenuOptions = menuLayouts(currentMenuIndex)
 
+        'finds the index of the button pressed
         For index As Integer = 0 To UBound(menuButtons)
             If menuButtons(index).Name = sender.Name Then
                 buttonIndex = index
             End If
         Next index
 
-        If buttonIndex > -1 AndAlso buttonIndex <= UBound(layout.behaviours) AndAlso IsNothing(layout.behaviours(buttonIndex)) = False Then
+        If buttonIndex > -1 AndAlso buttonIndex <= UBound(layout.behaviours) AndAlso Not IsNothing(layout.behaviours(buttonIndex)) Then
             Select Case layout.behaviours(buttonIndex)      'does whatever the behaviour linked to the button is
-                Case "LoadGame"
-                    LoadGame()
-                Case "OpenOptionsMenu"
-                    OpenOptionsMenu()
-                Case "OpenToolsMenu"
-                    OpenToolsMenu()
-                Case "OpenSpriteMaker"
-                    OpenSpriteMaker()
-                Case "OpenLevelEditor"
-                    OpenLevelEditor()
-                    'Case "OpenActorMaker"
-                    '    OpenActorMaker()
+                Case MenuLink.loadGame
+                    'loads the game selected by the user
+
+                    Using openDialog As New OpenFileDialog With {.Filter = "Level File (*.lvl)|*.lvl", .Title = "Select Level", .Multiselect = False}
+                        'MsgBox("Please select the level file")
+                        If openDialog.ShowDialog() = Windows.Forms.DialogResult.OK Then
+                            Using game As New FrmGame(ReadFile(openDialog.FileName))
+                                game.ShowDialog()
+                            End Using
+                        End If
+                    End Using
+                Case MenuLink.optionsMenu
+                    'open FrmOptions
+
+                    Dim example As String = "0 < 1 AND 1 < 2 OR 2 < 3 AND 3 < 4 OR 4 < 5 OR 5 < 6"
+                    Dim result As Boolean = AssessCondition(example)
+                Case MenuLink.toolsMenu
+                    'changes the menu layout to one relevant to the tools menu
+
+                    SetMenu(1)
+                Case MenuLink.spriteMaker
+                    'opens the sprite maker tool
+
+                    Using spriteMaker As New FrmSpriteMaker
+                        spriteMaker.ShowDialog()
+                    End Using
+                Case MenuLink.levelEditor
+                    'opens the level editor tool
+
+                    Using levelEditor As New FrmLevelEditor
+                        levelEditor.ShowDialog()
+                    End Using
                 Case Else
-                    MsgBox("Unknown Menu Behaviour")
+                    DisplayError("Unknown Menu Behaviour")
             End Select
-        Else
-            MsgBox("This button doesn't do anything")
         End If
-    End Sub
-
-    Private Sub LoadGame()
-        'loads the game selected by the user
-
-        Using openDialog As New OpenFileDialog With {.Filter = "Level File (*.lvl)|*.lvl", .Multiselect = False}
-            MsgBox("Please select the level file")
-            If openDialog.ShowDialog() = Windows.Forms.DialogResult.OK Then
-                Using game As New FrmGame(ReadFile(openDialog.FileName))
-                    game.ShowDialog()
-                End Using
-            End If
-        End Using
-    End Sub
-
-    Private Sub OpenOptionsMenu()
-        'changes the menu layout to one relevant to the options menu
-
-        'Dim optionsMenuLayout As New MenuOptions With {
-        '    .buttonText = {},
-        '    .behaviours = {},
-        '    .previousMenuIndex = currentMenuIndex
-        '    }
-        'ReDim Preserve menuLayouts(UBound(menuLayouts) + 1)
-        'menuLayouts(UBound(menuLayouts)) = optionsMenuLayout
-        'currentMenuIndex = UBound(menuLayouts)
-        'SetMenu(currentMenuIndex)
-
-        'open FrmOptions
-
-        Dim example As String = "0 < 1 AND 1 < 2 OR 2 < 3 AND 3 < 4 OR 4 < 5 OR 5 < 6"
-        Dim result As Boolean = AssessCondition(example)
-    End Sub
-
-    Private Sub OpenToolsMenu()
-        'changes the menu layout to one relevant to the tools menu
-
-        Dim toolsMenuLayout As New MenuOptions With {
-            .buttonText = {"Sprite Maker", "Actor Maker", "Level Editor"},
-            .behaviours = {"OpenSpriteMaker", "OpenActorMaker", "OpenLevelEditor"},
-            .previousMenuIndex = currentMenuIndex
-        }
-        ReDim Preserve menuLayouts(UBound(menuLayouts) + 1)
-        menuLayouts(UBound(menuLayouts)) = toolsMenuLayout
-        currentMenuIndex = UBound(menuLayouts)
-        SetMenu(currentMenuIndex)
     End Sub
 
     Private Sub SetMenu(menuIndex As Integer)
@@ -129,10 +112,10 @@ Public Class FrmMenu
         For index As Integer = 0 To UBound(menuButtons)
             If index <= UBound(layout.buttonText) AndAlso IsNothing(layout.buttonText(index)) = False Then
                 menuButtons(index).Text = layout.buttonText(index)
-                menuButtons(index).Visible = True
+                menuButtons(index).Enabled = True
             Else
                 menuButtons(index).Text = Trim(Str(index + 1))
-                menuButtons(index).Visible = False
+                menuButtons(index).Enabled = False
             End If
         Next index
 
@@ -141,6 +124,8 @@ Public Class FrmMenu
         Else
             btnMenuBack.Text = "Back"
         End If
+
+        currentMenuIndex = menuIndex
     End Sub
 
     Private Sub BtnMenuBack_Click(sender As Object, e As EventArgs) Handles btnMenuBack.Click
@@ -155,27 +140,4 @@ Public Class FrmMenu
         End If
     End Sub
 
-    Private Sub OpenSpriteMaker()
-        'opens the sprite maker tool
-
-        Using spriteMaker As New FrmSpriteMaker
-            spriteMaker.ShowDialog()
-        End Using
-    End Sub
-
-    Private Sub OpenLevelEditor()
-        'opens the level editor tool
-
-        Using levelEditor As New FrmLevelEditor
-            levelEditor.ShowDialog()
-        End Using
-    End Sub
-
-    'Private Sub OpenActorMaker()
-    '    'opens the actor maker tool
-
-    '    Using actorMaker As New FrmActorMaker
-    '        actorMaker.ShowDialog()
-    '    End Using
-    'End Sub
 End Class
