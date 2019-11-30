@@ -323,7 +323,7 @@ Public Module JSONHandler
             Dim delimiterProgress As Integer = 0        'used for tracking multicharacter delimiters
 
             For cIndex As Integer = 0 To Len(input) - 1
-                Dim c As String = input(cIndex)
+                Dim c As Char = input(cIndex)
 
                 result(UBound(result)) += c
 
@@ -331,9 +331,9 @@ Public Module JSONHandler
                     inString = False
                 ElseIf Not inString And c = """" Then
                     inString = True
-                ElseIf Not inString And {"{", "["}.Contains(c) Then
+                ElseIf Not inString And (c = "{" Or c = "[") Then
                     subStructureLevel += 1
-                ElseIf Not inString And {"}", "]"}.Contains(c) Then
+                ElseIf Not inString And (c = "}" Or c = "]") Then
                     subStructureLevel -= 1
                     'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
                     '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)

@@ -388,12 +388,14 @@ Public Class FrmLevelEditor
             tagMaker.ShowDialog()
             If tagMaker.userFinished Then
                 SelectedTag = tagMaker.CreatedTag
+                RefreshTagsList()
             End If
         End Using
     End Sub
 
     Private Sub ItmTagsDuplicate_Click(sender As Object, e As EventArgs) Handles ItmTagsDuplicate.Click
         SelectedActor.AddTag(SelectedTag, False)
+        RefreshTagsList()
         LstActorTags.SelectedIndex = UBound(Tags)
     End Sub
 
@@ -420,8 +422,7 @@ Public Class FrmLevelEditor
                     If IsNothing(possibleInstanceIndices) Then
                         possibleInstanceIndices = {index}
                     Else
-                        ReDim Preserve possibleInstanceIndices(UBound(possibleInstanceIndices) + 1)
-                        possibleInstanceIndices(UBound(possibleInstanceIndices)) = index
+                        possibleInstanceIndices = InsertItem(possibleInstanceIndices, index)
                     End If
                 End If
             Next

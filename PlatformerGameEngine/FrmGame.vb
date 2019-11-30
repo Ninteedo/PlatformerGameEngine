@@ -48,7 +48,7 @@ Public Class FrmGame
         End Get
     End Property
 
-    Dim frameTimer As New Timer
+    Dim frameTimer As New Timer With {.Interval = 1000 / 60}
 
     Private Sub GameTick()
         'advances the game state by 1 frame, with respect to keys held and actor tags
@@ -204,7 +204,7 @@ Public Class FrmGame
         Dim addedToList As Boolean = False
         If Not IsNothing(keysHeld) Then
             For index As Integer = 0 To UBound(keysHeld)
-                If keysHeld(index) = Keys.None Then
+                If keysHeld(index) = e.KeyCode Then
                     keysHeld(index) = e.KeyCode
                     addedToList = True
                     Exit For
