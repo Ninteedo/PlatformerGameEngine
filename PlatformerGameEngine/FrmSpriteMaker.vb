@@ -13,6 +13,7 @@ Public Class FrmSpriteMaker
     Private Sub FrmMain_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
         'this is here because drawing only works when the form is open, not when loading
 
+        'SetUpUsedColoursTable()
         DrawSavedPixels()
     End Sub
 
@@ -20,18 +21,20 @@ Public Class FrmSpriteMaker
         createdSprite = New Sprite
         GridSize = New Size(16, 16)
         RedoLayout()
+
+        SetUpUsedColoursTable()
         ResetColourOptions()
     End Sub
 
     Private Sub RedoLayout()
         'moves around and resizes any controls that need it
 
-        PnlDraw.Size = New Size(gridSize.Width * gridScale, gridSize.Height * gridScale)
+        'PnlDraw.Size = New Size(gridSize.Width * gridScale, gridSize.Height * gridScale)
         'TblControls.Location = New Point(PnlDraw.Right + 10, PnlDraw.Top)
 
-        NumResizeW.Value = gridSize.Width
-        NumResizeH.Value = gridSize.Height
-        NumResizeS.Value = gridScale
+        'NumResizeW.Value = gridSize.Width
+        'NumResizeH.Value = gridSize.Height
+        'NumResizeS.Value = gridScale
 
         'Me.Size = New Size(TblControls.Right + 20, PnlDraw.Bottom + 45)
         'If TblControls.Bottom > PnlDraw.Bottom Then
@@ -39,6 +42,45 @@ Public Class FrmSpriteMaker
         'End If
 
         Refresh()
+    End Sub
+
+    Private Sub SetUpUsedColoursTable()
+        'fills TblColourSelect with buttons which will be used to allow the user to select previously used colours and swap pages
+
+        'adds the buttons for the colours
+        ReDim colourButtons(TblColourSelect.RowCount - 3, TblColourSelect.ColumnCount - 1)
+        For row As Integer = 0 To TblColourSelect.RowCount - 3
+            For col As Integer = 0 To TblColourSelect.ColumnCount - 1
+                Dim btn As New Button With {.Name = $"BtnColourX{row}Y{col}",
+                    .Dock = DockStyle.Fill,
+                    .Enabled = False,
+                    .Text = "#"}
+                AddHandler btn.Click, AddressOf UserSelectColour
+                colourButtons(row, col) = btn
+                'Controls.Add(btn)
+                TblColourSelect.Controls.Add(btn, col, row + 1)
+            Next
+        Next
+
+        'adds the buttons for the change page buttons
+        ReDim pageSwapButtons(1)
+        For index As Integer = 0 To 1
+            Dim btn As Button
+            'Controls.Add(btn)
+            If index = 0 Then
+                btn = New Button With {.Name = "BtnColourPrevPage",
+            .Enabled = False, .Dock = DockStyle.Fill, .Text = "<"}
+                AddHandler btn.Click, AddressOf PreviousColourPage
+                TblColourSelect.Controls.Add(btn, 0, TblColourSelect.RowCount - 1)
+            Else
+                btn = New Button With {.Name = "BtnColourNextPage",
+            .Enabled = False, .Dock = DockStyle.Fill, .Text = ">"}
+                AddHandler btn.Click, AddressOf NextColourPage
+
+                TblColourSelect.Controls.Add(btn, TblColourSelect.ColumnCount - 1, TblColourSelect.RowCount - 1)
+            End If
+            pageSwapButtons(index) = btn
+        Next
     End Sub
 
 #End Region
@@ -56,22 +98,20 @@ Public Class FrmSpriteMaker
     Dim saveLocation As String
     Dim createdSprite As Sprite
 
-    Private Sub BtnOpen_Click(sender As Object, e As EventArgs) Handles BtnOpen.Click
+    Private Sub OpenFile(sender As Object, e As EventArgs) Handles ToolBarFileOpen.Click
         'asks the user to select a .sprt file and reads it
 
-        'cantDraw = True
         Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = False}
             If openDialog.ShowDialog = DialogResult.OK Then
                 saveLocation = openDialog.FileName
                 createdSprite = New Sprite(saveLocation, spriteFolderLocation:="")
-
-                BtnSave.Enabled = True
+                DrawSavedPixels()
+                DisplayColourOptions(0)
             End If
-            'cantDraw = False
         End Using
     End Sub
 
-    Private Sub BtnSaveAs_Click(sender As Object, e As EventArgs) Handles BtnSaveAs.Click
+    Private Sub SaveAs(sender As Object, e As EventArgs) Handles ToolBarFileSaveAs.Click
         'asks the user to select a save location, then saves the sprite there and enables the regular save button
 
         'cantDraw = True
@@ -79,16 +119,20 @@ Public Class FrmSpriteMaker
             If saveDialog.ShowDialog = DialogResult.OK Then
                 saveLocation = saveDialog.FileName
                 WriteFile(saveLocation, createdSprite.ToString)
-                BtnSave.Enabled = True
+                'BtnSave.Enabled = True
             End If
             'cantDraw = False
         End Using
     End Sub
 
-    Private Sub BtnSave_Click(sender As Object, e As EventArgs) Handles BtnSave.Click
-        'saves the file to the already selected location
-
-        WriteFile(saveLocation, createdSprite.ToString)
+    Private Sub SaveFile(sender As Object, e As EventArgs) Handles ToolBarFileSave.Click
+        If IsNothing(saveLocation) Then
+            'if save location not selected then asks user to save as
+            SaveAs(Nothing, Nothing)
+        Else
+            'saves the file to the already selected location
+            WriteFile(saveLocation, createdSprite.ToString)
+        End If
     End Sub
 
     Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -116,7 +160,7 @@ Public Class FrmSpriteMaker
 
 #Region "Render"
 
-    Dim gridScale As Integer = 24
+    'Dim gridScale As Integer = 24
     'Dim gridSize As New Size(16, 16)
 
     Private Property GridSize As Size
@@ -125,7 +169,15 @@ Public Class FrmSpriteMaker
         End Get
         Set(value As Size)
             createdSprite.Dimensions = value
+            DrawSavedPixels()
         End Set
+    End Property
+
+    Private ReadOnly Property GridScale As SizeF
+        'the scaling between the sprite resolution and the panel size
+        Get
+            Return New SizeF(PnlDraw.Width / GridSize.Width, PnlDraw.Height / GridSize.Height)
+        End Get
     End Property
 
     Private Sub DrawSavedPixels(Optional singleRedrawCoords As Point = Nothing)
@@ -146,10 +198,10 @@ Public Class FrmSpriteMaker
     Private Sub DrawSquare(coords As Point, pixelColour As Color, ByRef panelDrawCanvas As PaintEventArgs)
         'draws a square on the grid, colour depends on selected colour index
 
-        If ValidCoords(coords) Then
+        If createdSprite.ValidCoords(coords) Then
             If pixelColour <> Color.Transparent Then    'not transparent
                 Dim brush As New SolidBrush(pixelColour)
-                Dim rect As New Rectangle(New Point(coords.X * gridScale, coords.Y * gridScale), New Size(gridScale, gridScale))
+                Dim rect As New RectangleF(New PointF(coords.X * GridScale.Width, coords.Y * GridScale.Height), GridScale)
 
                 panelDrawCanvas.Graphics.FillRectangle(brush, rect)
             Else
@@ -166,8 +218,8 @@ Public Class FrmSpriteMaker
                     Dim col As Integer = index Mod 2        'column, either 0 or 1
                     Dim thisBrush As SolidBrush = If(row = col, brush1, brush2)     'selects the brush to use for this square
                     panelDrawCanvas.Graphics.FillRectangle(thisBrush,
-                                                New RectangleF(New PointF((coords.X + col / 2) * gridScale, (coords.Y + row / 2) * gridScale),
-                                                New SizeF(gridScale / 2, gridScale / 2)))
+                        New RectangleF(New PointF((coords.X + col / 2) * GridScale.Width, (coords.Y + row / 2) * GridScale.Height),
+                        New SizeF(GridScale.Width / 2, GridScale.Height / 2)))
                 Next
 
                 brush1.Dispose()
@@ -180,34 +232,23 @@ Public Class FrmSpriteMaker
     End Sub
 
     Private Sub BtnRedraw_Click(sender As Object, e As EventArgs) Handles BtnRedraw.Click
-        'incase the sprite gets cleared from the grid for some reason
-
+        'incase the sprite gets cleared from the grid for any reason, eg dragging window offscreen
         DrawSavedPixels()
     End Sub
 
-
-    Public Function ValidCoords(coords As Point) As Boolean
-        'returns whether provided coords are within range of the grid
-
-        Return createdSprite.ValidCoords(coords)
-    End Function
-
-    Private Sub BtnResize_Click(sender As Object, e As EventArgs) Handles BtnResize.Click
-        'resizes the draw panel, this will reset the drawn sprite so a warning is given
-
-        'cantDraw = True
-
-        If MsgBox("Are you sure you want to resize, this will lead to the loss of unsaved work", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then       'displays a warning to the user
-            GridSize = New Size(NumResizeW.Value, NumResizeH.Value)
-            gridScale = NumResizeS.Value
-            'ReDim createdSprite.ColourIndices(gridSize.Width - 1, gridSize.Height - 1)
-
-            ResetColourOptions()
-            RedoLayout()
+    Private Sub PnlDraw_SizeChanged() Handles PnlDraw.SizeChanged
+        'resizing the window does not resize the render on its own
+        If Not IsNothing(createdSprite) Then
             DrawSavedPixels()
         End If
+    End Sub
 
-        'cantDraw = False
+    Private Sub ResizeSprite(sender As Object, e As EventArgs) Handles NumResizeW.ValueChanged, NumResizeH.ValueChanged
+        'resizes the sprite according to the new width and height inputted by the user
+
+        If Not IsNothing(createdSprite) Then
+            GridSize = New Size(NumResizeW.Value, NumResizeH.Value)
+        End If
     End Sub
 
 #End Region
@@ -221,15 +262,16 @@ Public Class FrmSpriteMaker
 
     Private Sub ChangePixel(ByVal coords As Point)
         'changes the pixels at the given coordinates to match the selected colour index
-        createdSprite.SetPixelColour(coords, Colours(selectedColourIndex))
+        createdSprite.SetPixelColour(coords, CurrentColour)
         DrawSavedPixels(coords)
+        DisplayColourOptions(colourPageNumber)
     End Sub
 
     Private Sub PnlDraw_MouseClick(sender As Panel, e As MouseEventArgs) Handles PnlDraw.MouseClick
         'draws the user's selected colour at the clicked area
 
         'If cantDraw = False Then
-        Dim clickCoords As New Point(Math.Floor(e.X / gridScale), Math.Floor(e.Y / gridScale))
+        Dim clickCoords As New Point(Math.Floor(e.X / GridScale.Width), Math.Floor(e.Y / GridScale.Height))
 
         ChangePixel(clickCoords)
         'End If
@@ -245,17 +287,18 @@ Public Class FrmSpriteMaker
     Private Sub PnlDraw_MouseMove(sender As Panel, e As MouseEventArgs) Handles PnlDraw.MouseMove
         If mouseDragging = True Then
             dragEndPoint = e.Location
-            ChangePixel(New Point(Math.Floor(dragStartPoint.X / gridScale), Math.Floor(dragStartPoint.Y / gridScale)))
-            ChangePixel(New Point(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)))
+            ChangePixel(New Point(Math.Floor(dragStartPoint.X / GridScale.Width), Math.Floor(dragStartPoint.Y / GridScale.Height)))
+            ChangePixel(New Point(Math.Floor(dragEndPoint.X / GridScale.Width), Math.Floor(dragEndPoint.Y / GridScale.Height)))
             dragStartPoint = e.Location
         End If
     End Sub
 
     Private Sub PnlDraw_MouseUp(sender As Panel, e As MouseEventArgs) Handles PnlDraw.MouseUp
         'records that the user is no longer dragging along the panel
+
         If mouseDragging Then
             dragEndPoint = e.Location
-            ChangePixel(New Point(Math.Floor(dragEndPoint.X / gridScale), Math.Floor(dragEndPoint.Y / gridScale)))
+            ChangePixel(New Point(Math.Floor(dragEndPoint.X / GridScale.Width), Math.Floor(dragEndPoint.Y / GridScale.Height)))
 
             mouseDragging = False
         End If
@@ -265,10 +308,13 @@ Public Class FrmSpriteMaker
 
 #Region "Colours"
 
-    Dim selectedColourIndex As Integer = 0
-    Dim colourButtons() As Button
+    'Dim selectedColourIndex As Integer = 0
+    Dim colourButtons(,) As Button
+    Dim pageSwapButtons() As Button
+    Dim colourPageNumber As Integer
+    'Dim colourTransparent As Boolean
     'Dim coloursUsed() As Color
-    Const maxColours As Integer = 20
+    'Const maxColours As Integer = 20
     'Dim colourIndices(,) As Integer
 
     Private Property Colours As Color()
@@ -277,9 +323,31 @@ Public Class FrmSpriteMaker
         End Get
         Set(value As Color())
             createdSprite.Colours = value
-            DisplayColourOptions()
+            DisplayColourOptions(colourPageNumber)
         End Set
     End Property
+
+    Private Property CurrentColour As Color
+        Get
+            If ChkEraser.Checked Then
+                Return Color.Transparent
+            Else
+                Return Color.FromArgb(NumColourR.Value, NumColourG.Value, NumColourB.Value)
+            End If
+        End Get
+        Set(value As Color)
+            If value = Color.Transparent Then
+                ChkEraser.Checked = True
+            Else
+                ChkEraser.Checked = False
+                NumColourR.Value = value.R
+                NumColourG.Value = value.G
+                NumColourB.Value = value.B
+            End If
+        End Set
+    End Property
+
+
 
     Private Sub ColourCreaterUpdate(sender As NumericUpDown, e As EventArgs) Handles NumColourR.ValueChanged, NumColourG.ValueChanged, NumColourB.ValueChanged, NumColourR.KeyPress, NumColourG.KeyPress, NumColourB.KeyPress
         'updates the colour being shown to the user in the custom colour preview when the RGB values are editted
@@ -291,91 +359,136 @@ Public Class FrmSpriteMaker
         Colours = {Color.Transparent}
     End Sub
 
-    Private Sub DisplayColourOptions()
-        'clears tblColourSelect and adds all of the buttons back
+    'Private Sub DisplayColourOptions()
+    '    'clears TblColourSelect and adds all of the buttons back
 
-        TblColourSelect.Controls.Clear()
-        ReDim colourButtons(UBound(Colours))
+    '    TblColourSelect.Controls.Clear()
+    '    ReDim colourButtons(UBound(Colours))
 
-        For index As Integer = 0 To UBound(Colours)
-            Dim textColour As Color = Color.Black       'default text colour is black
+    '    For index As Integer = 0 To UBound(Colours)
+    '        Dim textColour As Color = Color.Black       'default text colour is black
 
-            'text is made white if the back colour is dark enough
-            Const swapTextColourThreshold As Integer = 100
-            Dim temp As Integer = Colours(index).R
-            temp += Colours(index).G
-            temp += Colours(index).B
-            If temp < (3 * swapTextColourThreshold) Then
-                textColour = Color.White
-            End If
+    '        'text is made white if the back colour is dark enough
+    '        If Colours(index).R + Colours(index).G + Colours(index).B < 300 Then
+    '            textColour = Color.White
+    '        End If
 
-            'adds a new button corresponding to the colour
-            Dim newBtn As New Button With {.Text = Trim(Str(index)), .BackColor = Colours(index), .ForeColor = textColour, .Dock = DockStyle.Fill, .FlatStyle = FlatStyle.Flat}
-            colourButtons(index) = newBtn
-            AddHandler newBtn.Click, AddressOf UserSelectColour
-            TblColourSelect.Controls.Add(newBtn)
+    '        'adds a new button corresponding to the colour
+    '        Dim newBtn As New Button With {.Text = Trim(Str(index)), .BackColor = Colours(index), .ForeColor = textColour, .Dock = DockStyle.Fill, .FlatStyle = FlatStyle.Flat}
+    '        colourButtons(index) = newBtn
+    '        AddHandler newBtn.Click, AddressOf UserSelectColour
+    '        TblColourSelect.Controls.Add(newBtn)
+    '    Next
+    'End Sub
+
+    Private Sub DisplayColourOptions(pageNumber As Integer)
+        'updates TblColourSelect to show the colours on the provided page number
+
+        Dim rows As Integer = TblColourSelect.RowCount - 2
+        Dim cols As Integer = TblColourSelect.ColumnCount
+
+        LblUsedColours.Text = $"Used Colours Page {pageNumber + 1}"
+        colourPageNumber = pageNumber
+
+        'shows the colours of the new page
+        For row As Integer = 0 To rows - 1
+            For col As Integer = 0 To cols - 1
+                Dim colourIndex As Integer = (pageNumber * rows * cols) + row * cols + col
+                If colourIndex <= UBound(Colours) Then
+                    colourButtons(row, col).BackColor = Colours(colourIndex)
+                    colourButtons(row, col).Enabled = True
+                    colourButtons(row, col).Visible = True
+                    colourButtons(row, col).Text = colourIndex
+                Else
+                    'no colour to display for this button
+                    colourButtons(row, col).Enabled = False
+                    colourButtons(row, col).Visible = False
+                End If
+
+            Next
         Next
-    End Sub
 
-    Private Sub AddColourOption(newColour As Color)
-        If Colours.Length < maxColours Then     'cant add any more colours if limit reached
-            'only adds colour if it hasn't already been added
-            For index As Integer = 0 To UBound(Colours)
-                If Colours(index) = newColour Then
-                    DisplayError("This colour is already in the colour palette")
-                    Exit For
-                End If
-            Next index
-
-            Colours = InsertItem(Colours, newColour)
-        Else
-            DisplayError("Cannot add any more colours as limit has been reached")
+        'enables or disables swap page buttons as appropriate
+        If pageNumber > 1 Then
+            pageSwapButtons(0).Enabled = True
+        End If
+        If Math.Ceiling(UBound(Colours) / 16) > pageNumber Then
+            pageSwapButtons(1).Enabled = True
         End If
     End Sub
 
-    Private Sub SwapColourOption(newColour As Color, colourIndex As Integer)
-        'swaps the current custom colour with the currently selected colour
-
-        If colourIndex > 0 Then
-            For index As Integer = 0 To UBound(colourButtons)
-                If Colours(index) = newColour Then
-                    DisplayError("You have already added that colour to the palette")
-                    Exit Sub
-                End If
-            Next index
-
-            Colours(colourIndex) = newColour
-            DrawSavedPixels()
-        Else
-            DisplayError("Please select a custom colour to swap out for, index " & selectedColourIndex & " is not viable")
-        End If
+    Private Sub PreviousColourPage()
+        DisplayColourOptions(colourPageNumber - 1)
     End Sub
 
-    Private Sub RemoveColourOption(removeIndex As Integer)
-        Colours = RemoveItem(createdSprite.Colours, removeIndex)
+    Private Sub NextColourPage()
+        DisplayColourOptions(colourPageNumber + 1)
     End Sub
+
+    'Private Sub AddColourOption(newColour As Color)
+
+    '    'only adds colour if it hasn't already been added
+    '    For index As Integer = 0 To UBound(Colours)
+    '        If Colours(index) = newColour Then
+    '            DisplayError("This colour is already in the colour palette")
+    '            Exit Sub
+    '        End If
+    '    Next index
+
+    '    Colours = InsertItem(Colours, newColour)
+    'End Sub
+
+    'Private Sub SwapColourOption(newColour As Color, colourIndex As Integer)
+    '    'swaps the current custom colour with the currently selected colour
+
+    '    If colourIndex > 0 Then
+    '        For index As Integer = 0 To UBound(colourButtons)
+    '            If Colours(index) = newColour Then
+    '                DisplayError("You have already added that colour to the palette")
+    '                Exit Sub
+    '            End If
+    '        Next index
+
+    '        Colours(colourIndex) = newColour
+    '        DrawSavedPixels()
+    '    Else
+    '        'DisplayError("Please select a custom colour to swap out for, index " & selectedColourIndex & " is not viable")
+    '    End If
+    'End Sub
+
+    'Private Sub RemoveColourOption(removeIndex As Integer)
+    '    Colours = RemoveItem(createdSprite.Colours, removeIndex)
+    'End Sub
 
     Private Sub UserSelectColour(sender As Button, e As EventArgs)
         'updates the selected colour index with the colour which the user clicked on
 
-        selectedColourIndex = Int(sender.Text)
+        CurrentColour = sender.BackColor
     End Sub
 
-    Private Sub BtnAddColour_Click(sender As Object, e As EventArgs) Handles BtnAddColour.Click
-        AddColourOption(Color.FromArgb(NumColourR.Value, NumColourG.Value, NumColourB.Value))
-    End Sub
+    'Private Sub BtnAddColour_Click(sender As Object, e As EventArgs)
+    '    AddColourOption(Color.FromArgb(NumColourR.Value, NumColourG.Value, NumColourB.Value))
+    'End Sub
 
-    Private Sub BtnSwapColour_Click(sender As Object, e As EventArgs) Handles BtnSwapColour.Click
-        'swaps the current custom colour with the currently selected colour
+    'Private Sub BtnSwapColour_Click(sender As Object, e As EventArgs)
+    '    'swaps the current custom colour with the currently selected colour
 
-        SwapColourOption(Color.FromArgb(NumColourR.Value, NumColourG.Value, NumColourB.Value), selectedColourIndex)
-    End Sub
+    '    'SwapColourOption(Color.FromArgb(NumColourR.Value, NumColourG.Value, NumColourB.Value), selectedColourIndex)
+    'End Sub
 
     Private Function AreColoursEqual(colour1 As Color, colour2 As Color) As Boolean
         'returns whether the RGB values of 2 colours are equal
 
         Return colour1.A = colour2.A And colour1.R = colour2.R And colour1.G = colour2.G And colour1.B = colour2.B
     End Function
+
+    Private Sub ColourCreaterUpdate(sender As Object, e As EventArgs) Handles NumColourR.ValueChanged, NumColourR.KeyPress, NumColourG.ValueChanged, NumColourG.KeyPress, NumColourB.ValueChanged, NumColourB.KeyPress
+
+    End Sub
+
+    Private Sub ColourCreaterUpdate(sender As Object, e As KeyPressEventArgs)
+
+    End Sub
 
 #End Region
 
