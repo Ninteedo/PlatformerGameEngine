@@ -581,99 +581,126 @@ Public Module TagBehaviours
     End Enum
 
     Public Function AssessCondition(ByVal condition As String, Optional ByVal act As Actor = Nothing, Optional ByVal thisRoom As Room = Nothing) As Boolean
-        If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
-            condition = LCase(condition)    'conditions are not case sensitive
+        'takes a condition in the form of a string and returns true or false
 
-            Dim comparisonOperators() As String = {">=", "<=", "=", "<>", ">", "<"}     'ordered so there are no conflicts (eg >= goes before > and =)
-            Dim logicOperators() As String = {" and ", " or "}
-            Dim notOperator As String = "not "
+        Try
+            If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
+                condition = LCase(condition)    'conditions are not case sensitive
+
+                Dim comparisonOperators() As String = {">=", "<=", "=", "<>", ">", "<"}     'ordered so there are no conflicts (eg >= goes before > and =)
+                Dim logicOperators() As String = {" and ", " or "}
+                Dim notOperator As String = "not "
 
 
-            Dim indCompars() As String = {condition}      'list of individual comparisons split by logic operators
-            Dim comparTypes() As LogicOp = Nothing      'list of the order of comparisons used
+                Dim indCompars() As String = {condition}      'list of individual comparisons split by logic operators
+                Dim comparTypes() As LogicOp = Nothing      'list of the order of comparisons used
 
-            'finds individual comparisons
-            For opIndex As Integer = 0 To UBound(logicOperators)
-                Dim comIndex As Integer = 0
-                Do While comIndex <= UBound(indCompars)
-                    Dim splits() As String = JSONSplit(indCompars(comIndex), 0, logicOperators(opIndex))
+                'finds individual comparisons
+                For opIndex As Integer = 0 To UBound(logicOperators)
+                    Dim comIndex As Integer = 0
+                    Do While comIndex <= UBound(indCompars)
+                        Dim splits() As String = JSONSplit(indCompars(comIndex), 0, logicOperators(opIndex))
 
-                    'checks if there was any split made
-                    If UBound(splits) > 0 Then
-                        'removes the overall comparison, then inserts the split version
-                        indCompars = RemoveItem(indCompars, comIndex)
-                        For splitIndex As Integer = 0 To UBound(splits)
-                            'adds the comparison type used if it is in the middle of 2 splits
-                            If splitIndex < UBound(splits) Then
-                                comparTypes = InsertItem(comparTypes, opIndex, comIndex)
-                            End If
+                        'checks if there was any split made
+                        If UBound(splits) > 0 Then
+                            'removes the overall comparison, then inserts the split version
+                            indCompars = RemoveItem(indCompars, comIndex)
+                            For splitIndex As Integer = 0 To UBound(splits)
+                                'adds the comparison type used if it is in the middle of 2 splits
+                                If splitIndex < UBound(splits) Then
+                                    comparTypes = InsertItem(comparTypes, opIndex, comIndex)
+                                End If
 
-                            indCompars = InsertItem(indCompars, splits(splitIndex), comIndex)
+                                indCompars = InsertItem(indCompars, splits(splitIndex), comIndex)
+                                comIndex += 1
+                            Next
+                        Else
+                            'if not split made then moves onto the next comparison
                             comIndex += 1
-                        Next
+                        End If
+                    Loop
+                Next
+
+                'evaluates each comparison to a boolean
+                For comIndex As Integer = 0 To UBound(indCompars)
+                    Dim leftPart As String = Nothing
+                    Dim rightPart As String = Nothing
+
+                    'finds which (if any) comparison operator is used
+                    Dim opIndex As Integer = 0
+                    Do While opIndex <= UBound(comparisonOperators)
+                        Dim splits() = JSONSplit(indCompars(comIndex), 0, comparisonOperators(opIndex))
+
+                        'checks if there are multiple parts when operator is used to split
+                        If UBound(splits) = 1 Then
+                            leftPart = Trim(splits(0))
+                            rightPart = Trim(splits(1))
+
+                            Exit Do
+                        ElseIf UBound(splits) > 1 Then
+                            'multiple comparisons used without a logic operators
+                            DisplayError("A condition used multiple comparisons without a logic operator" & vbCrLf & condition)
+                        Else
+                            opIndex += 1
+                        End If
+                    Loop
+
+                    'opIndex is set to -1 if no operator found
+                    If opIndex > UBound(comparisonOperators) Then
+                        opIndex = -1
+                        leftPart = indCompars(comIndex)
                     Else
-                        'if not split made then moves onto the next comparison
-                        comIndex += 1
+                        'processes the left and right parts
+                        leftPart = InterpretValue(leftPart)
+                        rightPart = InterpretValue(rightPart)
                     End If
-                Loop
-            Next
 
-            'evaluates each comparison to a boolean
-            For comIndex As Integer = 0 To UBound(indCompars) - 1
-                Dim leftPart As String = Nothing
-                Dim rightPart As String = Nothing
+                    Dim comResult As Boolean = False    'stores the result of this comparison
+                    'compares left and right part using the chosen operator
+                    Select Case opIndex
+                        Case CompareOp.equalGreaterThan
+                            comResult = leftPart >= rightPart
+                        Case CompareOp.equalLessThan
+                            comResult = leftPart <= rightPart
+                        Case CompareOp.equal
+                            comResult = leftPart = rightPart
+                        Case CompareOp.notEqual
+                            comResult = leftPart <> rightPart
+                        Case CompareOp.greaterThan
+                            comResult = leftPart > rightPart
+                        Case CompareOp.lessThan
+                            comResult = leftPart < rightPart
+                        Case Else
+                            comResult = CType(leftPart, Boolean)
+                    End Select
 
-                'finds which (if any) comparison operator is used
-                Dim opIndex As Integer = 0
-                Do While opIndex <= UBound(logicOperators)
-                    Dim splits() = JSONSplit(indCompars(comIndex), 0, logicOperators(opIndex))
-
-                    'checks if there are multiple splits when operator is used to split
-                    If UBound(splits) = 1 Then
-                        leftPart = splits(0)
-                        rightPart = splits(1)
-
-                        Exit Do
-                    ElseIf UBound(splits) > 1 Then
-                        'multiple comparisons used without a logic operators
-                        DisplayError("A condition used multiple comparisons without a logic operator" & vbCrLf & condition)
+                    'checks for a not operator
+                    If Left(leftPart, Len(notOperator)) = notOperator Then
+                        comResult = Not comResult
                     End If
-                Loop
 
-                'Dim bothNumeric As Boolean = IsNumeric(leftPart) And IsNumeric(rightPart)
+                    indCompars(comIndex) = comResult.ToString
+                Next
 
-                'opIndex is set to -1 if no operator found
-                If opIndex > UBound(logicOperators) Then
-                    opIndex = -1
-                    leftPart = indCompars(comIndex)
-                End If
+                'combines the comparisons into a single boolean using ands & ors
+                Dim overall As Boolean = indCompars(0)
+                For index As Integer = 0 To UBound(comparTypes)
+                    Select Case comparTypes(index)
+                        Case LogicOp.andOp
+                            overall = overall And indCompars(index + 1)
+                        Case LogicOp.orOp
+                            overall = overall Or indCompars(index + 1)
+                    End Select
+                Next
 
-                Dim comResult As Boolean = False    'stores the result of this comparison
-                'compares left and right part using the chosen operator
-                Select opIndex
-                    Case CompareOp.equalGreaterThan
-                        comResult = leftPart >= rightPart
-                    Case CompareOp.equalLessThan
-                        comResult = leftPart <= rightPart
-                    Case CompareOp.equal
-                        comResult = leftPart = rightPart
-                    Case CompareOp.notEqual
-                        comResult = leftPart <> rightPart
-                    Case CompareOp.greaterThan
-                        comResult = leftPart > rightPart
-                    Case CompareOp.lessThan
-                        comResult = leftPart < rightPart
-                    Case Else
-                        comResult = CType(leftPart, Boolean)
-                End Select
+                Return overall
+            End If
+        Catch ex As Exception
+            DisplayError(ex.ToString)
+        End Try
 
-                indCompars(comIndex) = comResult.ToString
-            Next
-
-
-        Else        'default false
-            Return False
-        End If
+        'defaults to false
+        Return False
     End Function
 
 #End Region
