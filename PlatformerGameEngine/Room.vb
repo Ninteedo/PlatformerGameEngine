@@ -26,7 +26,7 @@ Public Class Room
                 Dim actorsTag As Tag = roomTag.FindSubTag(actorsTagName)
                 If Not IsNothing(actorsTag) Then
                     Dim temp As Object = actorsTag.InterpretArgument
-                    If Not IsNothing(temp) Then
+                    If IsArray(temp) Then
                         ReDim actors(UBound(temp))
                         For index As Integer = 0 To UBound(temp)
                             actors(index) = New Actor(temp(index).ToString, renderEngine)

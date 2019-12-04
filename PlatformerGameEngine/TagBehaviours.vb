@@ -2,13 +2,11 @@
 '28/08/2019
 'Some predefined behaviours for specific tags
 
-Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
 Public Module TagBehaviours
 
     'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
 
-    Public Sub ProcessTag(ByVal tag As Tag, ByRef act As Actor, ByRef room As Room, ByRef renderEngine As PRE2)
+    Public Sub ProcessTag(ByVal tag As Tag, ByRef act As Actor, ByRef room As Room, ByRef renderEngine As PanelRenderEngine2)
         'processes a single tag and modifies the actor accordingly
 
         'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
@@ -17,14 +15,14 @@ Public Module TagBehaviours
         Select Case LCase(tag.name)
                 'basic movement
             Case "velocity"     '[xChange,yChange]
-                Dim velocityTemp As Object = FrmGame.GetArgument(tag, act, room, {0, 0})
+                Dim velocityTemp As Object = InterpretValue(tag.argument, True, act, room)
                 Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
                 VelocityHandling(act, velocity, room)
 
                 'meta
             Case LCase("addTag")
-                Dim newTag As Tag = FrmGame.GetArgument(tag, act, room)
+                Dim newTag As Tag = InterpretValue(tag.argument, True, act, room)
                 act.AddTag(newTag, True)
             Case LCase("removeTag")
                 act.RemoveTag(tag.InterpretArgument())
@@ -404,7 +402,7 @@ Public Module TagBehaviours
 
 #Region "Calculation"
 
-    Public Function ProcessCalculation(calc As String, Optional ent As Actor = Nothing, Optional room As Room = Nothing) As String
+    Public Function ProcessCalculation(calc As String, Optional act As Actor = Nothing, Optional room As Room = Nothing) As String
         'takes in a calculation as a string and returns the result
 
         If Not IsNothing(calc) AndAlso Len(calc) > 0 Then
@@ -437,7 +435,7 @@ Public Module TagBehaviours
                         largestBracketOpeningIndex -= 1
                         If largestBracketOpeningIndex >= 0 And currentBracketIndent = 0 Then
                             Dim bracketedCalc As String = Mid(calc, largestBracketOpeningIndex + 1, cIndex - largestBracketOpeningIndex + 1)
-                            calc = calc.Replace(bracketedCalc, ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2), ent, room))
+                            calc = calc.Replace(bracketedCalc, ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2), act, room))
 
                             cIndex = 0
                             largestBracketOpeningIndex = -1
@@ -498,11 +496,11 @@ Public Module TagBehaviours
                             Dim rightPart As String = parts(operatorIndex + 1).Trim
                             Dim newPart As String
 
-                            Dim reference As Object = FrmGame.FindReference(ent, leftPart, room)
+                            Dim reference As Object = FrmGame.FindReference(act, leftPart, room)
                             If Not IsNothing(reference) Then
                                 leftPart = Val(reference)
                             End If
-                            reference = FrmGame.FindReference(ent, rightPart, room)
+                            reference = FrmGame.FindReference(act, rightPart, room)
                             If Not IsNothing(reference) Then
                                 rightPart = Val(reference)
                             End If
@@ -545,7 +543,7 @@ Public Module TagBehaviours
                     Loop Until operatorIndex >= UBound(parts)
                 Next
             Else
-                Dim reference As Object = FrmGame.FindReference(ent, parts(0), room)
+                Dim reference As Object = FrmGame.FindReference(act, parts(0), room)
                 If Not IsNothing(reference) Then
                     parts(0) = Val(reference)
                 End If
@@ -651,8 +649,8 @@ Public Module TagBehaviours
                         leftPart = indCompars(comIndex)
                     Else
                         'processes the left and right parts
-                        leftPart = InterpretValue(leftPart)
-                        rightPart = InterpretValue(rightPart)
+                        leftPart = InterpretValue(leftPart, True, act, thisRoom)
+                        rightPart = InterpretValue(rightPart, True, act, thisRoom)
                     End If
 
                     Dim comResult As Boolean = False    'stores the result of this comparison

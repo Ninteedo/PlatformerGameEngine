@@ -177,9 +177,13 @@
 
     Public ReadOnly Property Hitbox As RectangleF
         Get
-            Return New RectangleF(New PointF(Location.X, Location.Y),
-                                    New SizeF(Scale * Sprites(CurrentSprite).Dimensions.Width,
-                                            Scale * Sprites(CurrentSprite).Dimensions.Height))
+            If Not IsNothing(Sprites) AndAlso Not IsNothing(Sprites(CurrentSprite)) Then
+                Return New RectangleF(New PointF(Location.X, Location.Y),
+                New SizeF(Scale * Sprites(CurrentSprite).Dimensions.Width,
+                Scale * Sprites(CurrentSprite).Dimensions.Height))
+            Else
+                Return New RectangleF(New PointF(0, 0), New SizeF(0, 0))
+            End If
         End Get
     End Property
 
