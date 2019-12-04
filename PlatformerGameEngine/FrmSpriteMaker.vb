@@ -17,7 +17,7 @@ Public Class FrmSpriteMaker
     End Sub
 
     Private Sub Initialisation()
-        createdSprite = New Sprite
+        createdSprite = New Sprite(New Size(16, 16))    'default size 16 x 16
 
         SetUpUsedColoursTable()
         ResetColourOptions()

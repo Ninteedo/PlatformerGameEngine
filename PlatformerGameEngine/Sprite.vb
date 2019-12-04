@@ -16,11 +16,12 @@ Public Class Sprite
 
 #Region "Contructors"
 
-    Public Sub New()
+    Public Sub New(Optional startSize As Size = Nothing)
         coloursUsed = {Color.Transparent}
         colourIndices = Nothing
         fileName = Nothing
         bitmapVersion = Nothing
+        Dimensions = startSize
     End Sub
 
     Public Sub New(colourIndices(,) As Integer, colours() As Color, Optional fileName As String = Nothing)
