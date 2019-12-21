@@ -1,20 +1,21 @@
 ﻿'Richard Holmes
 '29/03/2019
 'Level editor for platformer game engine
+Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmLevelEditor
 
 #Region "Initialisation"
 
-    Private Sub FrmLevelEditor_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Initialisation()
+    Private Sub FrmLevelEditor_Load(sender As FrmLevelEditor, e As EventArgs) Handles MyBase.Load
+        Initialization()
     End Sub
 
-    Private Sub Initialisation()
-        renderEngine = New PanelRenderEngine2 With {.renderPanel = PnlRender}
-        createdLevel = New Level
+    Private Sub Initialization()
+        _renderEngine = New PanelRenderEngine2 With {.renderPanel = PnlRender}
+        _createdLevel = New Level
 
-        LoadInitialisation()
+        LoadInitialization()
         RefreshControlsEnabled()
     End Sub
 
@@ -22,26 +23,24 @@ Public Class FrmLevelEditor
 
 #Region "Save/Load"
 
-    Dim createdLevel As Level
-    Dim levelSaveLocation As String = Nothing
+    Dim _createdLevel As Level
+    Dim _levelSaveLocation As String = Nothing
 
-    Private Sub LoadInitialisation()
+    Private Sub LoadInitialization()
         'gets the folder locations from the loader file
 
-        Using openDialog As New OpenFileDialog With {.Filter = "Loader file (*.ldr)|*.ldr", .Multiselect = False}
+        Using openDialog As New OpenFileDialog With {.Filter = LoaderFileFilter, .Multiselect = False}
             MsgBox("Please select the loader file for the game")
 
             If openDialog.ShowDialog() = DialogResult.OK Then
                 Dim loaderFileText As String = ReadFile(openDialog.FileName)
 
                 'loads locations of each folder
-                Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\") + 1)
-                renderEngine.levelFolderLocation = topLevelFolder & FindProperty(loaderFileText, "levelFolder")
-                'renderer.actorFolderLocation = topLevelFolder & FindProperty(loaderFileText, "actorFolder")
-                renderEngine.spriteFolderLocation = topLevelFolder & FindProperty(loaderFileText, "spriteFolder")
-                'renderer.roomFolderLocation = topLevelFolder & FindProperty(loaderFileText, "roomFolder")
+                Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\", StringComparison.Ordinal) + 1)
+                _renderEngine.levelFolderLocation = topLevelFolder & FindProperty(loaderFileText, "levelFolder")
+                _renderEngine.spriteFolderLocation = topLevelFolder & FindProperty(loaderFileText, "spriteFolder")
             Else
-                Me.Close()     'might need to change this
+                Close()
             End If
         End Using
     End Sub
@@ -50,22 +49,21 @@ Public Class FrmLevelEditor
         'loads a level and sets the interface up
 
         If IO.File.Exists(fileLocation) Then
-            levelSaveLocation = fileLocation
-            Dim levelString As String = ReadFile(levelSaveLocation)
-            createdLevel = New Level(levelString, renderEngine)
+            _levelSaveLocation = fileLocation
+            Dim levelString As String = ReadFile(_levelSaveLocation)
+            _createdLevel = New Level(levelString)
 
             RefreshEverything()
-
             RefreshControlsEnabled()
         Else
             DisplayError("No file found at " & fileLocation)
         End If
     End Sub
 
-    Private Sub SaveLevel(levelToSave As Level, saveLocation As String)
-        'saves a level to a file
+    Private Sub SaveLevel()
+        'saves created level to file at level save location
 
-        WriteFile(saveLocation, levelToSave.ToString)
+        WriteFile(_levelSaveLocation, _createdLevel.ToString)
     End Sub
 
     Private Sub SaveAsPrompt()
@@ -74,47 +72,47 @@ Public Class FrmLevelEditor
         Dim fileName As String = InputBox("Enter file name for level")
 
         If fileName.Length >= 1 Then        'checks that the user actually entered something
-            levelSaveLocation = renderEngine.levelFolderLocation & fileName & ".lvl"
-            SaveLevel(createdLevel, levelSaveLocation)
+            _levelSaveLocation = _renderEngine.levelFolderLocation & fileName & ".lvl"
+            SaveLevel()
         End If
     End Sub
 
-    Private Sub ToolBarFileOpen_Click(sender As Object, e As EventArgs) Handles ToolBarFileOpen.Click
+    Private Sub ToolBarFileOpen_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileOpen.Click
         'opens a level file selected by the user
 
-        Using openDialog As New OpenFileDialog With {.Filter = "Level file (*.lvl)|*.lvl", .InitialDirectory = renderEngine.levelFolderLocation}
+        Using openDialog As New OpenFileDialog With {.Filter = LevelFileFilter, .InitialDirectory = _renderEngine.levelFolderLocation}
             If openDialog.ShowDialog() = DialogResult.OK Then
                 LoadLevel(openDialog.FileName)
             End If
         End Using
     End Sub
 
-    Private Sub ToolBarFileSaveAs_Click(sender As Object, e As EventArgs) Handles ToolBarFileSaveAs.Click
+    Private Sub ToolBarFileSaveAs_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileSaveAs.Click
         SaveAsPrompt()
     End Sub
 
-    Private Sub ToolBarFileSave_Click(sender As Object, e As EventArgs) Handles ToolBarFileSave.Click
+    Private Sub ToolBarFileSave_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileSave.Click
         'saves the level if there is a valid save location already or asks the user to save as
 
-        If Not IsNothing(levelSaveLocation) AndAlso IO.File.Exists(levelSaveLocation) Then
-            SaveLevel(createdLevel, levelSaveLocation)
+        If Not IsNothing(_levelSaveLocation) Then
+            SaveLevel()
         Else
             SaveAsPrompt()
         End If
     End Sub
 
-    Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+    Private Sub UserCloseForm(sender As FrmLevelEditor, e As FormClosingEventArgs) Handles Me.FormClosing
         'displays a warning to the user if they have unsaved work when they close the form
 
+        'checks if the saved level matches the level currently in the level editor
         Dim unsavedChanges As Boolean = False
+        If Not IsNothing(_levelSaveLocation) AndAlso IO.File.Exists(_levelSaveLocation) Then
+            Dim savedLevelString As String = ReadFile(_levelSaveLocation)
 
-        If Not IsNothing(levelSaveLocation) AndAlso IO.File.Exists(levelSaveLocation) Then
-            Dim savedLevelString As String = ReadFile(levelSaveLocation)
-
-            If savedLevelString <> createdLevel.ToString Then
+            If savedLevelString <> _createdLevel.ToString Then
                 unsavedChanges = True
             End If
-        ElseIf Not IsNothing(renderEngine.levelFolderLocation) Then     'no level folder location if form isnt finished loading
+        ElseIf Not IsNothing(_renderEngine.levelFolderLocation) Then     'no level folder location if form isn't finished loading
             unsavedChanges = True
         End If
 
@@ -130,17 +128,17 @@ Public Class FrmLevelEditor
 
 #Region "Render"
 
-    Dim renderEngine As PanelRenderEngine2
+    Dim _renderEngine As PanelRenderEngine2
 
     Private Sub RenderCurrentRoom()
         'renders the current room
-        If Not IsNothing(renderEngine) Then
-            renderEngine.renderPanel = PnlRender
-            renderEngine.DoGameRenderNoSort(SelectedRoom.actors)
+        If Not IsNothing(_renderEngine) Then
+            '_renderEngine.renderPanel = PnlRender
+            _renderEngine.DoGameRenderNoSort(SelectedRoom.actors)
         End If
     End Sub
 
-    Private Sub FrmLevelEditor_SizeChanged(sender As Object, e As EventArgs) Handles MyBase.SizeChanged
+    Private Sub FrmLevelEditor_SizeChanged(sender As FrmLevelEditor, e As EventArgs) Handles MyBase.SizeChanged
         RenderCurrentRoom()
     End Sub
 
@@ -148,18 +146,17 @@ Public Class FrmLevelEditor
 
 #Region "Actors"
 
-    Private ReadOnly unselectedActor As New Actor With {.Name = "UnselectedActor"}
+    ReadOnly _unselectedActor As New Actor With {.Name = "UnselectedActor"}
 
     Private Property Actors As Actor()
         Get
             Return SelectedRoom.actors
         End Get
-        Set(value As Actor())
-            SelectedRoom.actors = value
+        Set
+            SelectedRoom.actors = Value
 
             RefreshActorsList()
             RefreshTagsList()
-
             RenderCurrentRoom()
         End Set
     End Property
@@ -169,22 +166,22 @@ Public Class FrmLevelEditor
             If LstActors.SelectedIndex > -1 Then
                 Return SelectedRoom.actors(LstActors.SelectedIndex)
             Else
-                Return unselectedActor
+                Return _unselectedActor
             End If
         End Get
-        Set(value As Actor)
+        Set
             If LstActors.SelectedIndex > -1 Then
-                SelectedRoom.actors(LstActors.SelectedIndex) = value
+                SelectedRoom.actors(LstActors.SelectedIndex) = Value
             Else
                 DisplayError("Tried to modify an actor but none were selected")
             End If
         End Set
     End Property
 
-    Private Sub BtnCreateActor_Click(sender As Object, e As EventArgs) Handles BtnCreateActor.Click
+    Private Sub BtnCreateActor_Click(sender As Button, e As EventArgs) Handles BtnCreateActor.Click
         'opens Actor Maker for user and adds created actor to room
 
-        Using actorMaker As New FrmActorMaker(Nothing, renderEngine.spriteFolderLocation)
+        Using actorMaker As New FrmActorMaker(Nothing, _renderEngine.spriteFolderLocation)
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
@@ -193,13 +190,13 @@ Public Class FrmLevelEditor
         End Using
     End Sub
 
-    Private Sub ItmActorDelete_Click(sender As Object, e As EventArgs) Handles ItmActorDelete.Click
+    Private Sub ItmActorDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorDelete.Click
         Actors = RemoveItem(Actors, LstActors.SelectedIndex)
         RefreshActorsList()
     End Sub
 
-    Private Sub ItmActorEdit_Click(sender As Object, e As EventArgs) Handles ItmActorEdit.Click
-        Using actorMaker As New FrmActorMaker(SelectedActor, renderEngine.spriteFolderLocation)
+    Private Sub ItmActorEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorEdit.Click
+        Using actorMaker As New FrmActorMaker(SelectedActor, _renderEngine.spriteFolderLocation)
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
@@ -208,11 +205,11 @@ Public Class FrmLevelEditor
         End Using
     End Sub
 
-    Private Sub ItmActorDuplicate_Click(sender As Object, e As EventArgs) Handles ItmActorDuplicate.Click
-        AddActor(createdLevel.rooms(LstRooms.SelectedIndex).actors(LstActors.SelectedIndex))
+    Private Sub ItmActorDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorDuplicate.Click
+        AddActor(_createdLevel.rooms(LstRooms.SelectedIndex).actors(LstActors.SelectedIndex))
     End Sub
 
-    Private Sub AddActor(ByRef template As Actor)
+    Private Sub AddActor(template As Actor)
         'creates a new instance from the given actor
 
         Dim newActor As Actor = template.Clone()
@@ -222,7 +219,7 @@ Public Class FrmLevelEditor
             For index As Integer = 0 To UBound(usedNames)
                 usedNames(index) = Actors(index).Name
             Next
-            newActor.Name = FrmGame.MakeNameUnique(newActor.Name, usedNames, True)
+            newActor.Name = MakeNameUnique(newActor.Name, usedNames, True)
         End If
 
         Actors = InsertItem(Actors, newActor)
@@ -251,14 +248,15 @@ Public Class FrmLevelEditor
 
 #Region "Tags"
 
-    Dim disableTagChangedEvent As Boolean = False
+    ReadOnly _unselectedTag As New Tag("UnselectedTag", Nothing)
+    Dim _disableTagChangedEvent As Boolean = False  'used so that an infinite loop of KeyTagChanged is prevented
 
     Private Property Tags As Tag()
         Get
             Return SelectedActor.tags
         End Get
-        Set(value As Tag())
-            SelectedActor.tags = value
+        Set
+            SelectedActor.tags = Value
             RefreshTagsList()
         End Set
     End Property
@@ -268,21 +266,15 @@ Public Class FrmLevelEditor
             If LstActorTags.SelectedIndex > -1 And LstActorTags.SelectedIndex <= UBound(SelectedActor.tags) Then
                 Return SelectedActor.tags(LstActorTags.SelectedIndex)
             Else
-                Return New Tag("UnselectedTag", Nothing)
+                Return _unselectedTag
             End If
         End Get
-        Set(value As Tag)
+        Set
             If LstActorTags.SelectedIndex > -1 Then
-                Tags(LstActorTags.SelectedIndex) = value
+                Tags(LstActorTags.SelectedIndex) = Value
             End If
         End Set
     End Property
-
-    'Private Sub ControlInitialisation()
-    '    tagControls = {txtTagName, numTagLocX, numTagLocY, numTagLayer, numTagScale, lstTags, btnTagAdd, btnTagEdit, btnTagRemove}
-
-    '    ToggleTagControls(False)
-    'End Sub
 
     Private Sub RefreshTagsList()
         If Not IsNothing(Tags) Then
@@ -298,21 +290,21 @@ Public Class FrmLevelEditor
         ShowActorTags(SelectedActor)
     End Sub
 
-    Private Sub ToggleTagControls(enabled As Boolean)
+    Private Sub ToggleTagControls(enableControls As Boolean)
         'enables or disables all controls for tags, depending on whether provided True or False
 
         Dim tagControls() As Control = {TxtActorName, NumActorLocX, NumActorLocY,
             NumActorLayer, NumActorScale, LstActorTags, BtnAddActorTag}
 
         For Each ctrl As Control In tagControls
-            ctrl.Enabled = enabled
+            ctrl.Enabled = enableControls
         Next
     End Sub
 
     Private Sub ShowActorTags(ByVal displayActor As Actor)
         'changes the values displayed in the controls for tags to show values of the current actor
 
-        disableTagChangedEvent = True
+        _disableTagChangedEvent = True
 
         If IsNothing(displayActor) Then      'if no actor provided then uses an empty actor
             displayActor = New Actor       'this doesn't work as actors have some default properties
@@ -325,28 +317,28 @@ Public Class FrmLevelEditor
         NumActorLayer.Value = displayActor.Layer
         NumActorScale.Value = displayActor.Scale
 
-        disableTagChangedEvent = False
+        _disableTagChangedEvent = False
     End Sub
 
-    Private Sub KeyTagChanged(sender As Object, e As EventArgs) Handles NumActorLocX.ValueChanged, NumActorLocY.ValueChanged,
+    Private Sub KeyTagChanged(sender As Control, e As EventArgs) Handles NumActorLocX.ValueChanged, NumActorLocY.ValueChanged,
         NumActorLayer.ValueChanged, NumActorScale.ValueChanged, TxtActorName.TextChanged
         'updates the key tags (location, layer, scale) of selected actor using the key tags controls' values
 
-        If Not disableTagChangedEvent Then
-            disableTagChangedEvent = True
+        If Not _disableTagChangedEvent Then
+            _disableTagChangedEvent = True
 
             SelectedActor.Name = TxtActorName.Text
             SelectedActor.Location = New PointF(NumActorLocX.Value, NumActorLocY.Value)
             SelectedActor.Layer = NumActorLayer.Value
             SelectedActor.Scale = NumActorScale.Value
 
-            disableTagChangedEvent = False
-            End If
+            _disableTagChangedEvent = False
+        End If
         RefreshTagsList()
         RenderCurrentRoom()
     End Sub
 
-    Private Sub BtnAddActorTag_Click(sender As Object, e As EventArgs) Handles BtnAddActorTag.Click
+    Private Sub BtnAddActorTag_Click(sender As Button, e As EventArgs) Handles BtnAddActorTag.Click
         Using tagMaker As New FrmTagMaker
             tagMaker.ShowDialog()
             If tagMaker.userFinished Then
@@ -356,13 +348,13 @@ Public Class FrmLevelEditor
         End Using
     End Sub
 
-    Private Sub ItmTagsDelete_Click(sender As Object, e As EventArgs) Handles ItmTagsDelete.Click
+    Private Sub ItmTagsDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmTagsDelete.Click
         If MsgBox("Are you sure you wish to delete tag " & SelectedTag.name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
             Tags = RemoveItem(Tags, LstActorTags.SelectedIndex)
         End If
     End Sub
 
-    Private Sub ItmTagsEdit_Click(sender As Object, e As EventArgs) Handles ItmTagsEdit.Click
+    Private Sub ItmTagsEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmTagsEdit.Click
         Using tagMaker As New FrmTagMaker(SelectedTag)
             tagMaker.ShowDialog()
             If tagMaker.userFinished Then
@@ -372,7 +364,7 @@ Public Class FrmLevelEditor
         End Using
     End Sub
 
-    Private Sub ItmTagsDuplicate_Click(sender As Object, e As EventArgs) Handles ItmTagsDuplicate.Click
+    Private Sub ItmTagsDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmTagsDuplicate.Click
         SelectedActor.AddTag(SelectedTag, False)
         RefreshTagsList()
         LstActorTags.SelectedIndex = UBound(Tags)
@@ -381,31 +373,29 @@ Public Class FrmLevelEditor
 
 #Region "Mouse Location Control"
 
-    Dim heldInstanceIndex As Integer = -1           'index of the actor being held by the user
-    Dim relativeHoldLocation As PointF = Nothing    'used so that the mouse holds a specific location on the instance
+    Dim _heldInstanceIndex As Integer = -1           'index of the actor being held by the user
+    Dim _relativeHoldLocation As PointF = Nothing    'used so that the mouse holds a specific location on the instance
 
-    Private Sub PnlRenderMouseDown(sender As Object, e As MouseEventArgs) Handles PnlRender.MouseDown
+    Private Sub PnlRenderMouseDown(sender As Panel, e As MouseEventArgs) Handles PnlRender.MouseDown
         'mouse starts holding the instance underneath it
 
         'gets the relative mouse location in the game render
-        Dim mouseLocationInRender As New PointF(e.X / renderEngine.RenderScale.Width, e.Y / renderEngine.RenderScale.Height)
+        Dim mouseLocationInRender As New PointF(e.X / _renderEngine.RenderScale.Width, e.Y / _renderEngine.RenderScale.Height)
 
-        'finds which instances the mouse is over
-        Dim possibleInstanceIndices() As Integer = Nothing
+
         If Not IsNothing(Actors) Then
+            'finds which instances the mouse is over
+            Dim possibleInstanceIndices() As Integer = Nothing
             For index As Integer = 0 To UBound(Actors)
                 Dim instanceArea As RectangleF = Actors(index).Hitbox()
 
                 If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
                     And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
-                    If IsNothing(possibleInstanceIndices) Then
-                        possibleInstanceIndices = {index}
-                    Else
-                        possibleInstanceIndices = InsertItem(possibleInstanceIndices, index)
-                    End If
+                    possibleInstanceIndices = InsertItem(possibleInstanceIndices, index)
                 End If
             Next
 
+            'finds which of the instances the mouse is over is on the highest layer
             If Not IsNothing(possibleInstanceIndices) Then
                 'finds which instance has the highest index
                 Dim topMostInstanceIndex As Integer = possibleInstanceIndices(0)
@@ -416,32 +406,32 @@ Public Class FrmLevelEditor
                 Next
 
                 'starts holding the top most actor
-                heldInstanceIndex = topMostInstanceIndex
-                relativeHoldLocation = New PointF(Actors(heldInstanceIndex).Hitbox.Left - mouseLocationInRender.X,
-                                                  Actors(heldInstanceIndex).Hitbox.Top - mouseLocationInRender.Y)
+                _heldInstanceIndex = topMostInstanceIndex
+                _relativeHoldLocation = New PointF(Actors(_heldInstanceIndex).Hitbox.Left - mouseLocationInRender.X,
+                                                  Actors(_heldInstanceIndex).Hitbox.Top - mouseLocationInRender.Y)
 
                 'show the user which actor is selected by changing the selected actor in the actor list
-                LstActors.SelectedIndex = heldInstanceIndex
+                LstActors.SelectedIndex = _heldInstanceIndex
             End If
         End If
     End Sub
 
-    Private Sub PnlRenderMouseDrag(sender As Object, e As MouseEventArgs) Handles PnlRender.MouseMove
+    Private Sub PnlRenderMouseDrag(sender As Panel, e As MouseEventArgs) Handles PnlRender.MouseMove
         'mouse moves the held instance
 
-        If heldInstanceIndex >= 0 Then
+        If _heldInstanceIndex >= 0 Then
             'calculates where the mouse has moved the held actor to
-            Actors(heldInstanceIndex).Location = New PointF(e.X / renderEngine.RenderScale.Width + relativeHoldLocation.X,
-                                                            e.Y / renderEngine.RenderScale.Height + relativeHoldLocation.Y)
+            Actors(_heldInstanceIndex).Location = New PointF(e.X / _renderEngine.RenderScale.Width + _relativeHoldLocation.X,
+                                                            e.Y / _renderEngine.RenderScale.Height + _relativeHoldLocation.Y)
             RenderCurrentRoom()
-            ShowActorTags(Actors(heldInstanceIndex))
+            ShowActorTags(Actors(_heldInstanceIndex))
         End If
     End Sub
 
-    Private Sub PnlRenderMouseUp(sender As Object, e As MouseEventArgs) Handles PnlRender.MouseUp
+    Private Sub PnlRenderMouseUp(sender As Panel, e As MouseEventArgs) Handles PnlRender.MouseUp
         'mouse lets go of the held instance
 
-        heldInstanceIndex = -1
+        _heldInstanceIndex = -1
     End Sub
 
 #End Region
@@ -450,12 +440,14 @@ Public Class FrmLevelEditor
 
 #Region "Parameters"
 
+
+
     Private Property Parameters As Tag()
         Get
-            Return createdLevel.tags
+            Return _createdLevel.tags
         End Get
-        Set(value As Tag())
-            createdLevel.tags = value
+        Set
+            _createdLevel.tags = Value
 
             RefreshEverything()
         End Set
@@ -464,14 +456,14 @@ Public Class FrmLevelEditor
     Private Property SelectedParameter As Tag
         Get
             If LstLevelParams.SelectedIndex > -1 Then
-                Return createdLevel.tags(LstLevelParams.SelectedIndex)
+                Return _createdLevel.tags(LstLevelParams.SelectedIndex)
             Else
-                Return New Tag("UnselectedTag")
+                Return _unselectedTag
             End If
         End Get
-        Set(value As Tag)
-            If LstLevelParams.SelectedIndex > -1 Then
-                createdLevel.tags(LstLevelParams.SelectedIndex) = value
+        Set
+            If LstLevelParams.SelectedIndex > -1 And LstLevelParams.SelectedIndex < UBound(Parameters) Then
+                _createdLevel.tags(LstLevelParams.SelectedIndex) = Value
 
                 RefreshEverything()
             End If
@@ -493,7 +485,7 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub LstLevelParams_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstLevelParams.SelectedIndexChanged
+    Private Sub LstLevelParams_SelectedIndexChanged(sender As ListBox, e As EventArgs) Handles LstLevelParams.SelectedIndexChanged
         'a different parameter is selected for editing/removing
 
         If LstLevelParams.SelectedIndex > -1 Then
@@ -501,7 +493,7 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub BtnAddLevelParam_Click(sender As Object, e As EventArgs) Handles BtnAddLevelParam.Click
+    Private Sub BtnAddLevelParam_Click(sender As Button, e As EventArgs) Handles BtnAddLevelParam.Click
         'user creates a new parameter using FrmTagMaker
 
         'gets the user to create a parameter (same as a tag)
@@ -513,13 +505,13 @@ Public Class FrmLevelEditor
         End Using
     End Sub
 
-    Private Sub ItmParameterDelete_Click(sender As Object, e As EventArgs) Handles ItmParameterDelete.Click
+    Private Sub ItmParameterDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmParameterDelete.Click
         If MsgBox("Are you sure you wish to delete parameter " & SelectedParameter.name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
             Parameters = RemoveItem(Parameters, LstLevelParams.SelectedIndex)
         End If
     End Sub
 
-    Private Sub ItmParameterEdit_Click(sender As Object, e As EventArgs) Handles ItmParameterEdit.Click
+    Private Sub ItmParameterEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmParameterEdit.Click
         Using tagMaker As New FrmTagMaker(SelectedParameter)
             tagMaker.ShowDialog()
             If tagMaker.userFinished Then
@@ -528,20 +520,22 @@ Public Class FrmLevelEditor
         End Using
     End Sub
 
-    Private Sub ItmParameterDuplicate_Click(sender As Object, e As EventArgs) Handles ItmParameterDuplicate.Click
-        createdLevel.AddTag(SelectedParameter, False)
+    Private Sub ItmParameterDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmParameterDuplicate.Click
+        _createdLevel.AddTag(SelectedParameter, False)
     End Sub
 
 #End Region
 
 #Region "Rooms"
 
+    ReadOnly _unselectedRoom As New Room With {.name = "UnselectedRoom"}
+
     Private Property Rooms As Room()
         Get
-            Return createdLevel.rooms
+            Return _createdLevel.rooms
         End Get
-        Set(value As Room())
-            createdLevel.rooms = value
+        Set
+            _createdLevel.rooms = Value
 
             RefreshEverything()
         End Set
@@ -552,12 +546,12 @@ Public Class FrmLevelEditor
             If LstRooms.SelectedIndex > -1 And Not IsNothing(Rooms) AndAlso LstRooms.SelectedIndex <= UBound(Rooms) Then
                 Return Rooms(LstRooms.SelectedIndex)
             Else
-                Return New Room With {.name = "UnselectedRoom"}
+                Return _unselectedRoom
             End If
         End Get
-        Set(value As Room)
+        Set
             If LstRooms.SelectedIndex > -1 And LstRooms.SelectedIndex <= UBound(Rooms) Then
-                Rooms(LstRooms.SelectedIndex) = value
+                Rooms(LstRooms.SelectedIndex) = Value
                 RefreshEverything()
             End If
         End Set
@@ -574,7 +568,7 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub LstRooms_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstRooms.SelectedIndexChanged
+    Private Sub LstRooms_SelectedIndexChanged(sender As ListBox, e As EventArgs) Handles LstRooms.SelectedIndexChanged
         'currently selected room is changed
 
         LstActors.SelectedIndex = -1
@@ -582,7 +576,7 @@ Public Class FrmLevelEditor
         RenderCurrentRoom()
     End Sub
 
-    Private Sub BtnRoomAdd_Click(sender As Object, e As EventArgs) Handles BtnRoomAdd.Click
+    Private Sub BtnRoomAdd_Click(sender As Button, e As EventArgs) Handles BtnRoomAdd.Click
         'a new room is added to the level
 
         Dim roomName As String = InputBox("Please enter a name for the new room")
@@ -593,13 +587,13 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub ItmRoomDelete_Click(sender As Object, e As EventArgs) Handles ItmRoomDelete.Click
+    Private Sub ItmRoomDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmRoomDelete.Click
         If MsgBox("Are you sure you wish to delete room " & SelectedRoom.name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
             Rooms = RemoveItem(Rooms, LstRooms.SelectedIndex)
         End If
     End Sub
 
-    Private Sub ItmRoomEdit_Click(sender As Object, e As EventArgs) Handles ItmRoomEdit.Click
+    Private Sub ItmRoomEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmRoomEdit.Click
         Dim newName As String = InputBox("Please enter the new name for " & SelectedRoom.name)
 
         If Not IsNothing(newName) AndAlso newName.Length > 0 Then
@@ -608,7 +602,7 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub ItmRoomDuplicate_Click(sender As Object, e As EventArgs) Handles ItmRoomDuplicate.Click
+    Private Sub ItmRoomDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmRoomDuplicate.Click
         Rooms = InsertItem(Rooms, SelectedRoom)
         LstRooms.SelectedIndex = UBound(Rooms)  'automatically selects the new room
     End Sub
@@ -617,9 +611,9 @@ Public Class FrmLevelEditor
 
 #Region "General Procedures"
 
-    Private Sub AnySelectionChanged(sender As Object, e As EventArgs) Handles _
-        LstActors.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged,
-        LstRooms.SelectedIndexChanged, LstActorTags.SelectedIndexChanged
+    Private Sub AnySelectionChanged(sender As ListBox, e As EventArgs) _
+        Handles LstActors.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged,
+                LstRooms.SelectedIndexChanged, LstActorTags.SelectedIndexChanged
 
         RefreshControlsEnabled()
     End Sub
@@ -666,17 +660,14 @@ Public Class FrmLevelEditor
         RenderCurrentRoom()
     End Sub
 
-
-
-
 #End Region
 
 #Region "Testing"
 
-    Private Sub ToolBarTestStart_Click(sender As Object, e As EventArgs) Handles ToolBarTestStart.Click
+    Private Sub ToolBarTestStart_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarTestStart.Click
         'opens game executor with the current level
 
-        Using executor As New FrmGame(createdLevel.ToString)
+        Using executor As New FrmGame(_createdLevel.ToString)
             executor.ShowDialog()
         End Using
     End Sub

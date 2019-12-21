@@ -25,7 +25,7 @@ Public Class FrmGame
         ' Add any initialization after the InitializeComponent() call.
 
         renderEngine = New PanelRenderEngine2 With {.renderPanel = pnlGame}
-        currentLevel = New Level(levelTagString, renderEngine)
+        currentLevel = New Level(levelTagString)
         frameTimer = New Timer() With {.Interval = 1000 / 60}   'interval is delay between ticks in ms
 
         AddHandler frameTimer.Tick, AddressOf GameTick
@@ -195,42 +195,6 @@ Public Class FrmGame
             Next
         End If
     End Sub
-
-#End Region
-
-#Region "General Procedures"
-
-    Public Shared Function MakeNameUnique(ByVal name As String, otherNames() As String, removeUnnecessary As Boolean) As String
-        'returns a name with a number appended to it so the name is unique
-
-        name = RemoveQuotes(name)
-
-        If Not IsNothing(otherNames) Then
-            Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
-            Dim generatedName As String = name
-            Dim nameUnique As Boolean = False
-
-            Do
-                copyNumber += 1
-                If Not removeUnnecessary Or copyNumber > 1 Then
-                    generatedName = AddQuotes(name & "-" & Trim(Str(copyNumber)))
-                End If
-                nameUnique = True
-
-                'checks if name is unique
-                For Each otherName As String In otherNames
-                    If otherName = generatedName Then
-                        nameUnique = False
-                        Exit For
-                    End If
-                Next
-            Loop Until nameUnique
-
-            Return generatedName
-        Else
-            Return name & If(Not removeUnnecessary, "-1", "")
-        End If
-    End Function
 
 #End Region
 

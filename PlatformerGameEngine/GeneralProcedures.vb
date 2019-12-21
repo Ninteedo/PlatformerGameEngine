@@ -134,8 +134,37 @@ Module GeneralProcedures
         End If
     End Sub
 
+    Public Function MakeNameUnique(ByVal name As String, otherNames() As String, removeUnnecessary As Boolean) As String
+        'returns a name with a number appended to it so the name is unique
 
+        name = RemoveQuotes(name)
 
+        If Not IsNothing(otherNames) Then
+            Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
+            Dim generatedName As String = name
+            Dim nameUnique As Boolean = False
+
+            Do
+                copyNumber += 1
+                If Not removeUnnecessary Or copyNumber > 1 Then
+                    generatedName = AddQuotes(name & "-" & Trim(Str(copyNumber)))
+                End If
+                nameUnique = True
+
+                'checks if name is unique
+                For Each otherName As String In otherNames
+                    If otherName = generatedName Then
+                        nameUnique = False
+                        Exit For
+                    End If
+                Next
+            Loop Until nameUnique
+
+            Return generatedName
+        Else
+            Return name & If(Not removeUnnecessary, "-1", "")
+        End If
+    End Function
 
 #End Region
 
@@ -214,7 +243,7 @@ Module GeneralProcedures
     Public Function ScaleSize(s1 As SizeF, s2 As SizeF) As SizeF
         'multiples two sizes together by individually multiplying their width and height
 
-        Return New SizeF(s1.Width * s2.Width, s1.Height * s1.Width)
+        Return New SizeF(s1.Width * s2.Width, s1.Height * s2.Height)
     End Function
 
     Public Function ScalePoint(p As PointF, s As SizeF) As PointF

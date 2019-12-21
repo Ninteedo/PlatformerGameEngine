@@ -87,8 +87,6 @@ Public Class Actor
 
 #Region "Key Properties"
 
-
-
     Property Name As String
         Get
             Return GetProperty(NameTagName, "UnnamedActor")
@@ -101,9 +99,6 @@ Public Class Actor
     Property Location As PointF
         Get
             If HasTag(LocationTagName) Then
-                'Dim textForm As String = FindTag("location").InterpretArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
-                'Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
-                '                        Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
                 Return New Point(Val(FindTag(LocationTagName).InterpretArgument()(0)), Val(FindTag(LocationTagName).InterpretArgument()(1)))
             Else
                 Return New PointF(0, 0)

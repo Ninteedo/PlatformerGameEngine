@@ -88,6 +88,24 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Level file (*.lvl)|*.lvl.
+        '''</summary>
+        Friend ReadOnly Property LevelFileFilter() As String
+            Get
+                Return ResourceManager.GetString("LevelFileFilter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Loader file (*.ldr)|*.ldr.
+        '''</summary>
+        Friend ReadOnly Property LoaderFileFilter() As String
+            Get
+                Return ResourceManager.GetString("LoaderFileFilter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to location.
         '''</summary>
         Friend ReadOnly Property LocationTagName() As String

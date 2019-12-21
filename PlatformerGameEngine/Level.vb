@@ -9,9 +9,8 @@ Public Class Level
 
 #Region "Constructors"
 
-    Public Sub New()
-        tags = Nothing
-        rooms = Nothing
+    Public Sub New(Optional rooms() As Room = Nothing)
+        Me.rooms = rooms
     End Sub
 
     Public Sub New(levelString As String)

@@ -153,4 +153,10 @@
   <data name="TagsTagName" xml:space="preserve">
     <value>tags</value>
   </data>
+  <data name="LoaderFileFilter" xml:space="preserve">
+    <value>Loader file (*.ldr)|*.ldr</value>
+  </data>
+  <data name="LevelFileFilter" xml:space="preserve">
+    <value>Level file (*.lvl)|*.lvl</value>
+  </data>
 </root>
