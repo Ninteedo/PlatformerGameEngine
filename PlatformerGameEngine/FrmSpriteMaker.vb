@@ -74,7 +74,7 @@ Public Class FrmSpriteMaker
         Using openDialog As New OpenFileDialog With {.Filter = SpriteFileFilter, .Multiselect = False}
             If openDialog.ShowDialog = DialogResult.OK Then
                 saveLocation = openDialog.FileName
-                createdSprite = New Sprite(saveLocation, spriteFolderLocation:="")
+                createdSprite = New Sprite(saveLocation)
                 DrawSavedPixels()
                 DisplayColourOptions(0)
             End If

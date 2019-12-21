@@ -153,10 +153,16 @@
   <data name="TagsTagName" xml:space="preserve">
     <value>tags</value>
   </data>
-  <data name="LoaderFileFilter" xml:space="preserve">
-    <value>Loader file (*.ldr)|*.ldr</value>
-  </data>
   <data name="LevelFileFilter" xml:space="preserve">
     <value>Level file (*.lvl)|*.lvl</value>
+  </data>
+  <data name="ColoursTagName" xml:space="preserve">
+    <value>colours</value>
+  </data>
+  <data name="PixelsTagName" xml:space="preserve">
+    <value>pixels</value>
+  </data>
+  <data name="SpriteTagName" xml:space="preserve">
+    <value>sprite</value>
   </data>
 </root>

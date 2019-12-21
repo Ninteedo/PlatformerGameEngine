@@ -70,6 +70,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to colours.
+        '''</summary>
+        Friend ReadOnly Property ColoursTagName() As String
+            Get
+                Return ResourceManager.GetString("ColoursTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to currentSprite.
         '''</summary>
         Friend ReadOnly Property CurrentSpriteTagName() As String
@@ -97,15 +106,6 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Loader file (*.ldr)|*.ldr.
-        '''</summary>
-        Friend ReadOnly Property LoaderFileFilter() As String
-            Get
-                Return ResourceManager.GetString("LoaderFileFilter", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to location.
         '''</summary>
         Friend ReadOnly Property LocationTagName() As String
@@ -129,6 +129,15 @@ Namespace My.Resources
         Friend ReadOnly Property OpacityTagName() As String
             Get
                 Return ResourceManager.GetString("OpacityTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to pixels.
+        '''</summary>
+        Friend ReadOnly Property PixelsTagName() As String
+            Get
+                Return ResourceManager.GetString("PixelsTagName", resourceCulture)
             End Get
         End Property
         
@@ -174,6 +183,15 @@ Namespace My.Resources
         Friend ReadOnly Property SpritesTagName() As String
             Get
                 Return ResourceManager.GetString("SpritesTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to sprite.
+        '''</summary>
+        Friend ReadOnly Property SpriteTagName() As String
+            Get
+                Return ResourceManager.GetString("SpriteTagName", resourceCulture)
             End Get
         End Property
         

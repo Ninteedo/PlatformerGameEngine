@@ -1,15 +1,11 @@
 ﻿'Richard Holmes
 '22/03/2019
-'Panel Render Engine v2
+'Panel Render Engine
 
 Public Class RenderEngine
 
-    Public renderPanel As Panel
-    Public renderResolution As New Size(640, 480)      'how many pixels the game is played at, scaled on render to the size of the render panel
-
-    Public spriteFolderLocation As String
-    'Public actorFolderLocation As String
-    Public levelFolderLocation As String
+    Public RenderPanel As Panel
+    Public RenderResolution As New Size(640, 480)      'how many pixels the game is played at, scaled on render to the size of the render panel
 
 #Region "Rendering"
 
@@ -18,15 +14,15 @@ Public Class RenderEngine
         'this uses double buffering to render the result to a buffer, which is eventually rendered to the user
         'this eliminates flickering caused by directly rendering one actor at a time
 
-        Using canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
+        Using canvas As New PaintEventArgs(RenderPanel.CreateGraphics, New Rectangle(New Point(0, 0), RenderPanel.Size))
             canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
             Using context As BufferedGraphicsContext = BufferedGraphicsManager.Current
-                context.MaximumBuffer = renderPanel.Size
+                context.MaximumBuffer = RenderPanel.Size
                 Using renderLayer As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
                     renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
 
                     'fills the background with white
-                    renderLayer.Graphics.FillRectangle(New SolidBrush(Color.White), New RectangleF(New PointF(0, 0), renderPanel.Size))
+                    renderLayer.Graphics.FillRectangle(New SolidBrush(Color.White), New RectangleF(New PointF(0, 0), RenderPanel.Size))
 
                     If Not IsNothing(actorList) Then
                         'sorts actorList by layer ascending using an insertion sort
@@ -72,7 +68,7 @@ Public Class RenderEngine
 
     Public ReadOnly Property RenderScale As SizeF   'the render scaling used by the renderer
         Get
-            Return New SizeF(renderPanel.Size.Width / renderResolution.Width, renderPanel.Size.Height / renderResolution.Height)
+            Return New SizeF(RenderPanel.Size.Width / RenderResolution.Width, RenderPanel.Size.Height / RenderResolution.Height)
         End Get
     End Property
 

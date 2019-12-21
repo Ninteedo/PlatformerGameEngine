@@ -6,10 +6,10 @@ Public Class FrmGameExecutor
 
 #Region "Disposing"
 
-    Protected Overrides Sub OnFormClosed(ByVal e As FormClosedEventArgs)
+    Protected Overrides Sub OnFormClosed(e As FormClosedEventArgs)
         _frameTimer.Stop()
         _frameTimer.Dispose()
-        _renderEngine = Nothing
+        '_renderer = Nothing
         MyBase.OnFormClosed(e)
     End Sub
 
@@ -17,14 +17,14 @@ Public Class FrmGameExecutor
 
 #Region "Constructors"
 
-    Public Sub New(ByVal levelTagString As String)
+    Public Sub New(levelTagString As String)
 
         ' This call is required by the designer.
         InitializeComponent()
 
         ' Add any initialization after the InitializeComponent() call.
 
-        _renderEngine = New RenderEngine With {.renderPanel = pnlGame}
+        _renderer = New RenderEngine With {.RenderPanel = pnlGame}
         _currentLevel = New Level(levelTagString)
         _frameTimer = New Timer() With {.Interval = 1000 / 60}   'interval is delay between ticks in ms
 
@@ -36,7 +36,7 @@ Public Class FrmGameExecutor
 
 #Region "Render Control"
 
-    Dim _renderEngine As RenderEngine            'panel render engine 2
+    Dim _renderer As RenderEngine
     ReadOnly _currentLevel As Level
 
     Private ReadOnly Property CurrentRoom As Room
@@ -56,14 +56,14 @@ Public Class FrmGameExecutor
         'then renders the new game state to the player
 
         'broadcasts an event for the game tick
-        BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("tick")).ToString), CurrentRoom, _renderEngine)
+        BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("tick")).ToString), CurrentRoom, _renderer)
 
         'broadcasts the key held event for each key currently held
         If Not IsNothing(_keysHeld) Then
             Dim kc As New KeysConverter     'used to convert the held key to a string
             For Each keyHeld As Keys In _keysHeld
                 If keyHeld <> Keys.None Then
-                    BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString), CurrentRoom, _renderEngine)
+                    BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString), CurrentRoom, _renderer)
                 End If
             Next
         End If
@@ -75,28 +75,30 @@ Public Class FrmGameExecutor
                 Dim tagIndex As Integer = 0
                 'TODO: how to deal with this list changing, tag IDs?
                 Do
-                    ProcessTag(act.tags(tagIndex), act, CurrentRoom, _renderEngine)
+                    ProcessTag(act.tags(tagIndex), act, CurrentRoom, _renderer)
                     tagIndex += 1
                 Loop Until tagIndex > UBound(act.tags)
             Next
         End If
 
-        _renderEngine.DoGameRender(CurrentRoom.actors)
+        _renderer.DoGameRender(CurrentRoom.actors)
     End Sub
 
 #End Region
 
-#Region "Higher Level Actor Control"
+#Region "References"
 
     Public Shared Function FindReference(act As Actor, refString As String, currentRoom As Room) As Object
         'finds what a reference is referring to
-        'ExampleActor.velocity[0]
+        'e.g. "ExampleActor.velocity[0]" may return 5
         'TODO: clean this up
 
         Dim parts() As String = JsonSplit(refString, 0, ".")    'reference delimited by "."
         Dim result As Object = Nothing
-        Const startArrayChar As String = "["
-        Const endArrayChar As String = "]"
+
+
+        Dim startArrayCharIndex As Integer = 0
+        Dim endArrayCharIndex As Integer = 0
 
         'find object (actor or room) which the reference is coming from
         Select Case LCase(parts(0))
@@ -104,8 +106,8 @@ Public Class FrmGameExecutor
                 result = act
 
                 If UBound(parts) >= 1 Then
-                    If parts(1).Contains(startArrayChar) Then
-                        Dim temp As String = parts(1).Remove(parts(1).IndexOf(startArrayChar))
+                    If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
+                        Dim temp As String = parts(1).Remove(startArrayCharIndex)
                         result = act.FindTag(temp)
                     Else
                         result = act.FindTag(parts(1))
@@ -120,8 +122,8 @@ Public Class FrmGameExecutor
                         result = currentRoom.actors(index)
 
                         If UBound(parts) >= 1 Then
-                            If parts(1).Contains(startArrayChar) Then
-                                Dim temp As String = parts(1).Remove(parts(1).IndexOf(startArrayChar))
+                            If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
+                                Dim temp As String = parts(1).Remove(startArrayCharIndex)
                                 result = result.FindTag(temp)
                             Else
                                 result = result.FindTag(parts(1))
@@ -135,17 +137,22 @@ Public Class FrmGameExecutor
         If Not IsNothing(result) Then
             If UBound(parts) > 1 Then
                 For index As Integer = 1 To UBound(parts)
-                    If parts(index).Contains(startArrayChar) Then
-                        Dim arrayIndex As Integer = ProcessCalculation(Mid(parts(index), parts(index).IndexOf(startArrayChar) + 1, parts(index).IndexOf(endArrayChar) - parts(index).IndexOf(startArrayChar)), act, currentRoom)
-                        result = result.InterpretArgument(parts(index).Remove(parts(index).IndexOf(startArrayChar)))(arrayIndex)
+                    If GetArrayCharIndices(parts(index), startArrayCharIndex, endArrayCharIndex) Then
+                        Dim arrayIndex As Integer = ProcessCalculation(
+                            Mid(parts(index), startArrayCharIndex + 2, endArrayCharIndex - startArrayCharIndex - 1), act,
+                            currentRoom)
+                        result = result.InterpretArgument(parts(index).Remove(startArrayCharIndex))
+                        result = result(arrayIndex)
                     Else
                         result = result.InterpretArgument(parts(index))
                     End If
                 Next
+
             ElseIf UBound(parts) = 1 Then
-                If parts(1).Contains(startArrayChar) Then
-                    Dim start As Integer = parts(1).IndexOf(startArrayChar) + 2
-                    Dim length As Integer = parts(1).IndexOf(endArrayChar) - parts(1).IndexOf(startArrayChar) - 1
+                'TODO: is this part needed?
+                If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
+                    Dim start As Integer = startArrayCharIndex + 2
+                    Dim length As Integer = endArrayCharIndex - startArrayCharIndex - 1
                     Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), act, currentRoom))
                     result = result.InterpretArgument()(arrayIndex)
                 Else
@@ -157,13 +164,27 @@ Public Class FrmGameExecutor
         Return result
     End Function
 
+    Private Shared Function GetArrayCharIndices(partString As String, ByRef startArrayCharIndex As Integer,
+                                           ByRef endArrayCharIndex As Integer) As Boolean
+        'updates the indices of the characters that denote array bounds (square brackets)
+
+        Const startArrayChar As String = "["
+        Const endArrayChar As String = "]"
+
+        startArrayCharIndex = partString.IndexOf(startArrayChar, StringComparison.Ordinal)
+        endArrayCharIndex = partString.IndexOf(endArrayChar, StringComparison.Ordinal)
+
+        Return partString.Contains(startArrayChar) And partString.Contains(endArrayChar)
+    End Function
+
+
 #End Region
 
 #Region "Player Input"
 
     Dim _keysHeld() As Keys  'a list of keys currently being held by the user
 
-    Private Sub FrmGame_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
+    Private Sub FrmGame_KeyDown(sender As FrmGameExecutor, e As KeyEventArgs) Handles MyBase.KeyDown
         'if the key is pressed down then it is added to the list of held keys
 
         'checks that key isn't already in keys held list
@@ -183,7 +204,7 @@ Public Class FrmGameExecutor
         End If
     End Sub
 
-    Private Sub FrmGame_KeyUp(sender As Object, e As KeyEventArgs) Handles MyBase.KeyUp
+    Private Sub FrmGame_KeyUp(sender As FrmGameExecutor, e As KeyEventArgs) Handles MyBase.KeyUp
         'when the key is no longer being pressed by the user it is removed from the list of held keys
 
         If Not IsNothing(_keysHeld) Then

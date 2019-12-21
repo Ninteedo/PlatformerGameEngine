@@ -32,7 +32,7 @@ Public Class FrmActorMaker
 
 #Region "Constructors"
 
-    Public Sub New(ByVal actorToModify As Actor, ByVal spriteFolderLocation As String)
+    Public Sub New(ByVal actorToModify As Actor)
 
         ' This call is required by the designer.
         InitializeComponent()
@@ -45,8 +45,8 @@ Public Class FrmActorMaker
             createdActor = New Actor(Nothing)
         End If
         originalString = createdActor.ToString
-        renderer = New RenderEngine With {.spriteFolderLocation = spriteFolderLocation, .renderPanel = PnlPreview}
-        renderer.renderPanel = PnlPreview
+        renderer = New RenderEngine With {.RenderPanel = PnlPreview}
+        renderer.RenderPanel = PnlPreview
         RefreshSpritesList()
     End Sub
 
@@ -96,7 +96,7 @@ Public Class FrmActorMaker
         If Not IsNothing(ActorSprites) Then
             ReDim items(UBound(ActorSprites))
             For index As Integer = 0 To UBound(ActorSprites)
-                items(index) = ActorSprites(index).fileName
+                items(index) = "Sprite " & index
             Next
         End If
 
@@ -131,30 +131,11 @@ Public Class FrmActorMaker
         'loads a sprite from a given location
 
         If IO.File.Exists(fileLocation) Then
-            Dim newSprite As New Sprite(fileLocation, renderer.spriteFolderLocation)
-            'Dim fileName As String = newSprite.fileName
+            Dim newSprite As New Sprite(fileLocation)
 
-            If IsNothing(FindLoadedSprite(newSprite.fileName)) Then      'checks that the same sprite isn't already loaded
-                ActorSprites = InsertItem(ActorSprites, newSprite)
-            End If
-
-            RefreshSpritesList()
+            ActorSprites = InsertItem(ActorSprites, newSprite)
         End If
     End Sub
-
-    Private Function FindLoadedSprite(fileLocation As String) As Sprite
-        'returns a loaded sprite with the given file name if it is already loaded
-
-        If IsNothing(ActorSprites) = False Then
-            For index As Integer = 0 To UBound(ActorSprites)
-                If ActorSprites(index).fileName = fileLocation Then
-                    Return ActorSprites(index)
-                End If
-            Next index
-        End If
-
-        Return Nothing
-    End Function
 
 #End Region
 
@@ -163,7 +144,7 @@ Public Class FrmActorMaker
     Private Sub BtnSpriteLoad_Click(sender As Object, e As EventArgs) Handles BtnSpriteLoad.Click
         'loads the user selected sprites
 
-        Using openDialog As New OpenFileDialog With {.Filter = SpriteFileFilter, .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
+        Using openDialog As New OpenFileDialog With {.Filter = SpriteFileFilter, .Multiselect = True}
             If openDialog.ShowDialog = DialogResult.OK Then
                 For index As Integer = 0 To UBound(openDialog.FileNames)
                     LoadSprite(openDialog.FileNames(index))
@@ -211,7 +192,7 @@ Public Class FrmActorMaker
                 .Name = "SpritePreview",
                 .Sprites = {spriteToDraw}
                 }
-            renderer.renderResolution = spriteToDraw.Dimensions
+            renderer.RenderResolution = spriteToDraw.Dimensions
             LayoutInitialisation()
 
             renderer.DoGameRender({previewActor})

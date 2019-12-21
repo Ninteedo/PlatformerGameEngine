@@ -13,10 +13,9 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub Initialization()
-        _renderEngine = New RenderEngine With {.renderPanel = PnlRender}
+        _renderEngine = New RenderEngine With {.RenderPanel = PnlRender}
         _createdLevel = New Level
 
-        LoadInitialization()
         RefreshControlsEnabled()
     End Sub
 
@@ -26,25 +25,6 @@ Public Class FrmLevelEditor
 
     Dim _createdLevel As Level
     Dim _levelSaveLocation As String = Nothing
-
-    Private Sub LoadInitialization()
-        'gets the folder locations from the loader file
-
-        Using openDialog As New OpenFileDialog With {.Filter = LoaderFileFilter, .Multiselect = False}
-            MsgBox("Please select the loader file for the game")
-
-            If openDialog.ShowDialog() = DialogResult.OK Then
-                Dim loaderFileText As String = ReadFile(openDialog.FileName)
-
-                'loads locations of each folder
-                Dim topLevelFolder As String = openDialog.FileName.Remove(openDialog.FileName.LastIndexOf("\", StringComparison.Ordinal) + 1)
-                _renderEngine.levelFolderLocation = topLevelFolder & FindProperty(loaderFileText, "levelFolder")
-                _renderEngine.spriteFolderLocation = topLevelFolder & FindProperty(loaderFileText, "spriteFolder")
-            Else
-                Close()
-            End If
-        End Using
-    End Sub
 
     Private Sub LoadLevel(fileLocation As String)
         'loads a level and sets the interface up
@@ -70,22 +50,24 @@ Public Class FrmLevelEditor
     Private Sub SaveAsPrompt()
         'asks the user for a name to save the level
 
-        Dim fileName As String = InputBox("Enter file name for level")
-
-        If fileName.Length >= 1 Then        'checks that the user actually entered something
-            _levelSaveLocation = _renderEngine.levelFolderLocation & fileName & ".lvl"
-            SaveLevel()
-        End If
+        Using saveDialog As New SaveFileDialog With {.Filter = LevelFileFilter}
+            If saveDialog.ShowDialog() = DialogResult.OK Then        'checks that the user actually entered something
+                _levelSaveLocation = saveDialog.FileName
+                SaveLevel()
+            End If
+        End Using
     End Sub
 
     Private Sub ToolBarFileOpen_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileOpen.Click
         'opens a level file selected by the user
 
-        Using openDialog As New OpenFileDialog With {.Filter = LevelFileFilter, .InitialDirectory = _renderEngine.levelFolderLocation}
-            If openDialog.ShowDialog() = DialogResult.OK Then
-                LoadLevel(openDialog.FileName)
-            End If
-        End Using
+        If UnsavedChanges AndAlso MsgBox("Opening a new level will lead to loss of unsaved work. Continue?", MsgBoxStyle.OkCancel) = DialogResult.OK Then
+            Using openDialog As New OpenFileDialog With {.Filter = LevelFileFilter, .Title = "Open Level"}
+                If openDialog.ShowDialog() = DialogResult.OK Then
+                    LoadLevel(openDialog.FileName)
+                End If
+            End Using
+        End If
     End Sub
 
     Private Sub ToolBarFileSaveAs_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileSaveAs.Click
@@ -105,25 +87,31 @@ Public Class FrmLevelEditor
     Private Sub UserCloseForm(sender As FrmLevelEditor, e As FormClosingEventArgs) Handles Me.FormClosing
         'displays a warning to the user if they have unsaved work when they close the form
 
-        'checks if the saved level matches the level currently in the level editor
-        Dim unsavedChanges As Boolean = False
-        If Not IsNothing(_levelSaveLocation) AndAlso IO.File.Exists(_levelSaveLocation) Then
-            Dim savedLevelString As String = ReadFile(_levelSaveLocation)
-
-            If savedLevelString <> _createdLevel.ToString Then
-                unsavedChanges = True
-            End If
-        ElseIf Not IsNothing(_renderEngine.levelFolderLocation) Then     'no level folder location if form isn't finished loading
-            unsavedChanges = True
-        End If
-
-        'if there are unsaved changes then warns the user
-        If unsavedChanges Then
+        If UnsavedChanges Then
             If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
                 e.Cancel = True
             End If
         End If
     End Sub
+
+    Private ReadOnly Property UnsavedChanges As Boolean
+        Get
+            'checks if the saved level matches the level currently in the level editor
+            Dim result As Boolean = False
+            If IO.File.Exists(_levelSaveLocation) Then
+                Dim savedLevelString As String = ReadFile(_levelSaveLocation)
+
+                If savedLevelString <> _createdLevel.ToString Then
+                    result = True
+                End If
+            ElseIf _createdLevel IsNot New Level Then
+                'if changes have been made but no saves made then there are unsaved changes
+                result = True
+            End If
+
+            Return result
+        End Get
+    End Property
 
 #End Region
 
@@ -182,7 +170,7 @@ Public Class FrmLevelEditor
     Private Sub BtnCreateActor_Click(sender As Button, e As EventArgs) Handles BtnCreateActor.Click
         'opens Actor Maker for user and adds created actor to room
 
-        Using actorMaker As New FrmActorMaker(Nothing, _renderEngine.spriteFolderLocation)
+        Using actorMaker As New FrmActorMaker(Nothing)
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
@@ -197,7 +185,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmActorEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorEdit.Click
-        Using actorMaker As New FrmActorMaker(SelectedActor, _renderEngine.spriteFolderLocation)
+        Using actorMaker As New FrmActorMaker(SelectedActor)
             actorMaker.ShowDialog()
 
             If actorMaker.userFinished Then
