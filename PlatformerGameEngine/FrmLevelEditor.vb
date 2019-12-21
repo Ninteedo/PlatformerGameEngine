@@ -5,7 +5,6 @@
 Public Class FrmLevelEditor
 
 #Region "Initialisation"
-    'initialisation
 
     Private Sub FrmLevelEditor_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Initialisation()
@@ -210,13 +209,13 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmActorDuplicate_Click(sender As Object, e As EventArgs) Handles ItmActorDuplicate.Click
-        AddActor(SelectedActor)
+        AddActor(createdLevel.rooms(LstRooms.SelectedIndex).actors(LstActors.SelectedIndex))
     End Sub
 
     Private Sub AddActor(ByRef template As Actor)
         'creates a new instance from the given actor
 
-        Dim newActor As Actor = template.Clone
+        Dim newActor As Actor = template.Clone()
 
         If Not IsNothing(Actors) Then
             Dim usedNames(UBound(Actors)) As String
@@ -251,7 +250,6 @@ Public Class FrmLevelEditor
 #End Region
 
 #Region "Tags"
-    'tags
 
     Dim disableTagChangedEvent As Boolean = False
 
@@ -336,6 +334,7 @@ Public Class FrmLevelEditor
 
         If Not disableTagChangedEvent Then
             disableTagChangedEvent = True
+
             SelectedActor.Name = TxtActorName.Text
             SelectedActor.Location = New PointF(NumActorLocX.Value, NumActorLocY.Value)
             SelectedActor.Layer = NumActorLayer.Value
