@@ -5,35 +5,70 @@
 Public Module TagBehaviours
 
     'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
+    Const ifConditionName As String = "con"
+    Const ifThenName As String = "then"
+    Const ifElseName As String = "else"
 
-    Public Sub ProcessTag(ByVal tag As Tag, ByRef act As Actor, ByRef room As Room, ByRef renderEngine As PanelRenderEngine2)
+    Public Sub ProcessTag(ByVal inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderEngine As PanelRenderEngine2)
         'processes a single tag and modifies the actor accordingly
 
         'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
         'Dim tag As Tag = ent.tags(tagIndex)
 
-        Select Case LCase(tag.name)
-                'basic movement
+        Select Case LCase(inputTag.name)
+            'basic movement
             Case "velocity"     '[xChange,yChange]
-                Dim velocityTemp As Object = InterpretValue(tag.argument, True, act, room)
+                Dim velocityTemp As Object = InterpretValue(inputTag.argument, True, act, thisRoom)
                 Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
-                VelocityHandling(act, velocity, room)
+                VelocityHandling(act, velocity, thisRoom)
 
                 'meta
             Case LCase("addTag")
-                Dim newTag As Tag = InterpretValue(tag.argument, True, act, room)
+                Dim newTag As Tag = InterpretValue(inputTag.argument, True, act, thisRoom)
                 act.AddTag(newTag, True)
             Case LCase("removeTag")
-                act.RemoveTag(tag.InterpretArgument())
+                act.RemoveTag(inputTag.InterpretArgument())
             Case "execute"
-                ProcessTag(New Tag(tag.InterpretArgument.ToString), act, room, renderEngine)
+                ProcessTag(New Tag(inputTag.InterpretArgument.ToString), act, thisRoom, renderEngine)
 
                 'broadcast event
             Case LCase("broadcast")
-                BroadcastEvent(New Tag(tag.InterpretArgument.ToString), room, renderEngine)
+                BroadcastEvent(New Tag(inputTag.InterpretArgument.ToString), thisRoom, renderEngine)
+
+                'logic
+            Case "if"
+                Dim condition As String = inputTag.FindSubTag(ifConditionName).InterpretArgument
+                'assesses condition then executes either "then" or "else" part of the if
+                Dim executePart As Tag = Nothing
+                If AssessCondition(condition, act, thisRoom) Then
+                    executePart = inputTag.FindSubTag(ifThenName)
+                Else
+                    executePart = inputTag.FindSubTag(ifElseName)
+                End If
+
+                'executes everything in the executePart
+                ProcessSubTags(executePart, act, thisRoom, renderEngine)
         End Select
         'End If
+    End Sub
+
+    Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderEngine As PanelRenderEngine2)
+        'calls ProcessTag on all the subtags in the input tag
+        If Not IsNothing(inputTag) Then
+            Dim temp As Object = inputTag.InterpretArgument
+            If IsArray(temp) Then
+                For index As Integer = 0 To UBound(temp)
+                    If temp(index).GetType() = GetType(Tag) Then   'checks that the temp is actually a tag before processing it
+                        ProcessTag(temp(index), act, thisRoom, renderEngine)
+                    End If
+                Next
+            ElseIf Not IsNothing(temp) Then
+                If temp.GetType() = GetType(Tag) Then   'checks that the temp is actually a tag before processing it
+                    ProcessTag(temp, act, thisRoom, renderEngine)
+                End If
+            End If
+        End If
     End Sub
 
 #Region "Collision Detection"
@@ -402,17 +437,17 @@ Public Module TagBehaviours
 
 #Region "Calculation"
 
-    Public Function ProcessCalculation(calc As String, Optional act As Actor = Nothing, Optional room As Room = Nothing) As String
+    Public Function ProcessCalculation(calc As String, Optional ByRef act As Actor = Nothing, Optional ByRef room As Room = Nothing) As String
         'takes in a calculation as a string and returns the result
 
         If Not IsNothing(calc) AndAlso Len(calc) > 0 Then
+            If IsNumeric(calc) Then
+                Return calc
+            End If
+
             Dim operatorSymbols() As String = {"^", "/", "*", "+", "-"}
             Dim parts(0) As String
             Dim operatorsUsed(0) As String
-
-            If IsNothing(calc) OrElse IsNumeric(calc) Then
-                Return calc
-            End If
 
             'recursively processes the brackets first
             Dim cIndex As Integer = 0
@@ -545,7 +580,7 @@ Public Module TagBehaviours
             Else
                 Dim reference As Object = FrmGame.FindReference(act, parts(0), room)
                 If Not IsNothing(reference) Then
-                    parts(0) = Val(reference)
+                    parts(0) = reference
                 End If
             End If
 
@@ -682,14 +717,16 @@ Public Module TagBehaviours
 
                 'combines the comparisons into a single boolean using ands & ors
                 Dim overall As Boolean = indCompars(0)
-                For index As Integer = 0 To UBound(comparTypes)
-                    Select Case comparTypes(index)
-                        Case LogicOp.andOp
-                            overall = overall And indCompars(index + 1)
-                        Case LogicOp.orOp
-                            overall = overall Or indCompars(index + 1)
-                    End Select
-                Next
+                If Not IsNothing(comparTypes) Then
+                    For index As Integer = 0 To UBound(comparTypes)
+                        Select Case comparTypes(index)
+                            Case LogicOp.andOp
+                                overall = overall And indCompars(index + 1)
+                            Case LogicOp.orOp
+                                overall = overall Or indCompars(index + 1)
+                        End Select
+                    Next
+                End If
 
                 Return overall
             End If
