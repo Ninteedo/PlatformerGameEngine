@@ -71,7 +71,7 @@ Public Class FrmMenu
 
                     Using openDialog As New OpenFileDialog With {.Filter = "Level File (*.lvl)|*.lvl", .Title = "Select Level", .Multiselect = False}
                         'MsgBox("Please select the level file")
-                        If openDialog.ShowDialog() = Windows.Forms.DialogResult.OK Then
+                        If openDialog.ShowDialog() = DialogResult.OK Then
                             Using game As New FrmGame(ReadFile(openDialog.FileName))
                                 game.ShowDialog()
                             End Using
@@ -80,8 +80,13 @@ Public Class FrmMenu
                 Case MenuLink.optionsMenu
                     'open FrmOptions
 
-                    Dim example As String = "0 < 1 AND 1 < 2 OR 2 < 3 AND 3 < 4 OR 4 < 5 OR 5 < 6"
-                    Dim result As Boolean = AssessCondition(example)
+                    'MsgBox(False And True Or True And True Or True Or True)
+
+                    'Dim example As String = "0 > 1 AND 1 < 2 OR 2 < 3 AND 3 < 4 OR 4 < 5 OR 5 < 6"
+                    'Dim result As Boolean = AssessCondition(example)
+                    'MsgBox(result)
+                    'SQLTest()
+                    MySqlTest()
                 Case MenuLink.toolsMenu
                     'changes the menu layout to one relevant to the tools menu
 

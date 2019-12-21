@@ -1,4 +1,7 @@
-﻿Imports System.Data.OleDb
+﻿Imports System.Configuration
+Imports System.Data.OleDb
+Imports MySql.Data.MySqlClient
+Imports PlatformerGameEngine.My
 
 Module GeneralProcedures
 
@@ -161,6 +164,35 @@ Module GeneralProcedures
             conn.Close()
         Catch ex As Exception
             DisplayError(ex.ToString)
+        End Try
+    End Sub
+
+    Public Sub MySqlTest()
+        Try
+            Dim sqlReader As MySqlDataReader
+            'creates and opens connection to database
+            Dim conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
+            conn.Open()
+
+            Dim query As String = InputBox("Enter SQL Query") '"SELECT * FROM Score;"
+            Dim command As New MySqlCommand(query, conn)
+            sqlReader = command.ExecuteReader()
+
+            If sqlReader.HasRows Then
+                Dim output As String = ""
+                While sqlReader.Read
+                    output += sqlReader("ID") & " " & sqlReader("initials") & " " & sqlReader("points") & vbCrLf
+                End While
+                MsgBox(output)
+            Else
+                MsgBox("No results returned")
+            End If
+
+
+            'closes connection
+            conn.Close()
+        Catch ex As Exception
+            DisplayError(ex.ToString())
         End Try
     End Sub
 
