@@ -6,11 +6,11 @@ Public Class FrmSpriteMaker
 
 #Region "Initialisation"
 
-    Private Sub FrmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    Private Sub FrmMain_Load(sender As FrmSpriteMaker, e As EventArgs) Handles MyBase.Load
         Initialisation()
     End Sub
 
-    Private Sub FrmMain_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
+    Private Sub FrmMain_Shown(sender As FrmSpriteMaker, e As EventArgs) Handles MyBase.Shown
         'this is here because drawing only works when the form is open, not when loading
 
         DrawSavedPixels()
@@ -25,12 +25,13 @@ Public Class FrmSpriteMaker
 
     Private Sub SetUpUsedColoursTable()
         'fills TblColourSelect with buttons which will be used to allow the user to select previously used colours and swap pages
-
+        
         'adds the buttons for the colours
+        Dim btn As Button
         ReDim colourButtons(TblColourSelect.RowCount - 3, TblColourSelect.ColumnCount - 1)
         For row As Integer = 0 To TblColourSelect.RowCount - 3
             For col As Integer = 0 To TblColourSelect.ColumnCount - 1
-                Dim btn As New Button With {.Name = $"BtnColourX{row}Y{col}",
+                btn = New Button With {.Name = "BtnColourX" & row & "Y" & col,
                     .Dock = DockStyle.Fill,
                     .Enabled = False,
                     .Text = "#"}
@@ -43,15 +44,13 @@ Public Class FrmSpriteMaker
         'adds the buttons for the change page buttons
         ReDim pageSwapButtons(1)
         For index As Integer = 0 To 1
-            Dim btn As Button
+            btn = New Button With {.Enabled = False, .Dock = DockStyle.Fill}
             If index = 0 Then
-                btn = New Button With {.Name = "BtnColourPrevPage",
-            .Enabled = False, .Dock = DockStyle.Fill, .Text = "<"}
+                btn = New Button With {.Name = "BtnColourPrevPage", .Text = "<"}
                 AddHandler btn.Click, AddressOf PreviousColourPage
                 TblColourSelect.Controls.Add(btn, 0, TblColourSelect.RowCount - 1)
             Else
-                btn = New Button With {.Name = "BtnColourNextPage",
-            .Enabled = False, .Dock = DockStyle.Fill, .Text = ">"}
+                btn = New Button With {.Name = "BtnColourNextPage", .Text = ">"}
                 AddHandler btn.Click, AddressOf NextColourPage
 
                 TblColourSelect.Controls.Add(btn, TblColourSelect.ColumnCount - 1, TblColourSelect.RowCount - 1)
@@ -67,7 +66,7 @@ Public Class FrmSpriteMaker
     Dim saveLocation As String
     Dim createdSprite As Sprite
 
-    Private Sub OpenFile(sender As Object, e As EventArgs) Handles ToolBarFileOpen.Click
+    Private Sub OpenFile(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileOpen.Click
         'asks the user to select a .sprt file and reads it
 
         Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = False}
@@ -80,7 +79,7 @@ Public Class FrmSpriteMaker
         End Using
     End Sub
 
-    Private Sub SaveAs(sender As Object, e As EventArgs) Handles ToolBarFileSaveAs.Click
+    Private Sub SaveAs(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileSaveAs.Click
         'asks the user to select a save location, then saves the sprite there and enables the regular save button
 
         Using saveDialog As New SaveFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt"}
@@ -91,7 +90,7 @@ Public Class FrmSpriteMaker
         End Using
     End Sub
 
-    Private Sub SaveFile(sender As Object, e As EventArgs) Handles ToolBarFileSave.Click
+    Private Sub SaveFile(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileSave.Click
         If IsNothing(saveLocation) Then
             'if save location not selected then asks user to save as
             SaveAs(Nothing, Nothing)
@@ -101,7 +100,7 @@ Public Class FrmSpriteMaker
         End If
     End Sub
 
-    Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+    Private Sub UserCloseForm(sender As FrmSpriteMaker, e As FormClosingEventArgs) Handles Me.FormClosing
         'displays a warning to the user if they have unsaved work when they close the form
 
         Dim unsavedChanges As Boolean = False
@@ -186,7 +185,7 @@ Public Class FrmSpriteMaker
         End If
     End Sub
 
-    Private Sub BtnRedraw_Click(sender As Object, e As EventArgs) Handles BtnRedraw.Click
+    Private Sub BtnRedraw_Click(sender As Button, e As EventArgs) Handles BtnRedraw.Click
         'incase the sprite gets cleared from the grid for any reason, eg dragging window offscreen
         DrawSavedPixels()
     End Sub
@@ -198,7 +197,7 @@ Public Class FrmSpriteMaker
         End If
     End Sub
 
-    Private Sub ResizeSprite(sender As Object, e As EventArgs) Handles NumResizeW.ValueChanged, NumResizeH.ValueChanged
+    Private Sub ResizeSprite(sender As NumericUpDown, e As EventArgs) Handles NumResizeW.ValueChanged, NumResizeH.ValueChanged
         'resizes the sprite according to the new width and height inputted by the user
 
         If Not IsNothing(createdSprite) Then
@@ -214,7 +213,7 @@ Public Class FrmSpriteMaker
     Dim dragStartPoint As Point
     Dim dragEndPoint As Point
 
-    Private Sub ChangePixel(ByVal coords As Point)
+    Private Sub ChangePixel(coords As Point)
         'changes the pixels at the given coordinates to match the selected colour index
         createdSprite.SetPixelColour(coords, CurrentColour)
         DrawSavedPixels(coords)
@@ -312,33 +311,27 @@ Public Class FrmSpriteMaker
         Dim rows As Integer = TblColourSelect.RowCount - 2
         Dim cols As Integer = TblColourSelect.ColumnCount
 
-        LblUsedColours.Text = $"Used Colours Page {pageNumber + 1}"
+        LblUsedColours.Text = "Used Colours Page " & pageNumber + 1
         colourPageNumber = pageNumber
 
         'shows the colours of the new page
         For row As Integer = 0 To rows - 1
             For col As Integer = 0 To cols - 1
                 Dim colourIndex As Integer = (pageNumber * rows * cols) + row * cols + col
-                If colourIndex <= UBound(Colours) Then
+                Dim valid As Boolean = colourIndex >= 0 And colourIndex <= UBound(Colours)  'checks if the colour index is in bounds
+                colourButtons(row, col).Enabled = valid
+                colourButtons(row, col).Visible = valid
+
+                If valid Then
                     colourButtons(row, col).BackColor = Colours(colourIndex)
-                    colourButtons(row, col).Enabled = True
-                    colourButtons(row, col).Visible = True
                     colourButtons(row, col).Text = colourIndex
-                Else
-                    'no colour to display for this button
-                    colourButtons(row, col).Enabled = False
-                    colourButtons(row, col).Visible = False
                 End If
             Next
         Next
 
         'enables or disables swap page buttons as appropriate
-        If pageNumber > 1 Then
-            pageSwapButtons(0).Enabled = True
-        End If
-        If Math.Ceiling(UBound(Colours) / 16) > pageNumber Then
-            pageSwapButtons(1).Enabled = True
-        End If
+        pageSwapButtons(0).Enabled = pageNumber > 0
+        pageSwapButtons(1).Enabled = Math.Floor(UBound(Colours) / 16) > pageNumber
     End Sub
 
     Private Sub PreviousColourPage()
