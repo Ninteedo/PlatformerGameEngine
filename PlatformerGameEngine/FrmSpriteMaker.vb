@@ -66,10 +66,12 @@ Public Class FrmSpriteMaker
     Dim saveLocation As String
     Dim createdSprite As Sprite
 
-    Private Sub OpenFile(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileOpen.Click
-        'asks the user to select a .sprt file and reads it
+    Const SpriteFileFilter As String = "Sprite file (*.sprt)|*.sprt"
 
-        Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = False}
+    Private Sub OpenFile(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileOpen.Click
+        'asks the user to select a sprite file and reads it
+
+        Using openDialog As New OpenFileDialog With {.Filter = SpriteFileFilter, .Multiselect = False}
             If openDialog.ShowDialog = DialogResult.OK Then
                 saveLocation = openDialog.FileName
                 createdSprite = New Sprite(saveLocation, spriteFolderLocation:="")
@@ -82,7 +84,7 @@ Public Class FrmSpriteMaker
     Private Sub SaveAs(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileSaveAs.Click
         'asks the user to select a save location, then saves the sprite there and enables the regular save button
 
-        Using saveDialog As New SaveFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt"}
+        Using saveDialog As New SaveFileDialog With {.Filter = SpriteFileFilter}
             If saveDialog.ShowDialog = DialogResult.OK Then
                 saveLocation = saveDialog.FileName
                 WriteFile(saveLocation, createdSprite.ToString)
@@ -254,7 +256,7 @@ Public Class FrmSpriteMaker
     End Sub
 
     Private Function CalculateClickCoords(coords As PointF) As Point
-        'returns the x and y index of the pixel the provided click coords corrosponds to
+        'returns the x and y index of the pixel the provided click coords corresponds to
         Return New Point(Math.Floor(coords.X / GridScale.Width), Math.Floor(coords.Y / GridScale.Height))
     End Function
 
@@ -307,10 +309,6 @@ Public Class FrmSpriteMaker
         Colours = {Color.Transparent}
     End Sub
 
-    ''' <summary>
-    ''' Displays the colours of the current sprite in TblColourSelect
-    ''' </summary>
-    ''' <param name="pageNumber">The number of the page that will be shown to the user</param>
     Private Sub DisplayColourOptions(pageNumber As Integer)
         'updates TblColourSelect to show the colours on the provided page number
 
