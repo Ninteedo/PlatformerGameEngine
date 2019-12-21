@@ -1,4 +1,6 @@
-﻿Module GeneralProcedures
+﻿Imports System.Data.OleDb
+
+Module GeneralProcedures
 
 #Region "Array Modifying"
 
@@ -30,8 +32,8 @@
             ReDim Preserve array(UBound(array) + 1)
 
             If insertIndex >= 0 Then        'inserts into middle of array
-                For index As Integer = insertIndex To UBound(array) - 1
-                    array(index + 1) = array(index)
+                For index As Integer = UBound(array) To insertIndex + 1 Step -1
+                    array(index) = array(index - 1)
                 Next
                 array(insertIndex) = newItem
             Else    'if no value (default -1) given then adds item to end of array
@@ -101,18 +103,6 @@
         MsgBox(message, MsgBoxStyle.Exclamation)
     End Sub
 
-    Public Sub Log(message As String, level As WarnLevel)
-        'logs something noteworthy, eg an error or a warning or a debug
-        'warn levels are 0:info, 1:warn, 2:error, 3:fatal
-    End Sub
-
-    Public Enum WarnLevel As Integer
-        info
-        warn
-        err
-        fatal
-    End Enum
-
 #End Region
 
 #Region "Other"
@@ -139,6 +129,39 @@
         Else
             'DisplayError("A list tried to refresh but doesn't exist")
         End If
+    End Sub
+
+#End Region
+
+#Region "Database Connections"
+
+    Public Sub SQLTest()
+        Try
+            Dim sqlReader As OleDbDataReader
+            'creates and opens connection to database
+            'Dim conType As String = "Provider=Microsoft.ACE.OLEDB.12.0;"
+            'Dim fileLocation As String = $"Data Source=F:\School\Higher\Computing\Visual Basic\PlatformerGameEngine\resources\games\Robotic Escape\Test.accdb"
+            Dim conn As New OleDbConnection("Provider = Microsoft.Jet.OLEDB.4.0;Data Source=""F:\School\Higher\Computing\Visual Basic\PlatformerGameEngine\resources\games\Robotic Escape\Test.mdb""")
+            conn.Open()
+
+            Dim query As String = "SELECT * FROM [Customers]"
+            Dim command As New OleDbCommand(query, conn)
+            sqlReader = command.ExecuteReader
+
+            If sqlReader.HasRows Then
+                Dim output As String = ""
+                While sqlReader.Read
+                    output += sqlReader("ID") & " " & sqlReader("Firstname") & " " & sqlReader("Surname") & vbCrLf
+                End While
+                MsgBox(output)
+            Else
+                DisplayError("No Results Returned")
+            End If
+
+            conn.Close()
+        Catch ex As Exception
+            DisplayError(ex.ToString)
+        End Try
     End Sub
 
 #End Region
