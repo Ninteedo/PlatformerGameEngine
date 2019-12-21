@@ -140,7 +140,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="GlobalSuppressions.vb" />
-    <Compile Include="JSONHandler.vb" />
+    <Compile Include="JsonHandler.vb" />
     <Compile Include="Level.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

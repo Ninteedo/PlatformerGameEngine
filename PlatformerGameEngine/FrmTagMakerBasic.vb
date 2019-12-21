@@ -12,7 +12,7 @@ Public Class FrmTagMakerBasic
             Return temp
         End Get
         Set(value As Tag)
-            txtJSON.Text = TagToJSON(value)
+            txtJSON.Text = TagToJson(value)
         End Set
     End Property
 

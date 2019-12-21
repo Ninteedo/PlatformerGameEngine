@@ -33,7 +33,7 @@
     End Function
 
     Public Function FindSubTag(subTagName As String) As Tag
-        'returns a subtag in this tag's argument which has a name which matches the provided subtagname
+        'returns a subtag in this tag's argument which has a name which matches the provided subtag name
 
         Dim subTagsTemp As Object = InterpretArgument()
 
@@ -84,13 +84,13 @@
 #Region "Other"
 
     Public Overrides Function ToString() As String
-        Return TagToJSON(Me)
+        Return TagToJson(Me)
     End Function
 
     Public Function Clone() As Object Implements ICloneable.Clone
         'returns a deep clone of this tag
 
-        Return New Tag(Me.name.Clone, Me.argument.Clone)
+        Return New Tag(name.Clone, argument.Clone)
     End Function
 
 #End Region

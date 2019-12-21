@@ -632,7 +632,7 @@ Public Module TagBehaviours
                 For opIndex As Integer = 0 To UBound(logicOperators)
                     Dim comIndex As Integer = 0
                     Do While comIndex <= UBound(indCompars)
-                        Dim splits() As String = JSONSplit(indCompars(comIndex), 0, logicOperators(opIndex))
+                        Dim splits() As String = JsonSplit(indCompars(comIndex), 0, logicOperators(opIndex))
 
                         'checks if there was any split made
                         If UBound(splits) > 0 Then
@@ -662,7 +662,7 @@ Public Module TagBehaviours
                     'finds which (if any) comparison operator is used
                     Dim opIndex As Integer = 0
                     Do While opIndex <= UBound(comparisonOperators)
-                        Dim splits() = JSONSplit(indCompars(comIndex), 0, comparisonOperators(opIndex))
+                        Dim splits() = JsonSplit(indCompars(comIndex), 0, comparisonOperators(opIndex))
 
                         'checks if there are multiple parts when operator is used to split
                         If UBound(splits) = 1 Then

@@ -93,7 +93,7 @@ Public Class FrmGame
         'ExampleActor.velocity[0]
         'TODO: clean this up
 
-        Dim parts() As String = JSONSplit(refString, 0, ".")    'reference delimited by "."
+        Dim parts() As String = JsonSplit(refString, 0, ".")    'reference delimited by "."
         Dim result As Object = Nothing
         Const startArrayChar As String = "["
         Const endArrayChar As String = "]"

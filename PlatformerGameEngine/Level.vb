@@ -1,14 +1,11 @@
-﻿Public Class Level
+﻿Imports PlatformerGameEngine.My.Resources
+
+Public Class Level
     'class to store actor defaults and rooms
 
     Inherits TagContainer
 
     Public rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
-
-    Private Const namesTagName As String = "name"
-    Private Const roomsTagName As String = "rooms"
-    Private Const tagsTagName As String = "tags"
-    Private Const roomIndexTagName As String = "roomIndex"
 
 #Region "Constructors"
 
@@ -17,27 +14,27 @@
         rooms = Nothing
     End Sub
 
-    Public Sub New(levelString As String, renderEngine As PanelRenderEngine2)
+    Public Sub New(levelString As String)
         'templates = Nothing
         tags = Nothing
         rooms = Nothing
 
-        Dim levelTag As Tag = New Tag(levelString)
+        Dim levelTag As New Tag(levelString)
         If Not IsNothing(levelTag) Then
             'loads each room
-            Dim roomsTag As Tag = levelTag.FindSubTag(roomsTagName)
+            Dim roomsTag As Tag = levelTag.FindSubTag(RoomsTagName)
             If Not IsNothing(roomsTag) Then
                 Dim temp As Object = roomsTag.InterpretArgument
                 If Not IsNothing(temp) Then
                     ReDim rooms(UBound(temp))
                     For index As Integer = 0 To UBound(temp)
-                        rooms(index) = New Room(temp(index).ToString, renderEngine)
+                        rooms(index) = New Room(temp(index).ToString)
                     Next
                 End If
             End If
 
             'loads each tag
-            Dim tagsTag As Tag = levelTag.FindSubTag(tagsTagName)
+            Dim tagsTag As Tag = levelTag.FindSubTag(TagsTagName)
             If Not IsNothing(tagsTag) Then
                 Dim temp As Object = tagsTag.InterpretArgument
                 If IsArray(temp) Then
@@ -55,39 +52,28 @@
 
     Public Property Name As String
         Get
-            If HasTag(namesTagName) Then
-                Return FindTag(namesTagName).InterpretArgument()
-            Else
-                Return "UnnamedLevel"
-            End If
+            Return GetProperty(NameTagName, "UnnamedLevel")
         End Get
-        Set(value As String)
-            AddTag(New Tag(namesTagName, value), True)
+        Set
+            SetProperty(NameTagName, Value)
         End Set
     End Property
 
     Public Property RoomIndex As Integer
         'the index of the current room in the rooms list
         Get
-            If HasTag(roomIndexTagName) Then
-                Return FindTag(roomIndexTagName).InterpretArgument
-            Else
-                Return 0
-            End If
+            Return GetProperty(RoomIndexTagName, 0)
         End Get
-        Set(value As Integer)
-            AddTag(New Tag(roomIndexTagName, value), True)
+        Set
+            SetProperty(RoomIndexTagName, Value)
         End Set
     End Property
-
 
 #End Region
 
 #Region "Other"
 
     Public Overrides Function ToString() As String
-        'updated version of level tostring which uses tags better
-
         Dim parametersTag As New Tag(tagsTagName, ArrayToString(tags))
         Dim roomsTag As New Tag(roomsTagName, ArrayToString(rooms))
 

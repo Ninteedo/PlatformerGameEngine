@@ -16,7 +16,7 @@ Public Class PanelRenderEngine2
     Public Sub DoGameRender(ByRef actorList As Actor())
         'renders a list of actors
         'this uses double buffering to render the result to a buffer, which is eventually rendered to the user
-        'this elimates flickering caused by directly rendering one actor at a time
+        'this eliminates flickering caused by directly rendering one actor at a time
 
         Using canvas As New PaintEventArgs(renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), renderPanel.Size))
             canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
@@ -24,7 +24,8 @@ Public Class PanelRenderEngine2
                 context.MaximumBuffer = renderPanel.Size
                 Using renderLayer As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
                     renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
-                    'sets the background colour to white
+
+                    'fills the background with white
                     renderLayer.Graphics.FillRectangle(New SolidBrush(Color.White), New RectangleF(New PointF(0, 0), renderPanel.Size))
 
                     If Not IsNothing(actorList) Then
@@ -37,7 +38,7 @@ Public Class PanelRenderEngine2
                                     i2 += 1
                                 Loop
 
-                                'moves the actor to its new index, shifting actors inbetween along
+                                'moves the actor to its new index, shifting actors in between along
                                 Dim temp As Actor = actorList(i1).Clone()
                                 actorList = RemoveItem(actorList, i1)
                                 actorList = InsertItem(actorList, temp, i2)
@@ -49,15 +50,8 @@ Public Class PanelRenderEngine2
                             Dim currentActor As Actor = actorList(actorIndex)
                             If Not IsNothing(currentActor.Sprites) AndAlso currentActor.CurrentSprite <= UBound(currentActor.Sprites) And currentActor.CurrentSprite >= 0 Then
                                 Dim renderSprite As Sprite = currentActor.Sprites(currentActor.CurrentSprite)
-                                'Dim renderSize As SizeF = New SizeF(
-                                '                currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5),
-                                '                currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5))
-                                'Dim renderArea As New RectangleF(
-                                '    New PointF(currentActor.Location.X * RenderScale.Width, currentActor.Location.Y * RenderScale.Height),
-                                '    New SizeF(currentActor.Scale * RenderScale.Width * (renderSprite.Dimensions.Width + 0.5), currentActor.Scale * RenderScale.Height * (renderSprite.Dimensions.Height + 0.5)))
                                 Dim actHitbox As RectangleF = currentActor.Hitbox
-                                Dim renderArea As New RectangleF(New PointF(actHitbox.X * RenderScale.Width, actHitbox.Y * RenderScale.Height),
-                                                                New SizeF(actHitbox.Width * RenderScale.Width, actHitbox.Height * RenderScale.Height))
+                                Dim renderArea As RectangleF = ScaleRect(actHitbox, RenderScale)
                                 renderLayer.Graphics.DrawImage(renderSprite.Bitmap, renderArea)
                             End If
                         Next actorIndex

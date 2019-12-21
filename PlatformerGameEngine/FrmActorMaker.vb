@@ -2,6 +2,8 @@
 '24/03/2019
 'Actor creator for platformer game engine
 
+Imports PlatformerGameEngine.My.Resources
+
 Public Class FrmActorMaker
 
     Public createdActor As Actor          'the user's created actor
@@ -40,7 +42,7 @@ Public Class FrmActorMaker
         If Not IsNothing(actorToModify) Then
             createdActor = actorToModify.Clone()
         Else
-            createdActor = New Actor(Nothing, renderer)
+            createdActor = New Actor(Nothing)
         End If
         originalString = createdActor.ToString
         renderer = New PanelRenderEngine2 With {.spriteFolderLocation = spriteFolderLocation, .renderPanel = PnlPreview}
@@ -73,14 +75,14 @@ Public Class FrmActorMaker
             End If
         End If
 
-        Me.Close()
+        Close()
     End Sub
 
     Private Sub BtnDone_Click(sender As Object, e As EventArgs) Handles BtnDone.Click
         userFinished = True
         'original = result
 
-        Me.Close()
+        Close()
     End Sub
 
 #End Region
@@ -117,9 +119,9 @@ Public Class FrmActorMaker
         Get
             Return loadedSprites
         End Get
-        Set(value As Sprite())
-            loadedSprites = value
-            createdActor.Sprites = value
+        Set
+            loadedSprites = Value
+            createdActor.Sprites = Value
 
             RefreshSpritesList()
         End Set
@@ -161,7 +163,7 @@ Public Class FrmActorMaker
     Private Sub BtnSpriteLoad_Click(sender As Object, e As EventArgs) Handles BtnSpriteLoad.Click
         'loads the user selected sprites
 
-        Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
+        Using openDialog As New OpenFileDialog With {.Filter = SpriteFileFilter, .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
             If openDialog.ShowDialog = DialogResult.OK Then
                 For index As Integer = 0 To UBound(openDialog.FileNames)
                     LoadSprite(openDialog.FileNames(index))
@@ -199,7 +201,7 @@ Public Class FrmActorMaker
 
 #Region "Render"
 
-    Dim renderer As PanelRenderEngine2
+    ReadOnly renderer As PanelRenderEngine2
 
     Private Sub DrawSpritePreview(spriteToDraw As Sprite)
         'draws the given frame in the preview box

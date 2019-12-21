@@ -1,7 +1,5 @@
-﻿Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
-Public Class Sprite
-    'sprites loaded from .sprt files and used to create frames
+﻿Public Class Sprite
+    'sprites loaded from sprite files and used to create frames
 
     'Private pixelColours(,) As Color
     Private coloursUsed() As Color
@@ -24,13 +22,13 @@ Public Class Sprite
         Dimensions = startSize
     End Sub
 
-    Public Sub New(colourIndices(,) As Integer, colours() As Color, Optional fileName As String = Nothing)
-        'uses colours and colour indices to make a sprite
+    'Public Sub New(colourIndices(,) As Integer, colours() As Color, Optional fileName As String = Nothing)
+    '    'uses colours and colour indices to make a sprite
 
-        Me.colourIndices = colourIndices
-        Me.coloursUsed = colours
-        Me.fileName = fileName
-    End Sub
+    '    Me.colourIndices = colourIndices
+    '    Me.coloursUsed = colours
+    '    Me.fileName = fileName
+    'End Sub
 
     Public Sub New(ByVal fileLocation As String, ByVal spriteFolderLocation As String)
         Dim fileText As String = ReadFile(fileLocation)
@@ -132,7 +130,7 @@ Public Class Sprite
     End Function
 
     Private Sub BitmapModified()
-        'sets the bitmap to nothing if the colours or colourIndices are changed so the bitmap isnt outdated
+        'sets the bitmap to nothing if the colours or colourIndices are changed so the bitmap isn't outdated
         bitmapVersion = Nothing
     End Sub
 
@@ -213,7 +211,7 @@ Public Class Sprite
 #Region "Other"
 
     Public Overrides Function ToString() As String
-        'converts this sprite to a tag with subtags {file name, colours, colour indices}
+        'converts this sprite to a tag
 
         'converts all the colours to names
         Dim colourNames(UBound(Colours)) As String
@@ -279,7 +277,7 @@ Public Class Sprite
         'returns whether 2 provided frames are identical
 
         If IsNothing(sprite1) Or IsNothing(sprite2) Then
-            Return IsNothing(sprite2) = IsNothing(sprite2)
+            Return IsNothing(sprite2) = IsNothing(sprite2)  'XNOR
         Else
             Return Not (sprite1.fileName <> sprite2.fileName OrElse sprite1.coloursUsed IsNot sprite2.coloursUsed OrElse sprite1.colourIndices IsNot sprite2.colourIndices)
         End If

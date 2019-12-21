@@ -59,5 +59,113 @@ Namespace My.Resources
                 resourceCulture = value
             End Set
         End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to actors.
+        '''</summary>
+        Friend ReadOnly Property ActorTagName() As String
+            Get
+                Return ResourceManager.GetString("ActorTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to currentSprite.
+        '''</summary>
+        Friend ReadOnly Property CurrentSpriteTagName() As String
+            Get
+                Return ResourceManager.GetString("CurrentSpriteTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to layer.
+        '''</summary>
+        Friend ReadOnly Property LayerTagName() As String
+            Get
+                Return ResourceManager.GetString("LayerTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to location.
+        '''</summary>
+        Friend ReadOnly Property LocationTagName() As String
+            Get
+                Return ResourceManager.GetString("LocationTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to name.
+        '''</summary>
+        Friend ReadOnly Property NameTagName() As String
+            Get
+                Return ResourceManager.GetString("NameTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to opacity.
+        '''</summary>
+        Friend ReadOnly Property OpacityTagName() As String
+            Get
+                Return ResourceManager.GetString("OpacityTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to roomIndex.
+        '''</summary>
+        Friend ReadOnly Property RoomIndexTagName() As String
+            Get
+                Return ResourceManager.GetString("RoomIndexTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to rooms.
+        '''</summary>
+        Friend ReadOnly Property RoomsTagName() As String
+            Get
+                Return ResourceManager.GetString("RoomsTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to scale.
+        '''</summary>
+        Friend ReadOnly Property ScaleTagName() As String
+            Get
+                Return ResourceManager.GetString("ScaleTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Sprite file (*.sprt)|*.sprt.
+        '''</summary>
+        Friend ReadOnly Property SpriteFileFilter() As String
+            Get
+                Return ResourceManager.GetString("SpriteFileFilter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to sprites.
+        '''</summary>
+        Friend ReadOnly Property SpritesTagName() As String
+            Get
+                Return ResourceManager.GetString("SpritesTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to tags.
+        '''</summary>
+        Friend ReadOnly Property TagsTagName() As String
+            Get
+                Return ResourceManager.GetString("TagsTagName", resourceCulture)
+            End Get
+        End Property
     End Module
 End Namespace

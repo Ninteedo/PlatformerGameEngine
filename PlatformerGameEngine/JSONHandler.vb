@@ -2,88 +2,21 @@
 '06/09/2019
 'Procedures for converting between tags and JSON
 
-Imports PRE2 = PlatformerGameEngine.PanelRenderEngine2
-
-Public Module JSONHandler
+Public Module JsonHandler
 
     'uses standards shown at https://www.json.org/
     'may not be identical though
 
 #Region "JSON-Tag Conversions"
 
-    Public Function TagToJSON(tag As Tag) As String
+    Public Function TagToJson(inputTag As Tag) As String
         Dim result As String = ""
-        If Not IsNothing(tag.name) Then
-            result = "{" & AddQuotes(tag.name) &
-                If(Not IsNothing(tag.argument) AndAlso Len(tag.argument) > 0, ":" & tag.argument & "}", "}")
+        If Not IsNothing(inputTag.name) Then
+            result = "{" & AddQuotes(inputTag.name) &
+                If(Not IsNothing(inputTag.argument) AndAlso Len(inputTag.argument) > 0, ":" & inputTag.argument & "}", "}")
         End If
         Return result
     End Function
-
-    'Public Function JSONToTag(jsonString As String) As Tag
-    '    'converts a JSON string into a tag
-    '    'TODO: input validation and error handling
-
-    '    'Dim splits() As String = JSONSplit(jsonString, 0)
-    '    'Dim resultName As String = RemoveQuotes(Mid(splits(0), 1, splits(0).IndexOf(":")))
-    '    'Dim currentValue As String = Mid(splits(0), splits(0).IndexOf(":"))
-
-    '    Dim cIndex As Integer = 0
-    '    Dim inString As Boolean = False
-    '    Dim currentString As String = ""
-
-    '    Dim resultName As String = ""
-
-    '    Dim inValue As Boolean = False
-    '    Dim currentValue As String = ""
-
-    '    Dim subStructureLevel As Integer = 0    'tracks how many tags have been opened
-
-    '    If Not IsNothing(jsonString) Then
-    '        Do
-    '            Dim c As String = jsonString(cIndex)
-
-    '            If Not inValue Then
-    '                If Not inString AndAlso c = ":" Or c = "}" Then 'marks end of name and beginning of value
-    '                    'resultName = InterpretString(currentString).Trim
-    '                    resultName = currentString.Trim
-    '                    currentString = ""
-
-    '                    inValue = True
-    '                End If
-    '            Else
-    '                currentValue += c
-    '                If Not inString And c = "}" Then        'end of value
-    '                    subStructureLevel -= 1
-
-    '                    If subStructureLevel < 0 Then
-    '                        currentValue = currentValue.Remove(Len(currentValue) - 1)
-    '                        Exit Do
-    '                    End If
-    '                ElseIf Not inString And c = "{" Then     'sub tag opened
-    '                    subStructureLevel += 1
-    '                End If
-    '            End If
-
-    '            If Not inString And c = """" Then
-    '                inString = True
-    '            ElseIf inString AndAlso c = """" AndAlso jsonString(cIndex - 1) <> "\" Then
-    '                inString = False
-    '            ElseIf inString Then
-    '                currentString += c
-    '            End If
-
-    '            cIndex += 1
-    '        Loop Until cIndex >= Len(jsonString)
-
-    '        If Len(currentValue) = 0 Then
-    '            currentValue = Nothing
-    '        End If
-    '    End If
-
-    '    Return New Tag(resultName, currentValue)
-    'End Function
-
     Public Function JsonToTag(json As String) As Tag
         'converts a JSON string into a tag
 
@@ -91,8 +24,8 @@ Public Module JSONHandler
         Dim name As String = ""
         Dim argument As String = ""
         Dim inString As Boolean         'is the current character in a string (includes quotation marks)
-        Dim stringEscaped As Boolean    'has the string been 'escaped' (escaped by \, _
-        '                               used for special cases such as \n for new line or \" for a quotation mark)
+        Dim stringEscaped As Boolean _
+        'has the string been 'escaped' (escaped by \, used for special cases such as \n for new line or \" for a quotation mark)
         Dim inArgument As Boolean       'false: currently in name, true: currently in argument
 
         json = Trim(json)       'removes any leading or trailing whitespace
@@ -198,8 +131,6 @@ Public Module JSONHandler
                     result = False
                 Case "null"
                     result = Nothing
-                Case "nill"
-                    result = Nothing
                 Case Else
                     Dim firstChar As String = Left(valueString, 1)
                     Dim lastChar As String = Right(valueString, 1)
@@ -215,7 +146,7 @@ Public Module JSONHandler
 
                         result = resultTag
                     ElseIf firstChar = "[" And lastChar = "]" Then  'array
-                        Dim valueSplits As String() = JSONSplit(valueString)
+                        Dim valueSplits As String() = JsonSplit(valueString)
                         ReDim result(UBound(valueSplits))
                         For index As Integer = 0 To UBound(valueSplits)
                             result(index) = InterpretValue(valueSplits(index).Trim, fullInterpret, act, room)
@@ -310,7 +241,8 @@ Public Module JSONHandler
         End If
     End Function
 
-    Public Function JSONSplit(ByVal input As String, Optional ByVal subStructureLevelRequired As Integer = 0, Optional ByVal delimiter As String = ",") As String()
+    Public Function JsonSplit(ByVal input As String, Optional ByVal subStructureLevelRequired As Integer = 0,
+                              Optional ByVal delimiter As String = ",") As String()
         'splits a JSON string into its tags
 
         If Len(input) > 1 Then
@@ -320,7 +252,7 @@ Public Module JSONHandler
             End If
             Dim inString As Boolean = False
             Dim subStructureLevel As Integer = 0
-            Dim delimiterProgress As Integer = 0        'used for tracking multicharacter delimiters
+            Dim delimiterProgress As Integer = 0        'used for tracking multi character delimiters
 
             For cIndex As Integer = 0 To Len(input) - 1
                 Dim c As Char = input(cIndex)

@@ -134,6 +134,9 @@ Module GeneralProcedures
         End If
     End Sub
 
+
+
+
 #End Region
 
 #Region "Database Connections"
@@ -195,6 +198,36 @@ Module GeneralProcedures
             DisplayError(ex.ToString())
         End Try
     End Sub
+
+#End Region
+
+#Region "Scaling"
+
+    'these are used to simply code elsewhere
+
+    Public Function ScaleSize(s As SizeF, factor As Single) As SizeF
+        'multiplies the width and height of a size by a scalar
+
+        Return New SizeF(s.Width * factor, s.Height * factor)
+    End Function
+
+    Public Function ScaleSize(s1 As SizeF, s2 As SizeF) As SizeF
+        'multiples two sizes together by individually multiplying their width and height
+
+        Return New SizeF(s1.Width * s2.Width, s1.Height * s1.Width)
+    End Function
+
+    Public Function ScalePoint(p As PointF, s As SizeF) As PointF
+        'multiples the X and Y of the point by the width and height of the size
+
+        Return New PointF(p.X * s.Width, p.Y * s.Height)
+    End Function
+
+    Public Function ScaleRect(r As RectangleF, s As SizeF) As RectangleF
+        'scales the rectangle with the size
+
+        Return New RectangleF(ScalePoint(r.Location, s), ScaleSize(r.Size, s))
+    End Function
 
 #End Region
 

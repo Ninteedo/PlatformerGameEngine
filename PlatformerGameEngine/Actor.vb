@@ -1,20 +1,12 @@
-﻿Public Class Actor
+﻿Imports PlatformerGameEngine.My.Resources
+
+Public Class Actor
 
     Inherits TagContainer
 
     Implements ICloneable
 
     Private spritesList() As Sprite
-
-    Private Const tagsTagName As String = "tags"
-    Private Const spritesTagName As String = "sprites"
-    Private Const nameTagName As String = "name"
-    Private Const locationTagName As String = "location"
-    Private Const layerTagName As String = "layer"
-    Private Const scaleTagName As String = "scale"
-    Private Const opacityTagName As String = "opacity"
-    Private Const currentSpriteTagName As String = "currentSprite"
-
 
 #Region "Constructors"
 
@@ -23,7 +15,7 @@
         tags = Nothing
     End Sub
 
-    Public Sub New(actorString As String, ByRef renderEngine As PanelRenderEngine2)
+    Public Sub New(actorString As String)
         'creates a new actor from an actor string
 
         If Not IsNothing(actorString) Then
@@ -51,8 +43,8 @@
             End If
             Return spritesList
         End Get
-        Set(value As Sprite())
-            spritesList = value
+        Set
+            spritesList = Value
             RefreshSpritesTag()
         End Set
     End Property
@@ -60,9 +52,8 @@
     Public Sub RefreshSpritesList()
         'changes what is stored in spriteList() using the "sprites" tag
 
-        If HasTag(spritesTagName) Then
-            Dim spritesTag As Tag = FindTag(spritesTagName)
-            Dim spritesArgument() As Object = FindTag(spritesTagName).InterpretArgument()
+        If HasTag(SpritesTagName) Then
+            Dim spritesArgument As Object = FindTag(SpritesTagName).InterpretArgument()
 
             If Not IsNothing(spritesArgument) Then
                 Dim newSprites(UBound(spritesArgument)) As Sprite
@@ -85,7 +76,7 @@
     Public Sub RefreshSpritesTag()
         'changes the "sprites" tag to match what is in framesList()
 
-        AddTag(New Tag(spritesTagName, ArrayToString(spritesList)), True)
+        AddTag(New Tag(SpritesTagName, ArrayToString(spritesList)), True)
     End Sub
 
     Public Function GetCurrentSprite() As Sprite
@@ -96,93 +87,74 @@
 
 #Region "Key Properties"
 
+
+
     Property Name As String
         Get
-            If HasTag(nameTagName) Then
-                Return FindTag(nameTagName).InterpretArgument()
-            Else
-                Return "unnamed"
-            End If
+            Return GetProperty(NameTagName, "UnnamedActor")
         End Get
-        Set(value As String)
-            AddTag(New Tag(nameTagName, AddQuotes(value)), True)
+        Set
+            SetProperty(NameTagName, AddQuotes(Value))
         End Set
     End Property
 
     Property Location As PointF
         Get
-            If HasTag(locationTagName) Then
+            If HasTag(LocationTagName) Then
                 'Dim textForm As String = FindTag("location").InterpretArgument(0).ToString.Replace("{", "").Replace("}", "").Replace("{", "")
                 'Return New PointF(Val(textForm.Split(",")(0).Trim.Replace("X=", "")),
                 '                        Val(textForm.Split(",")(1).Trim.Replace("Y=", "")))
-                Return New Point(Val(FindTag(locationTagName).InterpretArgument()(0)), Val(FindTag(locationTagName).InterpretArgument()(1)))
+                Return New Point(Val(FindTag(LocationTagName).InterpretArgument()(0)), Val(FindTag(LocationTagName).InterpretArgument()(1)))
             Else
                 Return New PointF(0, 0)
             End If
         End Get
-        Set(value As PointF)
-            AddTag(New Tag(locationTagName, ArrayToString({value.X, value.Y})), True)
+        Set
+            SetProperty(LocationTagName, ArrayToString({Value.X, Value.Y}))
         End Set
     End Property
 
     Property Layer As Integer
         Get
-            If HasTag(layerTagName) Then
-                Return FindTag(layerTagName).InterpretArgument()
-            Else
-                Return 0
-            End If
+            Return GetProperty(LayerTagName, 0)
         End Get
         Set(value As Integer)
-            AddTag(New Tag(layerTagName, value), True)
+            SetProperty(LayerTagName, value)
         End Set
     End Property
 
     Property Scale As Single
         Get
-            If HasTag(scaleTagName) Then
-                Return FindTag(scaleTagName).InterpretArgument()
-            Else
-                Return 1
-            End If
+            Return GetProperty(ScaleTagName, 1)
         End Get
-        Set(value As Single)
-            AddTag(New Tag(scaleTagName, value), True)
+        Set
+            SetProperty(ScaleTagName, Value)
         End Set
     End Property
 
     Property Opacity As Single
         Get
-            If HasTag(opacityTagName) Then
-                Return FindTag(opacityTagName).InterpretArgument()
-            Else
-                Return 1.0
-            End If
+            Return GetProperty(OpacityTagName, 1.0)
         End Get
-        Set(value As Single)
-            AddTag(New Tag(opacityTagName, value), True)
+        Set
+            SetProperty(OpacityTagName, Value)
         End Set
     End Property
 
     Property CurrentSprite As UInteger
         Get
-            If HasTag(currentSpriteTagName) Then
-                Return FindTag(currentSpriteTagName).InterpretArgument()
-            Else
-                Return 0
-            End If
+            Return GetProperty(CurrentSpriteTagName, 0)
         End Get
-        Set(value As UInteger)
-            AddTag(New Tag(currentSpriteTagName, value), True)
+        Set
+            SetProperty(CurrentSpriteTagName, Value)
         End Set
     End Property
 
     Public ReadOnly Property Hitbox As RectangleF
         Get
             If Not IsNothing(Sprites) AndAlso Not IsNothing(Sprites(CurrentSprite)) Then
-                Return New RectangleF(New PointF(Location.X, Location.Y),
-                New SizeF(Scale * Sprites(CurrentSprite).Dimensions.Width,
-                Scale * Sprites(CurrentSprite).Dimensions.Height))
+                Return New RectangleF(Location,
+                ScaleSize(Sprites(CurrentSprite).Dimensions, Scale))
             Else
                 Return New RectangleF(New PointF(0, 0), New SizeF(0, 0))
             End If
@@ -207,10 +179,10 @@
             Dim clonedTags() As Tag = Nothing
 
             'clones each tag
-            If Not IsNothing(Me.tags) Then
-                ReDim clonedTags(UBound(Me.tags))
-                For index As Integer = 0 To UBound(Me.tags)
-                    clonedTags(index) = Me.tags(index).Clone
+            If Not IsNothing(tags) Then
+                ReDim clonedTags(UBound(tags))
+                For index As Integer = 0 To UBound(tags)
+                    clonedTags(index) = tags(index).Clone
                 Next
             End If
 

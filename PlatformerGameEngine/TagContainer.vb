@@ -1,10 +1,12 @@
-﻿'A superclass used for Room and Actor classes
+﻿''' <summary>
+''' A superclass used for Level and Actor classes which contains a list of tags and ways to manipulate them
+''' </summary>
 
 Public Class TagContainer
 
     Public tags() As Tag
 
-    Public Sub New(Optional startTags() As Tag = Nothing)
+    Protected Sub New(Optional startTags() As Tag = Nothing)
         tags = startTags
     End Sub
 
@@ -28,7 +30,7 @@ Public Class TagContainer
         End if
     End Function
 
-    Public Function FindTags(ByVal tagName As String) As Tag()
+    Private Function FindTags(ByVal tagName As String) As Tag()
         'returns all the tags this container has which match a given name
         'useful for things such as listeners where there are multiple tags with the same name
 
@@ -74,4 +76,18 @@ Public Class TagContainer
             Loop
         End If
     End Sub
+
+    Protected Function GetProperty(Of t)(tagName As String, defaultVal As t) As t
+        'returns the value of a property with a given name, or if it doesn't have a value then the default value
+        If HasTag(tagName) Then
+            Return FindTag(tagName).InterpretArgument()
+        Else
+            Return defaultVal
+        End If
+    End Function
+
+    Protected Sub SetProperty(tagName As String, argument As String)
+        AddTag(New Tag(tagName, argument), removeDuplicates:=True)
+    End Sub
+
 End Class
