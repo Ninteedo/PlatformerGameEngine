@@ -1,14 +1,18 @@
 ﻿Public Class Tag
 
+    Implements ICloneable
+
     Public name As String
     Public argument As String
 
-    Public Sub New(name As String, Optional argument As String = Nothing)
+#Region "Constructors"
+
+    Public Sub New(Optional ByVal name As String = Nothing, Optional ByVal argument As String = Nothing)
         Me.name = name
         Me.argument = argument
     End Sub
 
-    Public Sub New(ByVal tagString As String)
+    Public Sub New(tagString As String)
         'creates a tag from a string
 
         Dim newTag As Tag = JsonToTag(tagString)
@@ -16,9 +20,9 @@
         argument = newTag.argument
     End Sub
 
-    Public Overrides Function ToString() As String
-        Return TagToJSON(Me)
-    End Function
+#End Region
+
+#Region "Arguments"
 
     Public Function InterpretArgument(Optional subTagName As String = Nothing) As Object
         If IsNothing(subTagName) Then
@@ -57,6 +61,10 @@
         argument = ArrayToString(newValue)
     End Sub
 
+#End Region
+
+#Region "Operators"
+
     Public Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
         'used for = and <> operators
 
@@ -70,4 +78,21 @@
     Public Shared Operator <>(tag1 As Tag, tag2 As Tag) As Boolean
         Return Not AreTagsIdentical(tag1, tag2)
     End Operator
+
+#End Region
+
+#Region "Other"
+
+    Public Overrides Function ToString() As String
+        Return TagToJSON(Me)
+    End Function
+
+    Public Function Clone() As Object Implements ICloneable.Clone
+        'returns a deep clone of this tag
+
+        Return New Tag(Me.name.Clone, Me.argument.Clone)
+    End Function
+
+#End Region
+
 End Class

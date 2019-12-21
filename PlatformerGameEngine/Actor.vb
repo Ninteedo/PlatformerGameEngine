@@ -2,6 +2,8 @@
 
     Inherits TagContainer
 
+    Implements ICloneable
+
     Private spritesList() As Sprite
 
     Private Const tagsTagName As String = "tags"
@@ -21,7 +23,7 @@
         tags = Nothing
     End Sub
 
-    Public Sub New(actorString As String, renderEngine As PanelRenderEngine2)
+    Public Sub New(actorString As String, ByRef renderEngine As PanelRenderEngine2)
         'creates a new actor from an actor string
 
         If Not IsNothing(actorString) Then
@@ -196,14 +198,24 @@
         Return New Tag(tagsTagName, ArrayToString(tags)).ToString
     End Function
 
-    Public Function Clone() As Actor
-        'returns a clone of this actor
+    Public Function Clone() As Object Implements ICloneable.Clone
+        'returns a deep clone of this actor
 
         Dim newClone As Actor = Nothing
 
         If Not IsNothing(Me) Then
-            newClone = New Actor With {.tags = Me.tags}
-            RefreshSpritesList()
+            Dim clonedTags() As Tag = Nothing
+
+            'clones each tag
+            If Not IsNothing(Me.tags) Then
+                ReDim clonedTags(UBound(Me.tags))
+                For index As Integer = 0 To UBound(Me.tags)
+                    clonedTags(index) = Me.tags(index).Clone
+                Next
+            End If
+
+            newClone = New Actor With {.tags = clonedTags}
+            newClone.RefreshSpritesList()
         End If
 
         Return newClone
