@@ -32,10 +32,10 @@ Public Module TagEvents
         Dim behaviourArgument As Object = listenerTag.InterpretArgument(behaviourTagName)
         If IsArray(behaviourArgument) Then
             For index As Integer = 0 To UBound(behaviourArgument)
-                ProcessTag(behaviourArgument(index).InterpretArgument(), act, thisRoom, renderEngine)
+                ProcessSubTags(behaviourArgument(index), act, thisRoom, renderEngine)
             Next
         ElseIf Not IsNothing(behaviourArgument) Then
-            ProcessTag(behaviourArgument.InterpretArgument(), act, thisRoom, renderEngine)
+            ProcessSubTags(behaviourArgument, act, thisRoom, renderEngine)
         End If
     End Sub
 
