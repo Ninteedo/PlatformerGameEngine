@@ -8,7 +8,8 @@ Public Class FrmTagMakerBasic
 
     Public Property TagCreated As Tag
         Get
-            Return JSONToTag(txtJSON.Text)
+            Dim temp As Tag = JsonToTag(txtJSON.Text)
+            Return temp
         End Get
         Set(value As Tag)
             txtJSON.Text = TagToJSON(value)

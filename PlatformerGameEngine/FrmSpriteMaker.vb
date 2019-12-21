@@ -7,7 +7,7 @@ Public Class FrmSpriteMaker
 #Region "Initialisation"
 
     Private Sub FrmMain_Load(sender As FrmSpriteMaker, e As EventArgs) Handles MyBase.Load
-        Initialisation()
+        Initialization()
     End Sub
 
     Private Sub FrmMain_Shown(sender As FrmSpriteMaker, e As EventArgs) Handles MyBase.Shown
@@ -16,7 +16,7 @@ Public Class FrmSpriteMaker
         DrawSavedPixels()
     End Sub
 
-    Private Sub Initialisation()
+    Private Sub Initialization()
         createdSprite = New Sprite(New Size(16, 16))    'default size 16 x 16
 
         SetUpUsedColoursTable()
@@ -186,7 +186,7 @@ Public Class FrmSpriteMaker
     End Sub
 
     Private Sub BtnRedraw_Click(sender As Button, e As EventArgs) Handles BtnRedraw.Click
-        'incase the sprite gets cleared from the grid for any reason, eg dragging window offscreen
+        'for if the sprite gets cleared from the grid for any reason, eg dragging window offscreen
         DrawSavedPixels()
     End Sub
 
@@ -289,6 +289,8 @@ Public Class FrmSpriteMaker
                 ChkEraser.Checked = True
             Else
                 ChkEraser.Checked = False
+
+                'doesn't change the RGB values, because then the colour would be set to black
                 NumColourR.Value = value.R
                 NumColourG.Value = value.G
                 NumColourB.Value = value.B
@@ -296,8 +298,8 @@ Public Class FrmSpriteMaker
         End Set
     End Property
 
-    Private Sub ColourCreaterUpdate(sender As NumericUpDown, e As EventArgs) Handles NumColourR.ValueChanged, NumColourG.ValueChanged, NumColourB.ValueChanged, NumColourR.KeyPress, NumColourG.KeyPress, NumColourB.KeyPress
-        'updates the colour being shown to the user in the custom colour preview when the RGB values are editted
+    Private Sub ColourCreatorUpdate(sender As NumericUpDown, e As EventArgs) Handles NumColourR.ValueChanged, NumColourG.ValueChanged, NumColourB.ValueChanged, NumColourR.KeyPress, NumColourG.KeyPress, NumColourB.KeyPress
+        'updates the colour being shown to the user in the custom colour preview when the RGB values are edited
         PnlCustomColourDisplay.BackColor = Color.FromArgb(NumColourR.Value, NumColourG.Value, NumColourB.Value)
     End Sub
 
@@ -305,6 +307,10 @@ Public Class FrmSpriteMaker
         Colours = {Color.Transparent}
     End Sub
 
+    ''' <summary>
+    ''' Displays the colours of the current sprite in TblColourSelect
+    ''' </summary>
+    ''' <param name="pageNumber">The number of the page that will be shown to the user</param>
     Private Sub DisplayColourOptions(pageNumber As Integer)
         'updates TblColourSelect to show the colours on the provided page number
 

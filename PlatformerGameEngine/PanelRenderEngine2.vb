@@ -5,7 +5,7 @@
 Public Class PanelRenderEngine2
 
     Public renderPanel As Panel
-    Public renderResolution As Size = New Size(640, 480)      'how many pixels the game is played at, scaled afterwards to the size of the render panel
+    Public renderResolution As New Size(640, 480)      'how many pixels the game is played at, scaled on render to the size of the render panel
 
     Public spriteFolderLocation As String
     'Public actorFolderLocation As String
@@ -38,7 +38,7 @@ Public Class PanelRenderEngine2
                                 Loop
 
                                 'moves the actor to its new index, shifting actors inbetween along
-                                Dim temp As Actor = actorList(i1)
+                                Dim temp As Actor = actorList(i1).Clone()
                                 actorList = RemoveItem(actorList, i1)
                                 actorList = InsertItem(actorList, temp, i2)
                             End If

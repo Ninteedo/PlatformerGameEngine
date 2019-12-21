@@ -45,6 +45,7 @@ Public Class FrmActorMaker
         originalString = createdActor.ToString
         renderer = New PanelRenderEngine2 With {.spriteFolderLocation = spriteFolderLocation, .renderPanel = PnlPreview}
         renderer.renderPanel = PnlPreview
+        RefreshSpritesList()
     End Sub
 
     Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -161,7 +162,7 @@ Public Class FrmActorMaker
         'loads the user selected sprites
 
         Using openDialog As New OpenFileDialog With {.Filter = "Sprite file (*.sprt)|*.sprt", .Multiselect = True, .InitialDirectory = renderer.spriteFolderLocation}
-            If openDialog.ShowDialog = Windows.Forms.DialogResult.OK Then
+            If openDialog.ShowDialog = DialogResult.OK Then
                 For index As Integer = 0 To UBound(openDialog.FileNames)
                     LoadSprite(openDialog.FileNames(index))
                 Next index
