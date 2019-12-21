@@ -12,17 +12,15 @@ Public Class FrmScoreboard
 
         ' Add any initialization after the InitializeComponent() call.
 
-        _gameName = gameName
-        GetScores()
+        LblGameName.Text = gameName
+        GetScores(gameName)
     End Sub
 
 #End Region
 
 #Region "Query"
 
-    ReadOnly _gameName As String
-
-    Private Sub GetScores()
+    Private Sub GetScores(gameName As String)
         'displays either top 10 scores or 10 scores around the search initials to the user
 
         Try
@@ -43,7 +41,7 @@ Public Class FrmScoreboard
                 cmd.Prepare()
 
                 'binds values to parameters
-                cmd.Parameters(0).Value = _gameName
+                cmd.Parameters(0).Value = gameName
                 cmd.ExecuteNonQuery()
 
                 'executes and stores result in reader
@@ -76,9 +74,6 @@ Public Class FrmScoreboard
         Do While scores.Read()
             place += 1
             Dim newItem As New ListViewItem({place, scores("Player"), scores("Score")})
-            'newItem.SubItems.Add(place)
-            'newItem.SubItems.Add(scores("Player"))
-            'newItem.SubItems.Add(scores("Score"))
 
             LstScoreboard.Items.Add(newItem)
         Loop
@@ -91,6 +86,24 @@ Public Class FrmScoreboard
 
     Private Sub BtnClose_Click(sender As Button, e As EventArgs) Handles BtnClose.Click
         Close()
+    End Sub
+
+    Private Sub TxtFind_TextChanged(sender As TextBox, e As EventArgs) Handles TxtFind.TextChanged
+        'finds the score with matching initials if 3 characters are entered
+
+        Dim searchTerm As String = TxtFind.Text
+        If Len(searchTerm) = 3 Then
+            For index As Integer = 0 To LstScoreboard.Items.Count - 1
+                'selects the item if the name matches
+                Dim match As Boolean = LstScoreboard.Items(index).SubItems(1).Text = searchTerm
+                LstScoreboard.Items(index).Selected = match
+
+                'scrolls the list to the matching item
+                If match Then
+                    LstScoreboard.EnsureVisible(index)
+                End If
+            Next
+        End If
     End Sub
 
 #End Region
