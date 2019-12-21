@@ -88,11 +88,6 @@ Public Class FrmGame
 
 #Region "Higher Level Actor Control"
 
-    Public Shared Function GetArgument(tag As Tag, Optional ent As Actor = Nothing,
-                                      Optional room As Room = Nothing, Optional defaultResult As Object = Nothing) As Object
-        Return InterpretValue(tag.argument, fullInterpret:=True, act:=ent, room:=room)
-    End Function
-
     Public Shared Function FindReference(act As Actor, refString As String, currentRoom As Room) As Object
         'finds what a reference is referring to
         'ExampleActor.velocity[0]
@@ -123,6 +118,15 @@ Public Class FrmGame
                 For index As Integer = 0 To UBound(currentRoom.actors)
                     If currentRoom.actors(index).Name = parts(0) Then
                         result = currentRoom.actors(index)
+
+                        If UBound(parts) >= 1 Then
+                            If parts(1).Contains(startArrayChar) Then
+                                Dim temp As String = parts(1).Remove(parts(1).IndexOf(startArrayChar))
+                                result = result.FindTag(temp)
+                            Else
+                                result = result.FindTag(parts(1))
+                            End If
+                        End If
                     End If
                 Next
         End Select
