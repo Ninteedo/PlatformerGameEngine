@@ -65,7 +65,7 @@
 
 #Region "Operators"
 
-    Public Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
+    Private Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
         'used for = and <> operators
 
         Return LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.argument = tag2.argument

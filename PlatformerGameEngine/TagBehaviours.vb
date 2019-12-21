@@ -33,14 +33,14 @@ Public Module TagBehaviours
                 ProcessTag(New Tag(inputTag.InterpretArgument.ToString), act, thisRoom, renderEngine)
 
                 'broadcast event
-            Case LCase("broadcast")
+            Case "broadcast"
                 BroadcastEvent(New Tag(inputTag.InterpretArgument.ToString), thisRoom, renderEngine)
 
                 'logic
             Case "if"
-                Dim condition As String = inputTag.FindSubTag(ifConditionName).InterpretArgument
+                Dim condition As String = inputTag.FindSubTag(ifConditionName).InterpretArgument()
                 'assesses condition then executes either "then" or "else" part of the if
-                Dim executePart As Tag = Nothing
+                Dim executePart As Tag
                 If AssessCondition(condition, act, thisRoom) Then
                     executePart = inputTag.FindSubTag(ifThenName)
                 Else
@@ -49,23 +49,31 @@ Public Module TagBehaviours
 
                 'executes everything in the executePart
                 ProcessSubTags(executePart, act, thisRoom, renderEngine)
+
+                'scoreboards
+            Case LCase("saveScore")
+                Dim initials As String = inputTag.FindSubTag("initials").InterpretArgument()
+                Dim points As String = inputTag.FindSubTag("points").InterpretArgument()
+                Dim gameName As String = inputTag.FindSubTag("gameName").InterpretArgument()
+
+
         End Select
         'End If
     End Sub
 
-    Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderEngine As RenderEngine)
+    Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderer As RenderEngine)
         'calls ProcessTag on all the subtags in the input tag
         If Not IsNothing(inputTag) Then
             Dim temp As Object = inputTag.InterpretArgument
             If IsArray(temp) Then
                 For index As Integer = 0 To UBound(temp)
                     If temp(index).GetType() = GetType(Tag) Then   'checks that the temp is actually a tag before processing it
-                        ProcessTag(temp(index), act, thisRoom, renderEngine)
+                        ProcessTag(temp(index), act, thisRoom, renderer)
                     End If
                 Next
             ElseIf Not IsNothing(temp) Then
                 If temp.GetType() = GetType(Tag) Then   'checks that the temp is actually a tag before processing it
-                    ProcessTag(temp, act, thisRoom, renderEngine)
+                    ProcessTag(temp, act, thisRoom, renderer)
                 End If
             End If
         End If
@@ -437,7 +445,8 @@ Public Module TagBehaviours
 
 #Region "Calculation"
 
-    Public Function ProcessCalculation(calc As String, Optional ByRef act As Actor = Nothing, Optional ByRef room As Room = Nothing) As String
+    Public Function ProcessCalculation(calc As String, Optional ByRef act As Actor = Nothing,
+                                       Optional ByRef room As Room = Nothing) As String
         'takes in a calculation as a string and returns the result
 
         If Not IsNothing(calc) AndAlso Len(calc) > 0 Then

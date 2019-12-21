@@ -95,6 +95,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actor.vb" />
+    <Compile Include="FrmScoreboard.Designer.vb">
+      <DependentUpon>FrmScoreboard.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmScoreboard.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="GeneralProcedures.vb" />
     <Compile Include="FrmActorMaker.Designer.vb">
       <DependentUpon>FrmActorMaker.vb</DependentUpon>
@@ -182,6 +188,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmMenu.resx">
       <DependentUpon>FrmMenu.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmScoreboard.resx">
+      <DependentUpon>FrmScoreboard.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmSpriteMaker.resx">
       <DependentUpon>FrmSpriteMaker.vb</DependentUpon>

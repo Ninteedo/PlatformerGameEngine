@@ -87,7 +87,15 @@ Public Class FrmMenu
                     'Dim result As Boolean = AssessCondition(example)
                     'MsgBox(result)
                     'SQLTest()
-                    MySqlTest()
+                    'MySqlTest()
+
+                    'Dim points As String = InputBox("Points")
+                    'Dim gameName As String = "ExampleGame"
+                    'SaveScore(points, gameName)
+
+                    Using scoreboard As New FrmScoreboard("ExampleGame")
+                        scoreboard.ShowDialog()
+                    End Using
                 Case MenuLink.toolsMenu
                     'changes the menu layout to one relevant to the tools menu
 

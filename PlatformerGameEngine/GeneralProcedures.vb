@@ -228,6 +228,56 @@ Module GeneralProcedures
         End Try
     End Sub
 
+    Public Sub SaveScore(points As Integer, gameName As String)
+        'asks the user for initials and saves their score to the Score table
+        'uses a MySQL server running from XAMPP
+
+        Try
+            'creates and opens connection to database
+            Dim conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
+            conn.Open()
+
+            'gets initials from the user
+            Dim initials As String = Nothing
+            Do While IsNothing(initials) OrElse Len(initials) <> 3
+                initials = InputBox("Enter initials for scoreboard" & vbCrLf _
+                             & "Press cancel if you don't want your score saved",
+                        "Enter Initials")
+
+                If IsNothing(initials) Then
+                    'closes connection and doesn't insert score if user presses cancel
+                    conn.Close()
+                    Exit Sub
+                ElseIf Len(initials) <> 3 Then
+                    DisplayError("Initials must be 3 characters long")
+                End If
+            Loop
+
+            'sql query
+            Dim query = "INSERT INTO Score (initials, points, gameName) VALUES (@initials, @points, @gameName);"
+
+            'using preparing to prevent SQL injection attacks (injection possible for game name and possibly initials)
+            Using cmd As New MySqlCommand(query, conn)
+                'prepares query
+                cmd.Parameters.Add("@initials", MySqlDbType.String, 3)
+                cmd.Parameters.Add("@points", MySqlDbType.Int16)
+                cmd.Parameters.Add("@gameName", MySqlDbType.String, 64)
+                cmd.Prepare()
+
+                'binds values to parameters and executes with values
+                cmd.Parameters(0).Value = initials
+                cmd.Parameters(1).Value = points
+                cmd.Parameters(2).Value = gameName
+                cmd.ExecuteNonQuery()
+            End Using
+
+            'closes connection
+            conn.Close()
+        Catch ex As Exception
+            DisplayError("An error has occured so your score couldn't be saved" & vbCrLf & ex.ToString())
+        End Try
+    End Sub
+
 #End Region
 
 #Region "Scaling"
