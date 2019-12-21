@@ -27,7 +27,7 @@ Public Class Actor
             Next
             RefreshSpritesList()
             'Catch ex As Exception
-            '    PanelRenderEngine2.DisplayError("An error occured whilst loading an actor" & vbCrLf & ex.ToString)
+            '    RenderEngine.DisplayError("An error occured whilst loading an actor" & vbCrLf & ex.ToString)
             'End Try
         End If
     End Sub

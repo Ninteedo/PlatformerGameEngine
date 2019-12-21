@@ -9,7 +9,7 @@ Public Module TagBehaviours
     Const ifThenName As String = "then"
     Const ifElseName As String = "else"
 
-    Public Sub ProcessTag(ByVal inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderEngine As PanelRenderEngine2)
+    Public Sub ProcessTag(ByVal inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderEngine As RenderEngine)
         'processes a single tag and modifies the actor accordingly
 
         'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
@@ -53,7 +53,7 @@ Public Module TagBehaviours
         'End If
     End Sub
 
-    Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderEngine As PanelRenderEngine2)
+    Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderEngine As RenderEngine)
         'calls ProcessTag on all the subtags in the input tag
         If Not IsNothing(inputTag) Then
             Dim temp As Object = inputTag.InterpretArgument
@@ -531,11 +531,11 @@ Public Module TagBehaviours
                             Dim rightPart As String = parts(operatorIndex + 1).Trim
                             Dim newPart As String
 
-                            Dim reference As Object = FrmGame.FindReference(act, leftPart, room)
+                            Dim reference As Object = FrmGameExecutor.FindReference(act, leftPart, room)
                             If Not IsNothing(reference) Then
                                 leftPart = Val(reference)
                             End If
-                            reference = FrmGame.FindReference(act, rightPart, room)
+                            reference = FrmGameExecutor.FindReference(act, rightPart, room)
                             If Not IsNothing(reference) Then
                                 rightPart = Val(reference)
                             End If
@@ -578,7 +578,7 @@ Public Module TagBehaviours
                     Loop Until operatorIndex >= UBound(parts)
                 Next
             Else
-                Dim reference As Object = FrmGame.FindReference(act, parts(0), room)
+                Dim reference As Object = FrmGameExecutor.FindReference(act, parts(0), room)
                 If Not IsNothing(reference) Then
                     parts(0) = reference
                 End If

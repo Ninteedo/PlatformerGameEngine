@@ -45,7 +45,7 @@ Public Class FrmActorMaker
             createdActor = New Actor(Nothing)
         End If
         originalString = createdActor.ToString
-        renderer = New PanelRenderEngine2 With {.spriteFolderLocation = spriteFolderLocation, .renderPanel = PnlPreview}
+        renderer = New RenderEngine With {.spriteFolderLocation = spriteFolderLocation, .renderPanel = PnlPreview}
         renderer.renderPanel = PnlPreview
         RefreshSpritesList()
     End Sub
@@ -201,7 +201,7 @@ Public Class FrmActorMaker
 
 #Region "Render"
 
-    ReadOnly renderer As PanelRenderEngine2
+    ReadOnly renderer As RenderEngine
 
     Private Sub DrawSpritePreview(spriteToDraw As Sprite)
         'draws the given frame in the preview box

@@ -2,7 +2,7 @@
 '22/03/2019
 'Panel Render Engine v2
 
-Public Class PanelRenderEngine2
+Public Class RenderEngine
 
     Public renderPanel As Panel
     Public renderResolution As New Size(640, 480)      'how many pixels the game is played at, scaled on render to the size of the render panel

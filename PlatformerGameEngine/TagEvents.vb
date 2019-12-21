@@ -9,7 +9,7 @@ Public Module TagEvents
     Public Const behaviourTagName As String = "behaviour"
     Public Const identifierTagName As String = "name"
 
-    Public Sub BroadcastEvent(ByRef eventTag As Tag, ByRef thisRoom As Room, ByRef renderEngine As PanelRenderEngine2)
+    Public Sub BroadcastEvent(ByRef eventTag As Tag, ByRef thisRoom As Room, ByRef renderEngine As RenderEngine)
         'broadcasts a single event to all actors with a listener for the event
 
         For index As Integer = 0 To UBound(thisRoom.actors)
@@ -26,7 +26,7 @@ Public Module TagEvents
         Next
     End Sub
 
-    Public Sub ReceiveEvent(ByRef act As Actor, ByRef listenerTag As Tag, renderEngine As PanelRenderEngine2, thisRoom As Room)
+    Public Sub ReceiveEvent(ByRef act As Actor, ByRef listenerTag As Tag, renderEngine As RenderEngine, thisRoom As Room)
         'processes a received event
 
         Dim behaviourArgument As Object = listenerTag.InterpretArgument(behaviourTagName)

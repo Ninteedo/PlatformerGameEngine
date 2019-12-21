@@ -1,15 +1,15 @@
 ﻿'Richard Holmes
 '23/03/2019
-'Game loader and executor, uses PanelRenderEngine2
+'Game loader and executor, uses RenderEngine
 
-Public Class FrmGame
+Public Class FrmGameExecutor
 
 #Region "Disposing"
 
     Protected Overrides Sub OnFormClosed(ByVal e As FormClosedEventArgs)
-        frameTimer.Stop()
-        frameTimer.Dispose()
-        renderEngine = Nothing
+        _frameTimer.Stop()
+        _frameTimer.Dispose()
+        _renderEngine = Nothing
         MyBase.OnFormClosed(e)
     End Sub
 
@@ -24,46 +24,46 @@ Public Class FrmGame
 
         ' Add any initialization after the InitializeComponent() call.
 
-        renderEngine = New PanelRenderEngine2 With {.renderPanel = pnlGame}
-        currentLevel = New Level(levelTagString)
-        frameTimer = New Timer() With {.Interval = 1000 / 60}   'interval is delay between ticks in ms
+        _renderEngine = New RenderEngine With {.renderPanel = pnlGame}
+        _currentLevel = New Level(levelTagString)
+        _frameTimer = New Timer() With {.Interval = 1000 / 60}   'interval is delay between ticks in ms
 
-        AddHandler frameTimer.Tick, AddressOf GameTick
-        frameTimer.Start()
+        AddHandler _frameTimer.Tick, AddressOf GameTick
+        _frameTimer.Start()
     End Sub
 
 #End Region
 
 #Region "Render Control"
 
-    Dim renderEngine As PanelRenderEngine2            'panel render engine 2
-    Dim currentLevel As Level
+    Dim _renderEngine As RenderEngine            'panel render engine 2
+    ReadOnly _currentLevel As Level
 
     Private ReadOnly Property CurrentRoom As Room
         Get
-            If Not IsNothing(currentLevel) AndAlso Not IsNothing(currentLevel.rooms) AndAlso currentLevel.RoomIndex >= 0 AndAlso currentLevel.RoomIndex <= UBound(currentLevel.rooms) Then
-                Return currentLevel.rooms(currentLevel.RoomIndex)
+            If Not IsNothing(_currentLevel) AndAlso Not IsNothing(_currentLevel.rooms) AndAlso _currentLevel.RoomIndex >= 0 AndAlso _currentLevel.RoomIndex <= UBound(_currentLevel.rooms) Then
+                Return _currentLevel.rooms(_currentLevel.RoomIndex)
             Else
                 Return Nothing
             End If
         End Get
     End Property
 
-    Dim frameTimer As Timer
+    ReadOnly _frameTimer As Timer
 
     Private Sub GameTick()
         'advances the game state by 1 frame, with respect to keys held and actor tags
         'then renders the new game state to the player
 
         'broadcasts an event for the game tick
-        BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("tick")).ToString), CurrentRoom, renderEngine)
+        BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("tick")).ToString), CurrentRoom, _renderEngine)
 
         'broadcasts the key held event for each key currently held
-        If Not IsNothing(keysHeld) Then
+        If Not IsNothing(_keysHeld) Then
             Dim kc As New KeysConverter     'used to convert the held key to a string
-            For Each keyHeld As Keys In keysHeld
+            For Each keyHeld As Keys In _keysHeld
                 If keyHeld <> Keys.None Then
-                    BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString), CurrentRoom, renderEngine)
+                    BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString), CurrentRoom, _renderEngine)
                 End If
             Next
         End If
@@ -75,13 +75,13 @@ Public Class FrmGame
                 Dim tagIndex As Integer = 0
                 'TODO: how to deal with this list changing, tag IDs?
                 Do
-                    ProcessTag(act.tags(tagIndex), act, CurrentRoom, renderEngine)
+                    ProcessTag(act.tags(tagIndex), act, CurrentRoom, _renderEngine)
                     tagIndex += 1
                 Loop Until tagIndex > UBound(act.tags)
             Next
         End If
 
-        renderEngine.DoGameRender(CurrentRoom.actors)
+        _renderEngine.DoGameRender(CurrentRoom.actors)
     End Sub
 
 #End Region
@@ -161,17 +161,17 @@ Public Class FrmGame
 
 #Region "Player Input"
 
-    Dim keysHeld() As Keys  'a list of keys currently being held by the user
+    Dim _keysHeld() As Keys  'a list of keys currently being held by the user
 
     Private Sub FrmGame_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
         'if the key is pressed down then it is added to the list of held keys
 
         'checks that key isn't already in keys held list
         Dim addedToList As Boolean = False
-        If Not IsNothing(keysHeld) Then
-            For index As Integer = 0 To UBound(keysHeld)
-                If keysHeld(index) = e.KeyCode Then
-                    keysHeld(index) = e.KeyCode
+        If Not IsNothing(_keysHeld) Then
+            For index As Integer = 0 To UBound(_keysHeld)
+                If _keysHeld(index) = e.KeyCode Then
+                    _keysHeld(index) = e.KeyCode
                     addedToList = True
                     Exit For
                 End If
@@ -179,17 +179,17 @@ Public Class FrmGame
         End If
 
         If Not addedToList Then
-            keysHeld = InsertItem(keysHeld, e.KeyCode)
+            _keysHeld = InsertItem(_keysHeld, e.KeyCode)
         End If
     End Sub
 
     Private Sub FrmGame_KeyUp(sender As Object, e As KeyEventArgs) Handles MyBase.KeyUp
         'when the key is no longer being pressed by the user it is removed from the list of held keys
 
-        If Not IsNothing(keysHeld) Then
-            For index As Integer = 0 To UBound(keysHeld)
-                If keysHeld(index) = e.KeyCode Then
-                    keysHeld = RemoveItem(keysHeld, index)
+        If Not IsNothing(_keysHeld) Then
+            For index As Integer = 0 To UBound(_keysHeld)
+                If _keysHeld(index) = e.KeyCode Then
+                    _keysHeld = RemoveItem(_keysHeld, index)
                     Exit For
                 End If
             Next

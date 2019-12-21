@@ -2,6 +2,7 @@
 '22/03/2019
 'Menu for platformer engine
 
+Imports PlatformerGameEngine.My.Resources
 Public Class FrmMenu
 
     Dim menuButtons() As Button
@@ -69,10 +70,10 @@ Public Class FrmMenu
                 Case MenuLink.loadGame
                     'loads the game selected by the user
 
-                    Using openDialog As New OpenFileDialog With {.Filter = "Level File (*.lvl)|*.lvl", .Title = "Select Level", .Multiselect = False}
+                    Using openDialog As New OpenFileDialog With {.Filter = LevelFileFilter, .Title = "Select Level", .Multiselect = False}
                         'MsgBox("Please select the level file")
                         If openDialog.ShowDialog() = DialogResult.OK Then
-                            Using game As New FrmGame(ReadFile(openDialog.FileName))
+                            Using game As New FrmGameExecutor(ReadFile(openDialog.FileName))
                                 game.ShowDialog()
                             End Using
                         End If

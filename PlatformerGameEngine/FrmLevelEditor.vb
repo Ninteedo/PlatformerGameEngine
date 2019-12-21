@@ -1,6 +1,7 @@
 ﻿'Richard Holmes
 '29/03/2019
 'Level editor for platformer game engine
+
 Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmLevelEditor
@@ -12,7 +13,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub Initialization()
-        _renderEngine = New PanelRenderEngine2 With {.renderPanel = PnlRender}
+        _renderEngine = New RenderEngine With {.renderPanel = PnlRender}
         _createdLevel = New Level
 
         LoadInitialization()
@@ -128,7 +129,7 @@ Public Class FrmLevelEditor
 
 #Region "Render"
 
-    Dim _renderEngine As PanelRenderEngine2
+    Dim _renderEngine As RenderEngine
 
     Private Sub RenderCurrentRoom()
         'renders the current room
@@ -667,7 +668,7 @@ Public Class FrmLevelEditor
     Private Sub ToolBarTestStart_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarTestStart.Click
         'opens game executor with the current level
 
-        Using executor As New FrmGame(_createdLevel.ToString)
+        Using executor As New FrmGameExecutor(_createdLevel.ToString)
             executor.ShowDialog()
         End Using
     End Sub
