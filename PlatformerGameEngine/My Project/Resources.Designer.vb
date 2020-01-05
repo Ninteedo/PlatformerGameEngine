@@ -70,6 +70,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to behaviour.
+        '''</summary>
+        Friend ReadOnly Property BehaviourTagName() As String
+            Get
+                Return ResourceManager.GetString("BehaviourTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to colours.
         '''</summary>
         Friend ReadOnly Property ColoursTagName() As String
@@ -88,6 +97,15 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to event.
+        '''</summary>
+        Friend ReadOnly Property EventTagName() As String
+            Get
+                Return ResourceManager.GetString("EventTagName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to layer.
         '''</summary>
         Friend ReadOnly Property LayerTagName() As String
@@ -102,6 +120,15 @@ Namespace My.Resources
         Friend ReadOnly Property LevelFileFilter() As String
             Get
                 Return ResourceManager.GetString("LevelFileFilter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to listener.
+        '''</summary>
+        Friend ReadOnly Property ListenerTagName() As String
+            Get
+                Return ResourceManager.GetString("ListenerTagName", resourceCulture)
             End Get
         End Property
         

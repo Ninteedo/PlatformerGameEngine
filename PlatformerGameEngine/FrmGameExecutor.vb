@@ -2,14 +2,16 @@
 '23/03/2019
 'Game loader and executor, uses RenderEngine
 
+Imports PlatformerGameEngine.My.Resources
+
 Public Class FrmGameExecutor
 
 #Region "Disposing"
 
     Protected Overrides Sub OnFormClosed(e As FormClosedEventArgs)
+        'used to prevent an error occuring when the user closes the form
+
         _frameTimer.Stop()
-        _frameTimer.Dispose()
-        '_renderer = Nothing
         MyBase.OnFormClosed(e)
     End Sub
 
@@ -36,10 +38,12 @@ Public Class FrmGameExecutor
 
 #Region "Render Control"
 
-    Dim _renderer As RenderEngine
+    ReadOnly _renderer As RenderEngine
     ReadOnly _currentLevel As Level
 
-    Private ReadOnly Property CurrentRoom As Room
+    ReadOnly _frameTimer As Timer
+
+    Public ReadOnly Property CurrentRoom As Room
         Get
             If Not IsNothing(_currentLevel) AndAlso Not IsNothing(_currentLevel.rooms) AndAlso _currentLevel.RoomIndex >= 0 AndAlso _currentLevel.RoomIndex <= UBound(_currentLevel.rooms) Then
                 Return _currentLevel.rooms(_currentLevel.RoomIndex)
@@ -49,21 +53,20 @@ Public Class FrmGameExecutor
         End Get
     End Property
 
-    ReadOnly _frameTimer As Timer
-
     Private Sub GameTick()
         'advances the game state by 1 frame, with respect to keys held and actor tags
         'then renders the new game state to the player
 
         'broadcasts an event for the game tick
-        BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("tick")).ToString), CurrentRoom, _renderer)
+        BroadcastEvent(New Tag(EventTagName, New Tag(NameTagName, AddQuotes("tick")).ToString))
 
         'broadcasts the key held event for each key currently held
         If Not IsNothing(_keysHeld) Then
             Dim kc As New KeysConverter     'used to convert the held key to a string
             For Each keyHeld As Keys In _keysHeld
                 If keyHeld <> Keys.None Then
-                    BroadcastEvent(New Tag(eventTagName, New Tag(identifierTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString), CurrentRoom, _renderer)
+                    BroadcastEvent(New Tag(EventTagName,
+                        New Tag(NameTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString))
                 End If
             Next
         End If
@@ -75,7 +78,7 @@ Public Class FrmGameExecutor
                 Dim tagIndex As Integer = 0
                 'TODO: how to deal with this list changing, tag IDs?
                 Do
-                    ProcessTag(act.tags(tagIndex), act, CurrentRoom, _renderer)
+                    ProcessTag(act.tags(tagIndex), act, Me)
                     tagIndex += 1
                 Loop Until tagIndex > UBound(act.tags)
             Next
@@ -88,7 +91,11 @@ Public Class FrmGameExecutor
 
 #Region "References"
 
-    Public Shared Function FindReference(act As Actor, refString As String, currentRoom As Room) As Object
+    'find what contains the reference (me, level, other actor)
+    'for each other part
+    '   
+
+    Public Function FindReference(act As Actor, refString As String) As Object
         'finds what a reference is referring to
         'e.g. "ExampleActor.velocity[0]" may return 5
         'TODO: clean this up
@@ -96,69 +103,109 @@ Public Class FrmGameExecutor
         Dim parts() As String = JsonSplit(refString, 0, ".")    'reference delimited by "."
         Dim result As Object = Nothing
 
-
         Dim startArrayCharIndex As Integer = 0
         Dim endArrayCharIndex As Integer = 0
 
         'find object (actor or room) which the reference is coming from
+        'Select Case LCase(parts(0))
+        '    Case "me"
+        '        result = act
+
+        '        If UBound(parts) >= 1 Then
+        '            If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
+        '                Dim temp As String = parts(1).Remove(startArrayCharIndex)
+        '                result = act.FindTag(temp)
+        '            Else
+        '                result = act.FindTag(parts(1))
+        '            End If
+        '        End If
+        '    Case "level"
+        '        'result = currentRoom.FindTag(parts(1))
+        '        result = _currentLevel
+        '    Case Else
+        '        For index As Integer = 0 To UBound(CurrentRoom.actors)
+        '            If CurrentRoom.actors(index).Name = parts(0) Then
+        '                result = CurrentRoom.actors(index)
+
+        '                If UBound(parts) >= 1 Then
+        '                    If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
+        '                        Dim temp As String = parts(1).Remove(startArrayCharIndex)
+        '                        result = result.FindTag(temp)
+        '                    Else
+        '                        result = result.FindTag(parts(1))
+        '                    End If
+        '                End If
+        '            End If
+        '        Next
+        'End Select
+
+        ''finds what (in the object being referenced) is being referenced
+        'If Not IsNothing(result) Then
+        '    If UBound(parts) > 1 Then
+        '        For index As Integer = 1 To UBound(parts)
+        '            If GetArrayCharIndices(parts(index), startArrayCharIndex, endArrayCharIndex) Then
+        '                Dim arrayIndex As Integer = ProcessCalculation(
+        '                    Mid(parts(index), startArrayCharIndex + 2, endArrayCharIndex - startArrayCharIndex - 1), act,
+        '                    Me)
+        '                result = result.InterpretArgument(parts(index).Remove(startArrayCharIndex))
+        '                result = result(arrayIndex)
+        '            Else
+        '                result = result.InterpretArgument(parts(index))
+        '            End If
+        '        Next
+
+        '    ElseIf UBound(parts) = 1 Then
+        '        'TODO: is this part needed?
+        '        If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
+        '            Dim start As Integer = startArrayCharIndex + 2
+        '            Dim length As Integer = endArrayCharIndex - startArrayCharIndex - 1
+        '            Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), act, Me))
+        '            result = result.InterpretArgument()(arrayIndex)
+        '        Else
+        '            result = result.InterpretArgument()
+        '        End If
+        '    End If
+        'End If
+
         Select Case LCase(parts(0))
             Case "me"
                 result = act
-
-                If UBound(parts) >= 1 Then
-                    If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
-                        Dim temp As String = parts(1).Remove(startArrayCharIndex)
-                        result = act.FindTag(temp)
-                    Else
-                        result = act.FindTag(parts(1))
-                    End If
-                End If
-            Case "room"
-                'result = currentRoom.FindTag(parts(1))
-                result = currentRoom
+            Case "level"
+                result = _currentLevel
             Case Else
-                For index As Integer = 0 To UBound(currentRoom.actors)
-                    If currentRoom.actors(index).Name = parts(0) Then
-                        result = currentRoom.actors(index)
-
-                        If UBound(parts) >= 1 Then
-                            If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
-                                Dim temp As String = parts(1).Remove(startArrayCharIndex)
-                                result = result.FindTag(temp)
-                            Else
-                                result = result.FindTag(parts(1))
-                            End If
-                        End If
+                For Each otherAct As Actor In CurrentRoom.actors
+                    If LCase(otherAct.Name) = LCase(parts(0)) Then
+                        result = otherAct
+                        Exit For
                     End If
                 Next
         End Select
 
-        'finds what (in the object being referenced) is being referenced
         If Not IsNothing(result) Then
-            If UBound(parts) > 1 Then
-                For index As Integer = 1 To UBound(parts)
-                    If GetArrayCharIndices(parts(index), startArrayCharIndex, endArrayCharIndex) Then
-                        Dim arrayIndex As Integer = ProcessCalculation(
-                            Mid(parts(index), startArrayCharIndex + 2, endArrayCharIndex - startArrayCharIndex - 1), act,
-                            currentRoom)
-                        result = result.InterpretArgument(parts(index).Remove(startArrayCharIndex))
-                        result = result(arrayIndex)
-                    Else
-                        result = result.InterpretArgument(parts(index))
-                    End If
-                Next
+            For index As Integer = 1 To UBound(parts)
+                Dim partString = parts(index)
 
-            ElseIf UBound(parts) = 1 Then
-                'TODO: is this part needed?
-                If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
-                    Dim start As Integer = startArrayCharIndex + 2
-                    Dim length As Integer = endArrayCharIndex - startArrayCharIndex - 1
-                    Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), act, currentRoom))
-                    result = result.InterpretArgument()(arrayIndex)
-                Else
-                    result = result.InterpretArgument()
+                'gets array index
+                Dim arrayIndex As Integer = -1
+                If GetArrayCharIndices(partString, startArrayCharIndex, endArrayCharIndex) Then
+                    arrayIndex = ProcessCalculation(
+                        Mid(parts(index), startArrayCharIndex + 2, endArrayCharIndex - startArrayCharIndex - 1), act,
+                        Me)
+                    partString = partString.Remove(startArrayCharIndex)
                 End If
-            End If
+
+                If result.GetType() = GetType(Tag) Then
+                    result = result.InterpretArgument(partString)
+                    If arrayIndex > -1 Then
+                        result = result(arrayIndex)
+                    End If
+                ElseIf result.GetType() = GetType(Level) Or result.GetType() = GetType(Actor) Then
+                    result = result.FindTag(partString).InterpretArgument()
+                    If arrayIndex > -1 Then
+                        result = result(arrayIndex)
+                    End If
+                End If
+            Next
         End If
 
         Return result
@@ -180,6 +227,42 @@ Public Class FrmGameExecutor
 
 #End Region
 
+#Region "Events"
+
+    Public Sub BroadcastEvent(eventTag As Tag)
+        'broadcasts a single event to all actors with a listener for the event
+        'TODO: take arguments instead of eventTag?
+
+        For index As Integer = 0 To UBound(CurrentRoom.actors)
+            Dim act As Actor = CurrentRoom.actors(index)
+            If Not IsNothing(act.tags) Then
+                For tagIndex As Integer = 0 To UBound(act.tags)
+                    If LCase(act.tags(tagIndex).name) = ListenerTagName AndAlso
+                       act.tags(tagIndex).InterpretArgument(NameTagName) = eventTag.InterpretArgument(NameTagName) Then
+                        ReceiveEvent(act, act.tags(tagIndex))
+                    End If
+                Next
+            End If
+
+            CurrentRoom.actors(index) = act
+        Next
+    End Sub
+
+    Private Sub ReceiveEvent(ByRef act As Actor, listenerTag As Tag)
+        'processes a received event
+
+        Dim behaviourArgument As Object = listenerTag.InterpretArgument(BehaviourTagName)
+        If IsArray(behaviourArgument) Then
+            For index As Integer = 0 To UBound(behaviourArgument)
+                ProcessSubTags(behaviourArgument(index), act, Me)
+            Next
+        ElseIf Not IsNothing(behaviourArgument) Then
+            ProcessSubTags(behaviourArgument, act, Me)
+        End If
+    End Sub
+
+#End Region
+
 #Region "Player Input"
 
     Dim _keysHeld() As Keys  'a list of keys currently being held by the user
@@ -187,7 +270,7 @@ Public Class FrmGameExecutor
     Private Sub FrmGame_KeyDown(sender As FrmGameExecutor, e As KeyEventArgs) Handles MyBase.KeyDown
         'if the key is pressed down then it is added to the list of held keys
 
-        'checks that key isn't already in keys held list
+        'checks that key isn't already in keys held list, not sure how it could occur but I added this for safety
         Dim addedToList As Boolean = False
         If Not IsNothing(_keysHeld) Then
             For index As Integer = 0 To UBound(_keysHeld)

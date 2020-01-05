@@ -2,78 +2,80 @@
 '28/08/2019
 'Some predefined behaviours for specific tags
 
+Imports PlatformerGameEngine.My
+Imports MySql.Data.MySqlClient
+
 Public Module TagBehaviours
 
     'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
-    Const ifConditionName As String = "con"
-    Const ifThenName As String = "then"
-    Const ifElseName As String = "else"
+    Const IfConditionName As String = "con"
+    Const IfThenName As String = "then"
+    Const IfElseName As String = "else"
 
-    Public Sub ProcessTag(ByVal inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderEngine As RenderEngine)
+    Public Sub ProcessTag(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
         'processes a single tag and modifies the actor accordingly
 
-        'If Not IsNothing(ent) AndAlso Not IsNothing(ent.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(ent.tags) Then
-        'Dim tag As Tag = ent.tags(tagIndex)
+        'If Not IsNothing(act) AndAlso Not IsNothing(act.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(act.tags) Then
+        'Dim tag As Tag = act.tags(tagIndex)
 
         Select Case LCase(inputTag.name)
             'basic movement
             Case "velocity"     '[xChange,yChange]
-                Dim velocityTemp As Object = InterpretValue(inputTag.argument, True, act, thisRoom)
+                Dim velocityTemp As Object = InterpretValue(inputTag.argument, True, act, game)
                 Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
-                VelocityHandling(act, velocity, thisRoom)
+                VelocityHandling(act, velocity, game)
 
                 'meta
             Case LCase("addTag")
-                Dim newTag As Tag = InterpretValue(inputTag.argument, True, act, thisRoom)
+                Dim newTag As Tag = InterpretValue(inputTag.argument, True, act, game)
                 act.AddTag(newTag, True)
             Case LCase("removeTag")
                 act.RemoveTag(inputTag.InterpretArgument())
             Case "execute"
-                ProcessTag(New Tag(inputTag.InterpretArgument.ToString), act, thisRoom, renderEngine)
+                ProcessTag(New Tag(inputTag.InterpretArgument.ToString), act, game)
 
                 'broadcast event
             Case "broadcast"
-                BroadcastEvent(New Tag(inputTag.InterpretArgument.ToString), thisRoom, renderEngine)
+                game.BroadcastEvent(New Tag(inputTag.InterpretArgument.ToString))
 
                 'logic
             Case "if"
-                Dim condition As String = inputTag.FindSubTag(ifConditionName).InterpretArgument()
+                Dim condition As String = inputTag.FindSubTag(IfConditionName).InterpretArgument()
                 'assesses condition then executes either "then" or "else" part of the if
                 Dim executePart As Tag
-                If AssessCondition(condition, act, thisRoom) Then
-                    executePart = inputTag.FindSubTag(ifThenName)
+                If AssessCondition(condition, act, game) Then
+                    executePart = inputTag.FindSubTag(IfThenName)
                 Else
-                    executePart = inputTag.FindSubTag(ifElseName)
+                    executePart = inputTag.FindSubTag(IfElseName)
                 End If
 
                 'executes everything in the executePart
-                ProcessSubTags(executePart, act, thisRoom, renderEngine)
+                ProcessSubTags(executePart, act, game)
 
                 'scoreboards
             Case LCase("saveScore")
-                Dim initials As String = inputTag.FindSubTag("initials").InterpretArgument()
                 Dim points As String = inputTag.FindSubTag("points").InterpretArgument()
                 Dim gameName As String = inputTag.FindSubTag("gameName").InterpretArgument()
 
-
+                SaveScore(points, gameName)
         End Select
         'End If
     End Sub
 
-    Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef thisRoom As Room, ByRef renderer As RenderEngine)
+    Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
         'calls ProcessTag on all the subtags in the input tag
         If Not IsNothing(inputTag) Then
             Dim temp As Object = inputTag.InterpretArgument
             If IsArray(temp) Then
                 For index As Integer = 0 To UBound(temp)
                     If temp(index).GetType() = GetType(Tag) Then   'checks that the temp is actually a tag before processing it
-                        ProcessTag(temp(index), act, thisRoom, renderer)
+                        ProcessTag(temp(index), act, game)
                     End If
                 Next
             ElseIf Not IsNothing(temp) Then
                 If temp.GetType() = GetType(Tag) Then   'checks that the temp is actually a tag before processing it
-                    ProcessTag(temp, act, thisRoom, renderer)
+                    ProcessTag(temp, act, game)
                 End If
             End If
         End If
@@ -81,28 +83,21 @@ Public Module TagBehaviours
 
 #Region "Collision Detection"
 
-    Private Sub VelocityHandling(ByRef ent As Actor, ByRef velocity As Vector, ByRef room As Room)
+    Private Sub VelocityHandling(ByRef act As Actor, ByRef velocity As Vector, ByRef game As FrmGameExecutor)
         Const collisionTagName As String = "collision"
         Const collisionTypeTagName As String = "collisionType"
         Const vulnerableTagName As String = "vulnerable"
         Const effectTagName As String = "effect"
         Const solidTagName As String = "solid"
 
-        If ent.HasTag(collisionTagName) Then
-            For Each otherEnt As Actor In room.actors
-                If ent.Name <> otherEnt.Name Then
-                    'Dim velocity2Temp As Object = otherEnt.FindTag("velocity").InterpretArgument
-                    'Dim velocity2 As New Vector(0, 0)
-                    'If Not IsNothing(velocity2Temp) Then
-                    '    velocity2 = New Vector(velocity2Temp(0), velocity2Temp(1))
-                    'End If
+        If act.HasTag(collisionTagName) Then
+            For Each otherAct As Actor In game.CurrentRoom.actors
+                If act.Name <> otherAct.Name Then
+                    If otherAct.HasTag(collisionTagName) Then
+                        Dim collisionResult As PolygonCollisionResult = CheckPolygons(act, otherAct, velocity) ' + velocity2)
 
-                    If otherEnt.HasTag(collisionTagName) Then
-                        Dim collisionResult As PolygonCollisionResult = CheckPolygons(ent, otherEnt, velocity) ' + velocity2)
-
-                        If collisionResult.intersecting Or collisionResult.willIntersect Then
-
-                            Dim entCollisionTypesTemp As Object = ent.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
+                        If collisionResult.Intersecting Or collisionResult.WillIntersect Then
+                            Dim entCollisionTypesTemp As Object = act.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
                             Dim entVulnerable As Boolean = False        'stores whether the actor is vulnerable
                             If Not IsNothing(entCollisionTypesTemp) Then
                                 If IsArray(entCollisionTypesTemp) Then
@@ -117,7 +112,7 @@ Public Module TagBehaviours
                                 End If
                             End If
 
-                            Dim otherEntCollisionTypesTemp As Object = otherEnt.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
+                            Dim otherEntCollisionTypesTemp As Object = otherAct.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
                             Dim otherEntEffect As Tag = Nothing
                             Dim otherEntSolid As Boolean = False
                             If Not IsNothing(otherEntCollisionTypesTemp) Then
@@ -138,9 +133,9 @@ Public Module TagBehaviours
                                 End If
                             End If
 
-                            If otherEntSolid And collisionResult.willIntersect Then
+                            If otherEntSolid And collisionResult.WillIntersect Then
                                 'adjusts velocity to prevent penetration
-                                velocity += collisionResult.minTranslationVect
+                                velocity += collisionResult.MinTranslationVect
                             End If
 
                             If entVulnerable And Not IsNothing(otherEntEffect) Then
@@ -151,17 +146,17 @@ Public Module TagBehaviours
 
                 End If
             Next
-            ent.AddTag(New Tag("velocity", ArrayToString({velocity.X, velocity.Y})), True)      'changes the ent's velocity
+            act.AddTag(New Tag("velocity", ArrayToString({velocity.X, velocity.Y})), True)      'changes the actor's velocity
         End If
 
-        ent.Location = New PointF(ent.Location.X + velocity.X, ent.Location.Y + velocity.Y)
+        act.Location = New PointF(act.Location.X + velocity.X, act.Location.Y + velocity.Y)
     End Sub
 
-    Public Function RectanglesOverlapping(rect1 As RectangleF, rect2 As RectangleF) As Boolean
+    Private Function RectanglesOverlapping(rect1 As RectangleF, rect2 As RectangleF) As Boolean
         Return Not (rect1.Left > rect2.Right Or rect1.Right < rect2.Left Or rect1.Top > rect2.Bottom Or rect1.Bottom < rect2.Top)
     End Function
 
-    Public Function CheckPolygons(ent1 As Actor, ent2 As Actor, velocity As Vector) As PolygonCollisionResult
+    Private Function CheckPolygons(ent1 As Actor, ent2 As Actor, velocity As Vector) As PolygonCollisionResult
         Dim ent1Rect As RectangleF = ent1.Hitbox()
         Dim ent2Rect As RectangleF = ent2.Hitbox()
         Dim ent1RectMoved As New RectangleF(New PointF(ent1Rect.X + velocity.X, ent2Rect.Y + velocity.Y), ent1Rect.Size)
@@ -174,14 +169,12 @@ Public Module TagBehaviours
         If RectanglesOverlapping(ent1Rect, ent2Rect) OrElse RectanglesOverlapping(ent1RectMoved, ent2Rect) Then
             collisionResult = PolygonCollision(ent1Poly, ent2Poly, velocity)
         Else
-            collisionResult = New PolygonCollisionResult With {.intersecting = False, .willIntersect = False, .minTranslationVect = New Vector(0, 0)}
+            collisionResult = New PolygonCollisionResult With {.Intersecting = False, .WillIntersect = False, .MinTranslationVect = New Vector(0, 0)}
         End If
         Return collisionResult
     End Function
 
-
-
-    Public Structure Vector
+    Private Structure Vector
         Dim X As Single
         Dim Y As Single
 
@@ -195,7 +188,7 @@ Public Module TagBehaviours
             Me.Y = point.Y
         End Sub
 
-        Public ReadOnly Property Magnitude
+        Public ReadOnly Property Magnitude As Single
             Get
                 Return Math.Sqrt(X ^ 2 + Y ^ 2)
             End Get
@@ -208,7 +201,7 @@ Public Module TagBehaviours
             Y /= Magnitude
         End Sub
 
-        Public Function GetNormalized()
+        Public Function GetNormalized() As Vector
             'returns a copy of this vector with magnitude set to 1
 
             Return New Vector(X / Magnitude, Y / Magnitude)
@@ -233,57 +226,59 @@ Public Module TagBehaviours
         End Operator
     End Structure
 
-    Public Structure Polygon
-        Dim points() As Vector
-        Dim edges() As Vector
+    Private Structure Polygon
+        ReadOnly Points() As Vector
+        Dim Edges() As Vector
 
         Public Sub New(points() As Vector)
-            Me.points = points
+            Me.Points = points
             CalculateEdges()
         End Sub
 
         Public Sub New(rect As RectangleF)
-            points = {New Vector(rect.Right, rect.Top), New Vector(rect.Right, rect.Bottom), New Vector(rect.Left, rect.Bottom), New Vector(rect.Left, rect.Top)}
+            Points = {New Vector(rect.Right, rect.Top), New Vector(rect.Right, rect.Bottom), New Vector(rect.Left, rect.Bottom), New Vector(rect.Left, rect.Top)}
             CalculateEdges()
         End Sub
 
-        Public Sub CalculateEdges()
+        Private Sub CalculateEdges()
             'creates the edges array using the points array
 
             Dim point1 As Vector
             Dim point2 As Vector
 
-            If Not IsNothing(points) Then
-                ReDim edges(UBound(points))
+            If Not IsNothing(Points) Then
+                ReDim Edges(UBound(Points))
 
-                For index As Integer = 0 To UBound(points)
-                    point1 = points(index)
-                    point2 = If(index < UBound(points), points(index + 1), points(0))      'loops back round to close polygon
+                For index As Integer = 0 To UBound(Points)
+                    point1 = Points(index)
+                    point2 = If(index < UBound(Points), Points(index + 1), Points(0))      'loops back round to close polygon
 
-                    edges(index) = point2 - point1
+                    Edges(index) = point2 - point1
                 Next
             Else
-                edges = Nothing
+                Edges = Nothing
             End If
         End Sub
 
-        Public Function Centre() As Vector
-            Dim totalX As Single = 0
-            Dim totalY As Single = 0
+        Public ReadOnly Property Centre As Vector
+            Get
+                Dim totalX As Single = 0
+                Dim totalY As Single = 0
 
-            For index As Integer = 0 To UBound(points)
-                totalX += points(index).X
-                totalY += points(index).Y
-            Next
+                For index As Integer = 0 To UBound(Points)
+                    totalX += Points(index).X
+                    totalY += Points(index).Y
+                Next
 
-            Return New Vector(totalX / points.Length, totalY / points.Length)
-        End Function
+                Return New Vector(totalX / Points.Length, totalY / Points.Length)
+            End Get
+        End Property
 
         Public Sub ChangeLocation(change As Vector)
             'changes the location of the polygon by the given vector
 
-            For index As Integer = 0 To UBound(points)
-                points(index) += change
+            For index As Integer = 0 To UBound(Points)
+                Points(index) += change
             Next
 
             CalculateEdges()
@@ -312,21 +307,21 @@ Public Module TagBehaviours
         'End Function
     End Structure
 
-    Public Structure PolygonCollisionResult
-        Dim intersecting As Boolean
-        Dim willIntersect As Boolean
-        Dim minTranslationVect As Vector
+    Private Structure PolygonCollisionResult
+        Dim Intersecting As Boolean
+        Dim WillIntersect As Boolean
+        Dim MinTranslationVect As Vector
     End Structure
 
-    Public Sub ProjectPolygon(axis As Vector, shape As Polygon, ByRef min As Single, ByRef max As Single)
+    Private Sub ProjectPolygon(axis As Vector, shape As Polygon, ByRef min As Single, ByRef max As Single)
         'https://www.metanetsoftware.com/technique/tutorialA.html#appendixA
 
-        Dim dp As Single = axis.DotProduct(shape.points(0))
+        Dim dp As Single = axis.DotProduct(shape.Points(0))
         min = dp
         max = dp
 
-        For index As Integer = 1 To UBound(shape.points)
-            dp = axis.DotProduct(shape.points(index))
+        For index As Integer = 1 To UBound(shape.Points)
+            dp = axis.DotProduct(shape.Points(index))
 
             If dp < min Then
                 min = dp
@@ -336,15 +331,15 @@ Public Module TagBehaviours
         Next
     End Sub
 
-    Public Function IntervalDistance(min1 As Single, max1 As Single, min2 As Single, max2 As Single) As Single
+    Private Function IntervalDistance(min1 As Single, max1 As Single, min2 As Single, max2 As Single) As Single
         If min1 < min2 Then
             Return min2 - max1
         Else
-            Return min1 - max2
+            Return  min1 - max2
         End If
     End Function
 
-    Public Function PolygonCollision(poly1 As Polygon, poly2 As Polygon, velocity As Vector) As PolygonCollisionResult
+    Private Function PolygonCollision(poly1 As Polygon, poly2 As Polygon, velocity As Vector) As PolygonCollisionResult
         'https://www.codeproject.com/Articles/15573/2D-Polygon-Collision-Detection
 
         Dim result As New PolygonCollisionResult
@@ -353,17 +348,19 @@ Public Module TagBehaviours
         Dim translationAxis As Vector = Nothing
 
         'loops through each edge for poly1 and poly2
-        For edgeIndex As Integer = 0 To UBound(poly1.edges) + UBound(poly2.edges)
+        For edgeIndex As Integer = 0 To UBound(poly1.Edges) + UBound(poly2.Edges)
             Dim edge As Vector
 
-            If edgeIndex <= UBound(poly1.edges) Then
-                edge = poly1.edges(edgeIndex)
+            If edgeIndex <= UBound(poly1.Edges) Then
+                edge = poly1.Edges(edgeIndex)
             Else
-                edge = poly2.edges(edgeIndex - 4)
+                edge = poly2.Edges(edgeIndex - 4)
             End If
 
             'find if the polygons are intersecting
-            Dim axis As Vector = New Vector(edge.Y * -1, edge.X)       'perpendicular to edge
+
+            'gets perpendicular axis of this edge
+            Dim axis As Vector = New Vector(edge.Y * -1, edge.X)
             axis.Normalize()
 
             'get the projection of the polygon on the axis
@@ -376,7 +373,7 @@ Public Module TagBehaviours
 
             'check if the projections are intersecting
             Dim intervalDist As Single = IntervalDistance(min1, max1, min2, max2)
-            result.intersecting = Not intervalDist > 0
+            result.Intersecting = intervalDist <= 0
 
             'part for finding if the shapes will intersect after moving
 
@@ -391,10 +388,10 @@ Public Module TagBehaviours
             End If
 
             intervalDist = IntervalDistance(min1, max1, min2, max2)
-            result.willIntersect = Not intervalDist > 0
+            result.WillIntersect = Not intervalDist > 0
 
             'checks if any intersection is or will occur, and exits the for loop if it wont
-            If Not result.intersecting And Not result.willIntersect Then
+            If Not result.Intersecting And Not result.WillIntersect Then
                 Exit For
             End If
 
@@ -414,8 +411,8 @@ Public Module TagBehaviours
         Next
 
         'finds the vector to prevent intersection
-        If result.willIntersect Then
-            result.minTranslationVect = translationAxis * minInterval
+        If result.WillIntersect Then
+            result.MinTranslationVect = translationAxis * minInterval
         End If
 
         Return result
@@ -446,7 +443,7 @@ Public Module TagBehaviours
 #Region "Calculation"
 
     Public Function ProcessCalculation(calc As String, Optional ByRef act As Actor = Nothing,
-                                       Optional ByRef room As Room = Nothing) As String
+                                       Optional ByRef game As FrmGameExecutor = Nothing) As String
         'takes in a calculation as a string and returns the result
 
         If Not IsNothing(calc) AndAlso Len(calc) > 0 Then
@@ -478,8 +475,10 @@ Public Module TagBehaviours
                     ElseIf c = ")" Then
                         largestBracketOpeningIndex -= 1
                         If largestBracketOpeningIndex >= 0 And currentBracketIndent = 0 Then
-                            Dim bracketedCalc As String = Mid(calc, largestBracketOpeningIndex + 1, cIndex - largestBracketOpeningIndex + 1)
-                            calc = calc.Replace(bracketedCalc, ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2), act, room))
+                            Dim bracketedCalc As String = Mid(calc, largestBracketOpeningIndex + 1,
+                                                              cIndex - largestBracketOpeningIndex + 1)
+                            calc = calc.Replace(bracketedCalc,
+                                                ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2), act, game))
 
                             cIndex = 0
                             largestBracketOpeningIndex = -1
@@ -540,11 +539,11 @@ Public Module TagBehaviours
                             Dim rightPart As String = parts(operatorIndex + 1).Trim
                             Dim newPart As String
 
-                            Dim reference As Object = FrmGameExecutor.FindReference(act, leftPart, room)
+                            Dim reference As Object = game.FindReference(act, leftPart)
                             If Not IsNothing(reference) Then
                                 leftPart = Val(reference)
                             End If
-                            reference = FrmGameExecutor.FindReference(act, rightPart, room)
+                            reference = game.FindReference(act, rightPart)
                             If Not IsNothing(reference) Then
                                 rightPart = Val(reference)
                             End If
@@ -587,7 +586,7 @@ Public Module TagBehaviours
                     Loop Until operatorIndex >= UBound(parts)
                 Next
             Else
-                Dim reference As Object = FrmGameExecutor.FindReference(act, parts(0), room)
+                Dim reference As Object = game.FindReference(act, parts(0))
                 If Not IsNothing(reference) Then
                     parts(0) = reference
                 End If
@@ -606,54 +605,54 @@ Public Module TagBehaviours
     Private Enum LogicOp As Integer
         'logical operators
 
-        andOp
-        orOp
-        notOp
+        AndOp
+        OrOp
     End Enum
 
     Private Enum CompareOp As Integer
         'comparison operators
 
-        equalGreaterThan
-        equalLessThan
-        equal
-        notEqual
-        greaterThan
-        lessThan
+        EqualGreaterThan
+        EqualLessThan
+        Equal
+        NotEqual
+        GreaterThan
+        LessThan
     End Enum
 
-    Public Function AssessCondition(ByVal condition As String, Optional ByVal act As Actor = Nothing, Optional ByVal thisRoom As Room = Nothing) As Boolean
+    Private Function AssessCondition(condition As String, Optional act As Actor = Nothing,
+                                     Optional ByRef game As FrmGameExecutor = Nothing) As Boolean
         'takes a condition in the form of a string and returns true or false
 
         Try
             If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
                 condition = LCase(condition)    'conditions are not case sensitive
 
-                Dim comparisonOperators() As String = {">=", "<=", "=", "<>", ">", "<"}     'ordered so there are no conflicts (eg >= goes before > and =)
+                Dim comparisonOperators() As String = {">=", "<=", "=", "<>", ">", "<"} _
+                'ordered so there are no conflicts (eg >= goes before > and =)
                 Dim logicOperators() As String = {" and ", " or "}
-                Dim notOperator As String = "not "
+                Const notOperator As String = "not "
 
-
-                Dim indCompars() As String = {condition}      'list of individual comparisons split by logic operators
-                Dim comparTypes() As LogicOp = Nothing      'list of the order of comparisons used
+                Dim comparisons() As String = {condition}      'list of individual comparisons split by logic operators
+                Dim comparisonTypes() As LogicOp = Nothing      'list of the order of comparisons used
 
                 'finds individual comparisons
                 For opIndex As Integer = 0 To UBound(logicOperators)
                     Dim comIndex As Integer = 0
-                    Do While comIndex <= UBound(indCompars)
-                        Dim splits() As String = JsonSplit(indCompars(comIndex), 0, logicOperators(opIndex))
+                    Do While comIndex <= UBound(comparisons)
+                        Dim splits() As String = JsonSplit(comparisons(comIndex), 0, logicOperators(opIndex))
 
                         'checks if there was any split made
                         If UBound(splits) > 0 Then
                             'removes the overall comparison, then inserts the split version
-                            indCompars = RemoveItem(indCompars, comIndex)
+                            comparisons = RemoveItem(comparisons, comIndex)
                             For splitIndex As Integer = 0 To UBound(splits)
                                 'adds the comparison type used if it is in the middle of 2 splits
                                 If splitIndex < UBound(splits) Then
-                                    comparTypes = InsertItem(comparTypes, opIndex, comIndex)
+                                    comparisonTypes = InsertItem(comparisonTypes, opIndex, comIndex)
                                 End If
 
-                                indCompars = InsertItem(indCompars, splits(splitIndex), comIndex)
+                                comparisons = InsertItem(comparisons, splits(splitIndex), comIndex)
                                 comIndex += 1
                             Next
                         Else
@@ -664,14 +663,14 @@ Public Module TagBehaviours
                 Next
 
                 'evaluates each comparison to a boolean
-                For comIndex As Integer = 0 To UBound(indCompars)
+                For comIndex As Integer = 0 To UBound(comparisons)
                     Dim leftPart As String = Nothing
                     Dim rightPart As String = Nothing
 
                     'finds which (if any) comparison operator is used
                     Dim opIndex As Integer = 0
                     Do While opIndex <= UBound(comparisonOperators)
-                        Dim splits() = JsonSplit(indCompars(comIndex), 0, comparisonOperators(opIndex))
+                        Dim splits() = JsonSplit(comparisons(comIndex), 0, comparisonOperators(opIndex))
 
                         'checks if there are multiple parts when operator is used to split
                         If UBound(splits) = 1 Then
@@ -690,27 +689,27 @@ Public Module TagBehaviours
                     'opIndex is set to -1 if no operator found
                     If opIndex > UBound(comparisonOperators) Then
                         opIndex = -1
-                        leftPart = indCompars(comIndex)
+                        leftPart = comparisons(comIndex)
                     Else
                         'processes the left and right parts
-                        leftPart = InterpretValue(leftPart, True, act, thisRoom)
-                        rightPart = InterpretValue(rightPart, True, act, thisRoom)
+                        leftPart = InterpretValue(leftPart, True, act, game)
+                        rightPart = InterpretValue(rightPart, True, act, game)
                     End If
 
                     Dim comResult As Boolean = False    'stores the result of this comparison
                     'compares left and right part using the chosen operator
                     Select Case opIndex
-                        Case CompareOp.equalGreaterThan
+                        Case CompareOp.EqualGreaterThan
                             comResult = leftPart >= rightPart
-                        Case CompareOp.equalLessThan
+                        Case CompareOp.EqualLessThan
                             comResult = leftPart <= rightPart
-                        Case CompareOp.equal
+                        Case CompareOp.Equal
                             comResult = leftPart = rightPart
-                        Case CompareOp.notEqual
+                        Case CompareOp.NotEqual
                             comResult = leftPart <> rightPart
-                        Case CompareOp.greaterThan
+                        Case CompareOp.GreaterThan
                             comResult = leftPart > rightPart
-                        Case CompareOp.lessThan
+                        Case CompareOp.LessThan
                             comResult = leftPart < rightPart
                         Case Else
                             comResult = CType(leftPart, Boolean)
@@ -721,18 +720,18 @@ Public Module TagBehaviours
                         comResult = Not comResult
                     End If
 
-                    indCompars(comIndex) = comResult.ToString
+                    comparisons(comIndex) = comResult.ToString
                 Next
 
-                'combines the comparisons into a single boolean using ands & ors
-                Dim overall As Boolean = indCompars(0)
-                If Not IsNothing(comparTypes) Then
-                    For index As Integer = 0 To UBound(comparTypes)
-                        Select Case comparTypes(index)
-                            Case LogicOp.andOp
-                                overall = overall And indCompars(index + 1)
-                            Case LogicOp.orOp
-                                overall = overall Or indCompars(index + 1)
+                'combines the comparisons into a single boolean using logic operators
+                Dim overall As Boolean = comparisons(0)
+                If Not IsNothing(comparisonTypes) Then
+                    For index As Integer = 0 To UBound(comparisonTypes)
+                        Select Case comparisonTypes(index)
+                            Case LogicOp.AndOp
+                                overall = overall And comparisons(index + 1)
+                            Case LogicOp.OrOp
+                                overall = overall Or comparisons(index + 1)
                         End Select
                     Next
                 End If
@@ -740,12 +739,67 @@ Public Module TagBehaviours
                 Return overall
             End If
         Catch ex As Exception
-            DisplayError(ex.ToString)
+            DisplayError("An error occured whilst assessing condition:" & vbCrLf & condition)
         End Try
 
         'defaults to false
         Return False
     End Function
+
+#End Region
+
+#Region "Scoreboard"
+
+    Private Sub SaveScore(points As Integer, gameName As String)
+        'asks the user for initials and saves their score to the Score table
+        'uses a MySQL server running from XAMPP
+
+        Try
+            'creates and opens connection to database
+            Using conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
+                conn.Open()
+
+                'gets initials from the user
+                Dim initials As String = Nothing
+                Do While IsNothing(initials) OrElse Len(initials) <> 3
+                    initials = InputBox("Enter initials for scoreboard" & vbCrLf _
+                                 & "Press cancel if you don't want your score saved",
+                            "Enter Initials")
+
+                    If IsNothing(initials) Then
+                        'closes connection and doesn't insert score if user presses cancel
+                        conn.Close()
+                        Exit Sub
+                    ElseIf Len(initials) <> 3 Then
+                        DisplayError("Initials must be 3 characters long")
+                    End If
+                Loop
+
+                'sql query
+                Dim query = "INSERT INTO Score (initials, points, gameName) VALUES (@initials, @points, @gameName);"
+
+                'uses preparing to prevent SQL injection attacks (injection possible for game name and possibly initials)
+                Using cmd As New MySqlCommand(query, conn)
+                    'prepares query
+                    cmd.Parameters.Add("@initials", MySqlDbType.String, 3)
+                    cmd.Parameters.Add("@points", MySqlDbType.Int16)
+                    cmd.Parameters.Add("@gameName", MySqlDbType.String, 64)
+                    cmd.Prepare()
+
+                    'binds values to parameters and executes with values
+                    cmd.Parameters(0).Value = initials
+                    cmd.Parameters(1).Value = points
+                    cmd.Parameters(2).Value = gameName
+                    cmd.ExecuteNonQuery()
+                End Using
+
+                'closes connection
+                conn.Close()
+            End Using
+        Catch ex As Exception
+            DisplayError("An error has occured so your score couldn't be saved" & vbCrLf & ex.ToString())
+        End Try
+    End Sub
 
 #End Region
 

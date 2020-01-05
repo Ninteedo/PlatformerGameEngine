@@ -156,8 +156,17 @@
   <data name="LevelFileFilter" xml:space="preserve">
     <value>Level file (*.lvl)|*.lvl</value>
   </data>
+  <data name="BehaviourTagName" xml:space="preserve">
+    <value>behaviour</value>
+  </data>
   <data name="ColoursTagName" xml:space="preserve">
     <value>colours</value>
+  </data>
+  <data name="EventTagName" xml:space="preserve">
+    <value>event</value>
+  </data>
+  <data name="ListenerTagName" xml:space="preserve">
+    <value>listener</value>
   </data>
   <data name="PixelsTagName" xml:space="preserve">
     <value>pixels</value>

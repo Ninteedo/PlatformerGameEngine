@@ -115,7 +115,7 @@ Public Module JsonHandler
         Return result
     End Function
 
-    Public Function InterpretValue(valueString As String, Optional fullInterpret As Boolean = False, Optional act As Actor = Nothing, Optional room As Room = Nothing) As Object
+    Public Function InterpretValue(valueString As String, Optional fullInterpret As Boolean = False, Optional act As Actor = Nothing, Optional ByRef game As FrmGameExecutor = Nothing) As Object
         'interprets a value from JSON
         'full interpret means that for tags and arrays the arguments are also interpreted
 
@@ -141,7 +141,7 @@ Public Module JsonHandler
                         Dim resultTag = New Tag(valueString)
 
                         If fullInterpret Then
-                            resultTag.SetArgument(InterpretValue(resultTag.argument, fullInterpret, act, room))
+                            resultTag.SetArgument(InterpretValue(resultTag.argument, fullInterpret, act, game))
                         End If
 
                         result = resultTag
@@ -149,12 +149,12 @@ Public Module JsonHandler
                         Dim valueSplits As String() = JsonSplit(valueString)
                         ReDim result(UBound(valueSplits))
                         For index As Integer = 0 To UBound(valueSplits)
-                            result(index) = InterpretValue(valueSplits(index).Trim, fullInterpret, act, room)
+                            result(index) = InterpretValue(valueSplits(index).Trim, fullInterpret, act, game)
                         Next
                     ElseIf IsNumeric(valueString) Then
                         result = Val(valueString)
                     ElseIf fullInterpret Then
-                        result = ProcessCalculation(valueString, act, room)
+                        result = ProcessCalculation(valueString, act, game)
                     End If
             End Select
         End If
