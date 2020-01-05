@@ -192,11 +192,11 @@ Public Class Actor
 
 #Region "Operators"
 
-    Public Shared Operator =(ent1 As Actor, ent2 As Actor)
+    Public Shared Operator =(ent1 As Actor, ent2 As Actor) As Boolean
         Return AreActorsEqual(ent1, ent2)
     End Operator
 
-    Public Shared Operator <>(ent1 As Actor, ent2 As Actor)
+    Public Shared Operator <>(ent1 As Actor, ent2 As Actor) As Boolean
         Return Not AreActorsEqual(ent1, ent2)
     End Operator
 

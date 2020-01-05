@@ -239,11 +239,11 @@ Public Class Sprite
 
 #Region "Operators"
 
-    Public Shared Operator =(sprite1 As Sprite, sprite2 As Sprite)
+    Public Shared Operator =(sprite1 As Sprite, sprite2 As Sprite) As Boolean
         Return AreSpritesEqual(sprite1, sprite2)
     End Operator
 
-    Public Shared Operator <>(sprite1 As Sprite, sprite2 As Sprite)
+    Public Shared Operator <>(sprite1 As Sprite, sprite2 As Sprite) As Boolean
         Return Not AreSpritesEqual(sprite1, sprite2)
     End Operator
 

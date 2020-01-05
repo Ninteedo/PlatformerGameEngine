@@ -183,7 +183,7 @@ Public Class FrmGameExecutor
 
         If Not IsNothing(result) Then
             For index As Integer = 1 To UBound(parts)
-                Dim partString = parts(index)
+                Dim partString As String = parts(index)
 
                 'gets array index
                 Dim arrayIndex As Integer = -1

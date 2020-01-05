@@ -670,7 +670,7 @@ Public Module TagBehaviours
                     'finds which (if any) comparison operator is used
                     Dim opIndex As Integer = 0
                     Do While opIndex <= UBound(comparisonOperators)
-                        Dim splits() = JsonSplit(comparisons(comIndex), 0, comparisonOperators(opIndex))
+                        Dim splits() As String = JsonSplit(comparisons(comIndex), 0, comparisonOperators(opIndex))
 
                         'checks if there are multiple parts when operator is used to split
                         If UBound(splits) = 1 Then
@@ -776,7 +776,7 @@ Public Module TagBehaviours
                 Loop
 
                 'sql query
-                Dim query = "INSERT INTO Score (initials, points, gameName) VALUES (@initials, @points, @gameName);"
+                Dim query As String = "INSERT INTO Score (initials, points, gameName) VALUES (@initials, @points, @gameName);"
 
                 'uses preparing to prevent SQL injection attacks (injection possible for game name and possibly initials)
                 Using cmd As New MySqlCommand(query, conn)

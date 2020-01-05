@@ -138,7 +138,7 @@ Public Module JsonHandler
                     If firstChar = """" And lastChar = """" Then    'string
                         result = RemoveQuotes(valueString)
                     ElseIf firstChar = "{" And lastChar = "}" Then  'tag
-                        Dim resultTag = New Tag(valueString)
+                        Dim resultTag As Tag = New Tag(valueString)
 
                         If fullInterpret Then
                             resultTag.SetArgument(InterpretValue(resultTag.argument, fullInterpret, act, game))
