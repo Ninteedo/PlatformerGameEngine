@@ -68,7 +68,12 @@
     Private Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
         'used for = and <> operators
 
-        Return LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.argument = tag2.argument
+        If IsNothing(tag1) Or IsNothing(tag2) Then
+            Return IsNothing(tag1) = IsNothing(tag2)
+        Else
+            Return LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.argument = tag2.argument
+        End If
+
     End Function
 
     Public Shared Operator =(tag1 As Tag, tag2 As Tag) As Boolean
