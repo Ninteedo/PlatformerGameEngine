@@ -4,8 +4,19 @@
 
 Public Class RenderEngine
 
-    Public RenderPanel As Panel
+    Private ReadOnly RenderPanel As Panel
     Public RenderResolution As New Size(640, 480)      'how many pixels the game is played at, scaled on render to the size of the render panel
+
+#Region "Constructors"
+
+    Public Sub New(renderPanel As Panel, Optional renderResolution As Size = Nothing)
+        Me.RenderPanel = renderPanel
+        If Not renderResolution.IsEmpty Then
+            Me.RenderResolution = renderResolution
+        End If
+    End Sub
+
+#End Region
 
 #Region "Rendering"
 

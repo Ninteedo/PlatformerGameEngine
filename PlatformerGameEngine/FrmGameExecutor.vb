@@ -26,7 +26,7 @@ Public Class FrmGameExecutor
 
         ' Add any initialization after the InitializeComponent() call.
 
-        _renderer = New RenderEngine With {.RenderPanel = pnlGame}
+        _renderer = New RenderEngine(pnlGame)
         _currentLevel = New Level(levelTagString)
         _frameTimer = New Timer() With {.Interval = 1000 / 60}   'interval is delay between ticks in ms
 
@@ -233,19 +233,21 @@ Public Class FrmGameExecutor
         'broadcasts a single event to all actors with a listener for the event
         'TODO: take arguments instead of eventTag?
 
-        For index As Integer = 0 To UBound(CurrentRoom.actors)
-            Dim act As Actor = CurrentRoom.actors(index)
-            If Not IsNothing(act.tags) Then
-                For tagIndex As Integer = 0 To UBound(act.tags)
-                    If LCase(act.tags(tagIndex).name) = ListenerTagName AndAlso
-                       act.tags(tagIndex).InterpretArgument(NameTagName) = eventTag.InterpretArgument(NameTagName) Then
-                        ReceiveEvent(act, act.tags(tagIndex))
-                    End If
-                Next
-            End If
+        If Not IsNothing(CurrentRoom) AndAlso Not IsNothing(CurrentRoom.actors)
+            For index As Integer = 0 To UBound(CurrentRoom.actors)
+                Dim act As Actor = CurrentRoom.actors(index)
+                If Not IsNothing(act.tags) Then
+                    For tagIndex As Integer = 0 To UBound(act.tags)
+                        If LCase(act.tags(tagIndex).name) = ListenerTagName AndAlso
+                        act.tags(tagIndex).InterpretArgument(NameTagName) = eventTag.InterpretArgument(NameTagName) Then
+                            ReceiveEvent(act, act.tags(tagIndex))
+                        End If
+                    Next
+                End If
 
-            CurrentRoom.actors(index) = act
-        Next
+                CurrentRoom.actors(index) = act
+            Next
+        End If
     End Sub
 
     Private Sub ReceiveEvent(ByRef act As Actor, listenerTag As Tag)

@@ -13,7 +13,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub Initialization()
-        _renderEngine = New RenderEngine With {.RenderPanel = PnlRender}
+        _renderEngine = New RenderEngine(PnlRender)
         _createdLevel = New Level
 
         RefreshControlsEnabled()

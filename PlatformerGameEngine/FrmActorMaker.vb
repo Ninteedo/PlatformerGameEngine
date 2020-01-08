@@ -45,8 +45,7 @@ Public Class FrmActorMaker
             createdActor = New Actor(Nothing)
         End If
         originalString = createdActor.ToString
-        renderer = New RenderEngine With {.RenderPanel = PnlPreview}
-        renderer.RenderPanel = PnlPreview
+        renderer = New RenderEngine(PnlPreview)
         RefreshSpritesList()
     End Sub
 
