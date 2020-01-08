@@ -17,7 +17,7 @@ Public Class FrmScoreboard
         Dim input As String = InputBox("Enter the name of the game for which the scoreboard will be shown", "Enter Game Name", "Game Name")
 
         'if cancel pressed then close the form
-        If IsNothing(input) Then
+        If IsNothing(input) OrElse input = "" Then
             Close()
         Else
             GetScores(input)
@@ -46,12 +46,12 @@ Public Class FrmScoreboard
             Using conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
                 conn.Open()
 
-                Dim query As String =
-                    "SELECT initials AS 'Player', MAX(points) AS 'Score'
-                    FROM Score
-                    WHERE gameName = @gameName
-                    GROUP BY initials                    
-                    ORDER BY MAX(points) DESC;"
+                Dim query As String = ""
+                '    "SELECT initials AS 'Player', MAX(points) AS 'Score'
+                '    FROM Score
+                '    WHERE gameName = @gameName
+                '    GROUP BY initials                    
+                '    ORDER BY MAX(points) DESC;"
 
                 'uses preparing to prevent SQL injection attacks (injection possible for game name and possibly initials)
                 Using cmd As New MySqlCommand(query, conn)
@@ -77,7 +77,7 @@ Public Class FrmScoreboard
                 conn.Close()
             End Using
         Catch ex As Exception
-            DisplayError("An Error has occured so score couldn't be displayed" & vbCrLf & ex.ToString())
+            DisplayError("An error has occured so score couldn't be displayed" & vbCrLf & ex.ToString())
             Close()
         End Try
     End Sub
@@ -98,7 +98,6 @@ Public Class FrmScoreboard
 
             LstScoreboard.Items.Add(newItem)
         Loop
-
     End Sub
 
 #End Region
