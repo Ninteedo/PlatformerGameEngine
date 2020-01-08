@@ -120,7 +120,7 @@ Public Class Actor
 
     Property Scale As Single
         Get
-            Return GetProperty(ScaleTagName, 1)
+            Return GetProperty(ScaleTagName, 1.0)
         End Get
         Set
             SetProperty(ScaleTagName, Value)
