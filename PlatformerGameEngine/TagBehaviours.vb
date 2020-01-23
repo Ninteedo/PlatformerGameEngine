@@ -7,8 +7,6 @@ Imports MySql.Data.MySqlClient
 
 Public Module TagBehaviours
 
-    'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
-
     Public Sub ProcessTag(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
         'processes a single tag and modifies the actor accordingly
 
@@ -55,7 +53,6 @@ Public Module TagBehaviours
                 SaveScore(points, gameName)
                 game.Unpause()
         End Select
-        'End If
     End Sub
 
     Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
@@ -488,11 +485,7 @@ Public Module TagBehaviours
                                        Optional ByRef game As FrmGameExecutor = Nothing) As String
         'takes in a calculation as a string and returns the result
 
-        If Not IsNothing(calc) AndAlso Len(calc) > 0 Then
-            If IsNumeric(calc) Then
-                Return calc
-            End If
-
+        If Not IsNumeric(calc) And Not IsNothing(calc) AndAlso Len(calc) > 0 Then
             Dim operatorSymbols() As String = {"^", "/", "*", "+", "-"}     'ordered by BODMAS
             Dim parts() As String = {""}
             Dim operatorsUsed() As String = {}
@@ -512,10 +505,6 @@ Public Module TagBehaviours
                 End If
             Next
 
-            If act.Name = "Enemy" And (calc Like "*E-*" Or calc Like "*+-*") Then
-                Dim empty As Integer = 0
-            End If
-
             'checks for any negative signs
             Dim partIndex As Integer = 0
             Do While partIndex < UBound(parts)
@@ -524,7 +513,8 @@ Public Module TagBehaviours
                         parts(partIndex + 1) = parts(partIndex + 1) * -1
                     ElseIf partIndex + 2 <= UBound(parts) AndAlso IsNumeric(parts(partIndex + 1) & parts(partIndex + 2)) Then
                         'this is used to prevent errors from small scientific notation numbers like 4.2E-06 
-                        parts(partIndex + 1) = parts(partIndex + 1) & parts(partIndex + 2)
+
+                        parts(partIndex + 1) = parts(partIndex + 1) & operatorsUsed(partIndex + 1) & parts(partIndex + 2)
                         parts = RemoveItem(parts, partIndex + 2)
                         operatorsUsed = RemoveItem(operatorsUsed, partIndex + 1)
                     End If
@@ -536,70 +526,60 @@ Public Module TagBehaviours
                 End If
             Loop
 
-            'removes empty element
-            'ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
-
             'goes in order using BODMAS of each operator finding each calculation it is used in
-            'Dim currentPartIndex As Integer = 0
             If UBound(parts) > 0 Then
                 For Each operatorSymbol As String In operatorSymbols
                     Dim operatorIndex As Integer = 0
                     Do
-                        If operatorIndex <= UBound(operatorsUsed) AndAlso operatorSymbol = operatorsUsed(operatorIndex) Then
+                        If Not IsNothing(operatorsUsed) AndAlso operatorIndex <= UBound(operatorsUsed) AndAlso
+                            operatorSymbol = operatorsUsed(operatorIndex) Then
                             Dim leftPart As String = parts(operatorIndex).Trim
                             Dim rightPart As String = parts(operatorIndex + 1).Trim
                             Dim newPart As String
 
                             Dim reference As Object = game.FindReference(act, leftPart)
                             If Not IsNothing(reference) Then
-                                leftPart = Val(reference)
+                                leftPart = reference
                             End If
                             reference = game.FindReference(act, rightPart)
                             If Not IsNothing(reference) Then
-                                rightPart = Val(reference)
+                                rightPart = reference
                             End If
 
-
-                            'leftPart = leftPart.Replace("[", "").Replace("]", "")
-                            'rightPart = rightPart.Replace("[", "").Replace("]", "")
-
                             If IsNumeric(leftPart) AndAlso IsNumeric(rightPart) Then
+                                Dim leftVal As Single = Val(leftPart)
+                                Dim rightVal As Single = Val(rightPart)
+
                                 Select Case operatorSymbol      'TODO: replace references with strings
                                     Case "^"
-                                        newPart = Val(leftPart) ^ Val(rightPart)
+                                        newPart = leftVal ^ rightVal
                                     Case "/"
-                                        newPart = Val(leftPart) / Val(rightPart)
+                                        newPart = leftVal / rightVal
                                     Case "*"
-                                        newPart = Val(leftPart) * Val(rightPart)
+                                        newPart = leftVal * rightVal
                                     Case "+"
-                                        newPart = Val(leftPart) + Val(rightPart)
+                                        newPart = leftVal + rightVal
                                     Case "-"
-                                        newPart = Val(leftPart) - Val(rightPart)
+                                        newPart = leftVal - rightVal
                                     Case Else
-                                        newPart = leftPart & operatorSymbol & rightPart
+                                        newPart = leftVal & operatorSymbol & rightVal
                                 End Select
 
                                 parts(operatorIndex) = newPart
-                                For index As Integer = operatorIndex To UBound(operatorsUsed) - 1
-                                    operatorsUsed(index) = operatorsUsed(index + 1)
-                                Next
-                                ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
-                                For index As Integer = operatorIndex + 1 To UBound(parts) - 1
-                                    parts(index) = parts(index + 1)
-                                Next
-                                ReDim Preserve parts(UBound(parts) - 1)
+                                parts = RemoveItem(parts, operatorIndex + 1)
+                                operatorsUsed = RemoveItem(operatorsUsed, operatorIndex)
                             Else
                                 operatorIndex += 1
                             End If
                         Else
                             operatorIndex += 1
                         End If
-                    Loop Until operatorIndex >= UBound(parts)
+                    Loop Until IsNothing(operatorsUsed) OrElse operatorIndex >= UBound(parts)
                 Next
             Else
                 Dim reference As Object = game.FindReference(act, parts(0))
                 If Not IsNothing(reference) Then
-                    parts(0) = reference
+                    parts(0) = ArrayToString(reference)
                 End If
             End If
 
