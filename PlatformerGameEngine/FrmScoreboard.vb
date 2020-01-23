@@ -20,6 +20,7 @@ Public Class FrmScoreboard
         If IsNothing(input) OrElse input = "" Then
             Close()
         Else
+            LblGameName.Text = input
             GetScores(input)
         End If
     End Sub
@@ -46,12 +47,12 @@ Public Class FrmScoreboard
             Using conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
                 conn.Open()
 
-                Dim query As String = ""
-                '    "SELECT initials AS 'Player', MAX(points) AS 'Score'
-                '    FROM Score
-                '    WHERE gameName = @gameName
-                '    GROUP BY initials                    
-                '    ORDER BY MAX(points) DESC;"
+                Const query As String =
+                "SELECT initials AS 'Player', MAX(points) AS 'Score'
+                FROM Score
+                WHERE gameName = @gameName
+                GROUP BY initials                    
+                ORDER BY MAX(points) DESC;"
 
                 'uses preparing to prevent SQL injection attacks (injection possible for game name and possibly initials)
                 Using cmd As New MySqlCommand(query, conn)
@@ -111,7 +112,7 @@ Public Class FrmScoreboard
     Private Sub TxtFind_TextChanged(sender As TextBox, e As EventArgs) Handles TxtFind.TextChanged
         'finds the score with matching initials if 3 characters are entered
 
-        Dim searchTerm As String = TxtFind.Text
+        Dim searchTerm As String = UCase(TxtFind.Text)
         If Len(searchTerm) = 3 Then
             For index As Integer = 0 To LstScoreboard.Items.Count - 1
                 'selects the item if the name matches

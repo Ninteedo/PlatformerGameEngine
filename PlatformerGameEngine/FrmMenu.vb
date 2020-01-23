@@ -121,7 +121,9 @@ Public Class FrmMenu
                     'opens the scoreboard viewer
 
                     Using scoreboard As New FrmScoreboard
-                        scoreboard.ShowDialog()
+                        If Not scoreboard.IsDisposed Then
+                            scoreboard.ShowDialog()
+                        End If
                     End Using
                 Case Else
                     DisplayError("Unknown Menu Behaviour")

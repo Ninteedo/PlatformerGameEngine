@@ -242,18 +242,18 @@ Public Class FrmLevelEditor
 
     Private Property Tags As Tag()
         Get
-            Return SelectedActor.tags
+            Return SelectedActor.Tags
         End Get
         Set
-            SelectedActor.tags = Value
+            SelectedActor.Tags = Value
             RefreshTagsList()
         End Set
     End Property
 
     Private Property SelectedTag As Tag
         Get
-            If LstActorTags.SelectedIndex > -1 And LstActorTags.SelectedIndex <= UBound(SelectedActor.tags) Then
-                Return SelectedActor.tags(LstActorTags.SelectedIndex)
+            If LstActorTags.SelectedIndex > -1 And LstActorTags.SelectedIndex <= UBound(SelectedActor.Tags) Then
+                Return SelectedActor.Tags(LstActorTags.SelectedIndex)
             Else
                 Return _unselectedTag
             End If
@@ -311,7 +311,7 @@ Public Class FrmLevelEditor
 
     Private Sub KeyTagChanged(sender As Control, e As EventArgs) Handles NumActorLocX.ValueChanged, NumActorLocY.ValueChanged,
         NumActorLayer.ValueChanged, NumActorScale.ValueChanged, TxtActorName.TextChanged
-        'updates the key tags (location, layer, scale) of selected actor using the key tags controls' values
+        'updates the key Tags (location, layer, scale) of selected actor using the key Tags controls' values
 
         If Not _disableTagChangedEvent Then
             _disableTagChangedEvent = True
@@ -433,10 +433,10 @@ Public Class FrmLevelEditor
 
     Private Property Parameters As Tag()
         Get
-            Return _createdLevel.tags
+            Return _createdLevel.Tags
         End Get
         Set
-            _createdLevel.tags = Value
+            _createdLevel.Tags = Value
 
             RefreshEverything()
         End Set
@@ -445,14 +445,14 @@ Public Class FrmLevelEditor
     Private Property SelectedParameter As Tag
         Get
             If LstLevelParams.SelectedIndex > -1 Then
-                Return _createdLevel.tags(LstLevelParams.SelectedIndex)
+                Return _createdLevel.Tags(LstLevelParams.SelectedIndex)
             Else
                 Return _unselectedTag
             End If
         End Get
         Set
             If LstLevelParams.SelectedIndex > -1 And LstLevelParams.SelectedIndex < UBound(Parameters) Then
-                _createdLevel.tags(LstLevelParams.SelectedIndex) = Value
+                _createdLevel.Tags(LstLevelParams.SelectedIndex) = Value
 
                 RefreshEverything()
             End If

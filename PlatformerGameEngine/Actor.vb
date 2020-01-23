@@ -6,13 +6,13 @@ Public Class Actor
 
     Implements ICloneable
 
-    Private spritesList() As Sprite
+    Private _spritesList() As Sprite
 
 #Region "Constructors"
 
     Public Sub New()
-        spritesList = Nothing
-        tags = Nothing
+        _spritesList = Nothing
+        Tags = Nothing
     End Sub
 
     Public Sub New(actorString As String)
@@ -20,7 +20,7 @@ Public Class Actor
 
         If Not IsNothing(actorString) Then
             'Try
-            'loads the tags
+            'loads the Tags
             Dim temp As Object = New Tag(actorString).InterpretArgument()
             For index As Integer = 0 To UBound(temp)
                 AddTag(New Tag(temp(index).ToString))
@@ -38,18 +38,18 @@ Public Class Actor
 
     Public Property Sprites As Sprite()
         Get
-            If IsNothing(spritesList) Then
+            If IsNothing(_spritesList) Then
                 RefreshSpritesList()
             End If
-            Return spritesList
+            Return _spritesList
         End Get
         Set
-            spritesList = Value
+            _spritesList = Value
             RefreshSpritesTag()
         End Set
     End Property
 
-    Public Sub RefreshSpritesList()
+    Private Sub RefreshSpritesList()
         'changes what is stored in spriteList() using the "sprites" tag
 
         If HasTag(SpritesTagName) Then
@@ -62,25 +62,25 @@ Public Class Actor
                     newSprites(spriteIndex) = New Sprite(spriteTag.ToString)
                 Next
 
-                spritesList = newSprites
+                _spritesList = newSprites
             Else
                 If Not IsNothing(Sprites) Then
-                    spritesList = Nothing
+                    _spritesList = Nothing
                 End If
             End If
         Else
-            spritesList = Nothing
+            _spritesList = Nothing
         End If
     End Sub
 
-    Public Sub RefreshSpritesTag()
+    Private Sub RefreshSpritesTag()
         'changes the "sprites" tag to match what is in framesList()
 
-        AddTag(New Tag(SpritesTagName, ArrayToString(spritesList)), True)
+        AddTag(New Tag(SpritesTagName, ArrayToString(_spritesList)), True)
     End Sub
 
     Public Function GetCurrentSprite() As Sprite
-        Return Sprites(CurrentSprite)
+        Return Sprites(SpriteIndex)
     End Function
 
 #End Region
@@ -136,7 +136,7 @@ Public Class Actor
         End Set
     End Property
 
-    Property CurrentSprite As UInteger
+    Property SpriteIndex As UInteger
         Get
             Return GetProperty(CurrentSpriteTagName, 0)
         End Get
@@ -147,9 +147,9 @@ Public Class Actor
 
     Public ReadOnly Property Hitbox As RectangleF
         Get
-            If Not IsNothing(Sprites) AndAlso Not IsNothing(Sprites(CurrentSprite)) Then
+            If Not IsNothing(Sprites) AndAlso Not IsNothing(Sprites(SpriteIndex)) Then
                 Return New RectangleF(Location,
-                ScaleSize(Sprites(CurrentSprite).Dimensions, Scale))
+                ScaleSize(Sprites(SpriteIndex).Dimensions, Scale))
             Else
                 Return New RectangleF(New PointF(0, 0), New SizeF(0, 0))
             End If
@@ -162,7 +162,7 @@ Public Class Actor
 
     Public Overrides Function ToString() As String
         'adds each tag to the main tag
-        Return New Tag(tagsTagName, ArrayToString(tags)).ToString
+        Return New Tag(TagsTagName, ArrayToString(Tags)).ToString
     End Function
 
     Public Function Clone() As Object Implements ICloneable.Clone
@@ -174,14 +174,14 @@ Public Class Actor
             Dim clonedTags() As Tag = Nothing
 
             'clones each tag
-            If Not IsNothing(tags) Then
-                ReDim clonedTags(UBound(tags))
-                For index As Integer = 0 To UBound(tags)
-                    clonedTags(index) = tags(index).Clone
+            If Not IsNothing(Tags) Then
+                ReDim clonedTags(UBound(Tags))
+                For index As Integer = 0 To UBound(Tags)
+                    clonedTags(index) = Tags(index).Clone
                 Next
             End If
 
-            newClone = New Actor With {.tags = clonedTags}
+            newClone = New Actor With {.Tags = clonedTags}
             newClone.RefreshSpritesList()
         End If
 
@@ -200,13 +200,13 @@ Public Class Actor
         Return Not AreActorsEqual(ent1, ent2)
     End Operator
 
-    Public Shared Function AreActorsEqual(ent1 As Actor, ent2 As Actor) As Boolean
+    Private Shared Function AreActorsEqual(ent1 As Actor, ent2 As Actor) As Boolean
         'returns whether 2 provided frames are identical
 
         If IsNothing(ent1) Or IsNothing(ent2) Then
             Return IsNothing(ent1) = IsNothing(ent2)
         Else
-            Return Not (ent1.tags IsNot ent2.tags OrElse ent1.Sprites IsNot ent2.Sprites)
+            Return Not (ent1.Tags IsNot ent2.Tags OrElse ent1.Sprites IsNot ent2.Sprites)
         End If
     End Function
 

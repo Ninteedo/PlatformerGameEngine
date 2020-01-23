@@ -15,7 +15,7 @@ Public Class Level
 
     Public Sub New(levelString As String)
         'templates = Nothing
-        tags = Nothing
+        Tags = Nothing
         rooms = Nothing
 
         Dim levelTag As New Tag(levelString)
@@ -24,7 +24,7 @@ Public Class Level
             Dim roomsTag As Tag = levelTag.FindSubTag(RoomsTagName)
             If Not IsNothing(roomsTag) Then
                 Dim temp As Object = roomsTag.InterpretArgument
-                If Not IsNothing(temp) Then
+                If IsArray(temp) Then
                     ReDim rooms(UBound(temp))
                     For index As Integer = 0 To UBound(temp)
                         rooms(index) = New Room(temp(index).ToString)
@@ -73,7 +73,7 @@ Public Class Level
 #Region "Other"
 
     Public Overrides Function ToString() As String
-        Dim parametersTag As New Tag(tagsTagName, ArrayToString(tags))
+        Dim parametersTag As New Tag(tagsTagName, ArrayToString(Tags))
         Dim roomsTag As New Tag(roomsTagName, ArrayToString(rooms))
 
         Return New Tag(Name, ArrayToString({parametersTag, roomsTag})).ToString

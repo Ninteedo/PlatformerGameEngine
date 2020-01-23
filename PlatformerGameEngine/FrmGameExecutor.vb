@@ -28,7 +28,7 @@ Public Class FrmGameExecutor
 
         _renderer = New RenderEngine(pnlGame)
         _currentLevel = New Level(levelTagString)
-        _frameTimer = New Timer() With {.Interval = 1000 / 60}   'interval is delay between ticks in ms
+        _frameTimer = New Timer() With {.Interval = 1000 / _frameRate}   'interval is delay between ticks in ms
 
         AddHandler _frameTimer.Tick, AddressOf GameTick
         _frameTimer.Start()
@@ -42,6 +42,13 @@ Public Class FrmGameExecutor
     ReadOnly _currentLevel As Level
 
     ReadOnly _frameTimer As Timer
+    ReadOnly _frameRate As Integer = 60
+
+    Public ReadOnly Property CurrentLevel As Level
+        Get
+            Return _currentLevel
+        End Get
+    End Property
 
     Public ReadOnly Property CurrentRoom As Room
         Get
@@ -53,8 +60,10 @@ Public Class FrmGameExecutor
         End Get
     End Property
 
+#Region "Timer Control"
+
     Private Sub GameTick()
-        'advances the game state by 1 frame, with respect to keys held and actor tags
+        'advances the game state by 1 frame, with respect to keys held and actor Tags
         'then renders the new game state to the player
 
         'broadcasts an event for the game tick
@@ -72,20 +81,41 @@ Public Class FrmGameExecutor
         End If
 
         'processes each actor's tags
-        If Not IsNothing(CurrentRoom.actors) Then
-            For Each act As Actor In CurrentRoom.actors
-                'processes the actor's actions for this tick
-                Dim tagIndex As Integer = 0
-                'TODO: how to deal with this list changing, tag IDs?
-                Do
-                    ProcessTag(act.tags(tagIndex), act, Me)
-                    tagIndex += 1
-                Loop Until tagIndex > UBound(act.tags)
-            Next
-        End If
+        If Not IsNothing(CurrentRoom) Then
+            If Not IsNothing(CurrentRoom.actors) Then
+                For Each act As Actor In CurrentRoom.actors
+                    'processes the actor's actions for this tick
+                    Dim tagIndex As Integer = 0
+                    'TODO: how to deal with this list changing, tag IDs?
+                    Do
+                        ProcessTag(act.Tags(tagIndex), act, Me)
+                        tagIndex += 1
+                    Loop Until tagIndex > UBound(act.Tags)
+                Next
+            End If
 
-        _renderer.DoGameRender(CurrentRoom.actors)
+            _renderer.DoGameRender(CurrentRoom.actors)
+        End If
     End Sub
+
+    Public Sub Pause()
+        'pauses the game
+
+        ToggleGamePause(True)
+        ResetKeysHeld()
+    End Sub
+
+    Public Sub Unpause()
+        'unpauses the game
+
+        ToggleGamePause(False)
+    End Sub
+
+    Private Sub ToggleGamePause(paused As Boolean)
+        _frameTimer.Enabled = Not paused
+    End Sub
+
+#End Region
 
 #End Region
 
@@ -233,14 +263,15 @@ Public Class FrmGameExecutor
         'broadcasts a single event to all actors with a listener for the event
         'TODO: take arguments instead of eventTag?
 
-        If Not IsNothing(CurrentRoom) AndAlso Not IsNothing(CurrentRoom.actors)
+        If Not IsNothing(CurrentRoom) AndAlso Not IsNothing(CurrentRoom.actors) Then
+
             For index As Integer = 0 To UBound(CurrentRoom.actors)
                 Dim act As Actor = CurrentRoom.actors(index)
-                If Not IsNothing(act.tags) Then
-                    For tagIndex As Integer = 0 To UBound(act.tags)
-                        If LCase(act.tags(tagIndex).name) = ListenerTagName AndAlso
-                        act.tags(tagIndex).InterpretArgument(NameTagName) = eventTag.InterpretArgument(NameTagName) Then
-                            ReceiveEvent(act, act.tags(tagIndex))
+                If Not IsNothing(act.Tags) Then
+                    For tagIndex As Integer = 0 To UBound(act.Tags)
+                        If LCase(act.Tags(tagIndex).name) = ListenerTagName AndAlso
+                        act.Tags(tagIndex).InterpretArgument(NameTagName) = eventTag.InterpretArgument(NameTagName) Then
+                            ReceiveEvent(act, act.Tags(tagIndex))
                         End If
                     Next
                 End If
@@ -300,6 +331,12 @@ Public Class FrmGameExecutor
                 End If
             Next
         End If
+    End Sub
+
+    Private Sub ResetKeysHeld()
+        'removes all keys from the list of keys held
+
+        _keysHeld = Nothing
     End Sub
 
 #End Region

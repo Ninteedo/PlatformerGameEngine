@@ -77,6 +77,7 @@ Public Module JsonHandler
 #End Region
 
 #Region "Value/String Interpreting"
+
     Public Function InterpretString(rawString As String) As String
         'handles breaked characters such as \n
 
@@ -221,11 +222,11 @@ Public Module JsonHandler
         Return result
     End Function
 
-    Public Function HasQuotes(ByVal input As String) As Boolean
+    Private Function HasQuotes(input As String) As Boolean
         Return Not IsNothing(input) AndAlso Len(input) > 1 AndAlso (Mid(input, 1, 1) = """" And Mid(input, Len(input), 1) = """")
     End Function
 
-    Public Function AddQuotes(ByVal initial As String, Optional ByVal ignoreAlreadyQuoted As Boolean = False) As String
+    Public Function AddQuotes(initial As String, Optional ignoreAlreadyQuoted As Boolean = False) As String
         If ignoreAlreadyQuoted OrElse Not HasQuotes(initial) Then
             Return """" & initial & """"
         Else
@@ -233,7 +234,7 @@ Public Module JsonHandler
         End If
     End Function
 
-    Public Function RemoveQuotes(ByVal initial As String) As String
+    Public Function RemoveQuotes(initial As String) As String
         If HasQuotes(initial) Then
             Return Mid(initial, 2, Len(initial) - 2)
         Else
@@ -241,8 +242,8 @@ Public Module JsonHandler
         End If
     End Function
 
-    Public Function JsonSplit(ByVal input As String, Optional ByVal subStructureLevelRequired As Integer = 0,
-                              Optional ByVal delimiter As String = ",") As String()
+    Public Function JsonSplit(input As String, Optional subStructureLevelRequired As Integer = 0,
+                              Optional delimiter As String = ",") As String()
         'splits a JSON string into its tags
 
         If Len(input) > 1 Then

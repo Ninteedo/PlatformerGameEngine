@@ -132,7 +132,9 @@ Public Class FrmActorMaker
         If IO.File.Exists(fileLocation) Then
             Dim newSprite As New Sprite(fileLocation)
 
-            ActorSprites = InsertItem(ActorSprites, newSprite)
+            If Not IsNothing(newSprite.Indices) And Not IsNothing(newSprite.Colours) Then
+                ActorSprites = InsertItem(ActorSprites, newSprite)
+            End If
         End If
     End Sub
 
