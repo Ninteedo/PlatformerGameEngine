@@ -8,39 +8,35 @@ Imports MySql.Data.MySqlClient
 Public Module TagBehaviours
 
     'Dim errorMessageArgumentInvalid As String = " has an invalid argument"
-    Const IfConditionName As String = "con"
-    Const IfThenName As String = "then"
-    Const IfElseName As String = "else"
 
     Public Sub ProcessTag(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
         'processes a single tag and modifies the actor accordingly
 
-        'If Not IsNothing(act) AndAlso Not IsNothing(act.tags) AndAlso tagIndex >= 0 AndAlso tagIndex <= UBound(act.tags) Then
-        'Dim tag As Tag = act.tags(tagIndex)
-
         Select Case LCase(inputTag.name)
-            'basic movement
             Case "velocity"     '[xChange,yChange]
                 Dim velocityTemp As Object = InterpretValue(inputTag.argument, True, act, game)
                 Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
                 VelocityHandling(act, velocity, game)
 
-                'meta
-            Case LCase("addTag")
+            Case "addtag"
                 Dim newTag As Tag = InterpretValue(inputTag.argument, True, act, game)
                 act.AddTag(newTag, True)
-            Case LCase("removeTag")
+            Case "addparam"
+                Dim newTag As Tag = InterpretValue(inputTag.argument, True, act, game)
+                game.CurrentLevel.AddTag(newTag, True)
+            Case "removetag"
                 act.RemoveTag(inputTag.InterpretArgument())
             Case "execute"
                 ProcessTag(New Tag(inputTag.InterpretArgument.ToString), act, game)
 
-                'broadcast event
             Case "broadcast"
                 game.BroadcastEvent(New Tag(inputTag.InterpretArgument.ToString))
 
-                'logic
             Case "if"
+                Const ifConditionName As String = "con"
+                Const ifThenName As String = "then"
+                Const ifElseName As String = "else"
                 Dim condition As String = inputTag.FindSubTag(IfConditionName).InterpretArgument()
                 'assesses condition then executes either "then" or "else" part of the if
                 Dim executePart As Tag
@@ -49,16 +45,15 @@ Public Module TagBehaviours
                 Else
                     executePart = inputTag.FindSubTag(IfElseName)
                 End If
-
-                'executes everything in the executePart
                 ProcessSubTags(executePart, act, game)
 
-                'scoreboards
-            Case LCase("saveScore")
+            Case "savescore"
                 Dim points As String = inputTag.FindSubTag("points").InterpretArgument()
                 Dim gameName As String = inputTag.FindSubTag("gameName").InterpretArgument()
 
+                game.Pause()
                 SaveScore(points, gameName)
+                game.Unpause()
         End Select
         'End If
     End Sub
@@ -442,6 +437,53 @@ Public Module TagBehaviours
 
 #Region "Calculation"
 
+    Private Function ProcessCalcBrackets(calc As String, Optional ByRef act As Actor = Nothing,
+                                         Optional ByRef game As FrmGameExecutor = Nothing) As String
+        'processes each of the brackets in the calculation
+        'TODO: nested brackets
+
+        Dim cIndex As Integer = 0
+        Dim currentBracketIndent As Integer = 0         'total opened brackets - total closed brackets
+        Dim largestBracketOpeningIndex As Integer = -1  'index of opening of outermost bracket
+        Dim inString As Boolean = False
+        Do
+            Dim c As String = calc(cIndex)
+            If Not inString Then
+                If c = """" Then
+                    inString = True
+                ElseIf c = "(" Then
+                    If largestBracketOpeningIndex = -1 Then
+                        largestBracketOpeningIndex = cIndex
+                    End If
+                    largestBracketOpeningIndex += 1
+
+                    cIndex += 1
+                ElseIf c = ")" Then
+                    largestBracketOpeningIndex -= 1
+                    If largestBracketOpeningIndex >= 0 And currentBracketIndent = 0 Then
+                        Dim bracketedCalc As String = Mid(calc, largestBracketOpeningIndex + 1,
+                                                          cIndex - largestBracketOpeningIndex + 1)
+                        'recursion
+                        calc = calc.Replace(bracketedCalc,
+                                            ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2), act, game))
+
+                        cIndex = 0
+                        largestBracketOpeningIndex = -1
+                    End If
+                Else
+                    cIndex += 1
+                End If
+            ElseIf c = """" AndAlso calc(cIndex - 1) = "\" Then
+                inString = False
+                cIndex += 1
+            Else
+                cIndex += 1
+            End If
+        Loop Until cIndex >= Len(calc)
+
+        Return calc
+    End Function
+
     Public Function ProcessCalculation(calc As String, Optional ByRef act As Actor = Nothing,
                                        Optional ByRef game As FrmGameExecutor = Nothing) As String
         'takes in a calculation as a string and returns the result
@@ -451,48 +493,12 @@ Public Module TagBehaviours
                 Return calc
             End If
 
-            Dim operatorSymbols() As String = {"^", "/", "*", "+", "-"}
-            Dim parts(0) As String
-            Dim operatorsUsed(0) As String
+            Dim operatorSymbols() As String = {"^", "/", "*", "+", "-"}     'ordered by BODMAS
+            Dim parts() As String = {""}
+            Dim operatorsUsed() As String = {}
 
             'recursively processes the brackets first
-            Dim cIndex As Integer = 0
-            Dim currentBracketIndent As Integer = 0         'total opened brackets - total closed brackets
-            Dim largestBracketOpeningIndex As Integer = -1  'index of opening of outermost bracket
-            Dim inString As Boolean = False
-            Do
-                Dim c As String = calc(cIndex)
-                If Not inString Then
-                    If c = """" Then
-                        inString = True
-                    ElseIf c = "(" Then
-                        If largestBracketOpeningIndex = -1 Then
-                            largestBracketOpeningIndex = cIndex
-                        End If
-                        largestBracketOpeningIndex += 1
-
-                        cIndex += 1
-                    ElseIf c = ")" Then
-                        largestBracketOpeningIndex -= 1
-                        If largestBracketOpeningIndex >= 0 And currentBracketIndent = 0 Then
-                            Dim bracketedCalc As String = Mid(calc, largestBracketOpeningIndex + 1,
-                                                              cIndex - largestBracketOpeningIndex + 1)
-                            calc = calc.Replace(bracketedCalc,
-                                                ProcessCalculation(Mid(bracketedCalc, 2, Len(bracketedCalc) - 2), act, game))
-
-                            cIndex = 0
-                            largestBracketOpeningIndex = -1
-                        End If
-                    Else
-                        cIndex += 1
-                    End If
-                ElseIf c = """" AndAlso calc(cIndex - 1) = "\" Then
-                    inString = False
-                    cIndex += 1
-                Else
-                    cIndex += 1
-                End If
-            Loop Until cIndex >= Len(calc)
+            calc = ProcessCalcBrackets(calc, act, game)
 
             'creates an array of parts split by the operators listed above
             'also creates an ordered list of operators used to split
@@ -500,33 +506,38 @@ Public Module TagBehaviours
                 If Array.IndexOf(operatorSymbols, c) = -1 Then
                     parts(UBound(parts)) += c
                 Else
-                    operatorsUsed(UBound(operatorsUsed)) = c
-                    ReDim Preserve operatorsUsed(UBound(operatorsUsed) + 1)
-
-                    ReDim Preserve parts(UBound(parts) + 1)
+                    'new part
+                    operatorsUsed = InsertItem(operatorsUsed, c)
+                    parts = InsertItem(parts, "")
                 End If
             Next
 
+            If act.Name = "Enemy" And (calc Like "*E-*" Or calc Like "*+-*") Then
+                Dim empty As Integer = 0
+            End If
+
             'checks for any negative signs
             Dim partIndex As Integer = 0
-            Do
-                If parts(partIndex) = Nothing And operatorsUsed(partIndex) = "-" Then
-                    parts(partIndex + 1) = parts(partIndex + 1) * -1
+            Do While partIndex < UBound(parts)
+                If Len(parts(partIndex)) = 0 And operatorsUsed(partIndex) = "-" Then
+                    If IsNumeric(parts(partIndex + 1)) Then
+                        parts(partIndex + 1) = parts(partIndex + 1) * -1
+                    ElseIf partIndex + 2 <= UBound(parts) AndAlso IsNumeric(parts(partIndex + 1) & parts(partIndex + 2)) Then
+                        'this is used to prevent errors from small scientific notation numbers like 4.2E-06 
+                        parts(partIndex + 1) = parts(partIndex + 1) & parts(partIndex + 2)
+                        parts = RemoveItem(parts, partIndex + 2)
+                        operatorsUsed = RemoveItem(operatorsUsed, partIndex + 1)
+                    End If
 
-                    For index As Integer = partIndex To UBound(parts) - 1
-                        parts(index) = parts(index + 1)
-                    Next
-                    ReDim Preserve parts(UBound(parts) - 1)
-                    For index As Integer = partIndex To UBound(operatorsUsed) - 1
-                        operatorsUsed(index) = operatorsUsed(index + 1)
-                    Next
-                    ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
+                    parts = RemoveItem(parts, partIndex)
+                    operatorsUsed = RemoveItem(operatorsUsed, partIndex)
                 Else
                     partIndex += 1
                 End If
-            Loop Until partIndex >= UBound(parts)
+            Loop
 
-            ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
+            'removes empty element
+            'ReDim Preserve operatorsUsed(UBound(operatorsUsed) - 1)
 
             'goes in order using BODMAS of each operator finding each calculation it is used in
             'Dim currentPartIndex As Integer = 0
@@ -624,8 +635,8 @@ Public Module TagBehaviours
                                      Optional ByRef game As FrmGameExecutor = Nothing) As Boolean
         'takes a condition in the form of a string and returns true or false
 
-        Try
-            If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
+        'Try
+        If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
                 condition = LCase(condition)    'conditions are not case sensitive
 
                 Dim comparisonOperators() As String = {">=", "<=", "=", "<>", ">", "<"} _
@@ -738,9 +749,9 @@ Public Module TagBehaviours
 
                 Return overall
             End If
-        Catch ex As Exception
-            DisplayError("An error occured whilst assessing condition:" & vbCrLf & condition)
-        End Try
+        'Catch ex As Exception
+        '    DisplayError("An error occured whilst assessing condition:" & vbCrLf & condition)
+        'End Try
 
         'defaults to false
         Return False
@@ -754,26 +765,27 @@ Public Module TagBehaviours
         'asks the user for initials and saves their score to the Score table
         'uses a MySQL server running from XAMPP
 
+        'gets initials from the user
+        Dim initials As String = Nothing
+        Do While IsNothing(initials) OrElse Len(initials) <> 3
+            initials = InputBox("Enter initials for " & gameName & " scoreboard" & vbCrLf _
+            & "Press cancel if you don't want your score saved",
+            "Enter Initials")
+
+            If Len(initials) = 0 Then
+                'doesn't insert score if user presses cancel
+                Exit Sub
+            ElseIf Len(initials) <> 3 Then
+                DisplayError("Initials must be 3 characters long")
+            End If
+        Loop
+
+        initials = UCase(initials)
+
         Try
             'creates and opens connection to database
             Using conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
                 conn.Open()
-
-                'gets initials from the user
-                Dim initials As String = Nothing
-                Do While IsNothing(initials) OrElse Len(initials) <> 3
-                    initials = InputBox("Enter initials for scoreboard" & vbCrLf _
-                                 & "Press cancel if you don't want your score saved",
-                            "Enter Initials")
-
-                    If IsNothing(initials) Then
-                        'closes connection and doesn't insert score if user presses cancel
-                        conn.Close()
-                        Exit Sub
-                    ElseIf Len(initials) <> 3 Then
-                        DisplayError("Initials must be 3 characters long")
-                    End If
-                Loop
 
                 'sql query
                 Dim query As String = "INSERT INTO Score (initials, points, gameName) VALUES (@initials, @points, @gameName);"
