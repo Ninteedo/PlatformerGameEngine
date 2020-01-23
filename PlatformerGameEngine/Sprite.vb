@@ -3,7 +3,6 @@
 Public Class Sprite
     'sprites loaded from sprite files and used to create frames
 
-    'Private pixelColours(,) As Color
     Private _coloursUsed() As Color
     Private _colourIndices(,) As Integer
     Private _bitmapVersion As Image
@@ -86,6 +85,11 @@ Public Class Sprite
 
     Private Function ToBitmap(Optional opacity As Single = 1) As Bitmap
         'returns a bitmap version of this frame
+
+        'returns a blank bitmap if no colour or indices
+        If IsNothing(Colours) Or IsNothing(Indices) Then
+            Return New Bitmap(1, 1)
+        End If
 
         Dim result As New Bitmap(_colourIndices.GetUpperBound(0) + 1, _colourIndices.GetUpperBound(1) + 1, Imaging.PixelFormat.Format32bppArgb)
         result.MakeTransparent()        'makes the background of the bitmap transparent
@@ -189,10 +193,13 @@ Public Class Sprite
         'converts this sprite to a tag
 
         'converts all the colours to names
-        Dim colourNames(UBound(Colours)) As String
-        For index As Integer = 0 To UBound(Colours)
-            colourNames(index) = AddQuotes(ColorTranslator.ToHtml(Colours(index)))
-        Next
+        Dim colourNames() As String = Nothing
+        If Not IsNothing(Colours) Then
+            ReDim colourNames(UBound(Colours))
+            For index As Integer = 0 To UBound(Colours)
+                colourNames(index) = AddQuotes(ColorTranslator.ToHtml(Colours(index)))
+            Next
+        End If
 
         Return New Tag(SpriteTagName,
                 ArrayToString(
