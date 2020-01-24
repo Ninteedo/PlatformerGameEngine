@@ -5,18 +5,17 @@ Public Class Level
 
     Inherits TagContainer
 
-    Public rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
+    Public Rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
 
 #Region "Constructors"
 
     Public Sub New(Optional rooms() As Room = Nothing)
-        Me.rooms = rooms
+        Me.Rooms = rooms
     End Sub
 
     Public Sub New(levelString As String)
-        'templates = Nothing
         Tags = Nothing
-        rooms = Nothing
+        Rooms = Nothing
 
         Dim levelTag As New Tag(levelString)
         If Not IsNothing(levelTag) Then
@@ -25,9 +24,9 @@ Public Class Level
             If Not IsNothing(roomsTag) Then
                 Dim temp As Object = roomsTag.InterpretArgument
                 If IsArray(temp) Then
-                    ReDim rooms(UBound(temp))
+                    ReDim Rooms(UBound(temp))
                     For index As Integer = 0 To UBound(temp)
-                        rooms(index) = New Room(temp(index).ToString)
+                        Rooms(index) = New Room(temp(index).ToString)
                     Next
                 End If
             End If
@@ -73,12 +72,35 @@ Public Class Level
 #Region "Other"
 
     Public Overrides Function ToString() As String
-        Dim parametersTag As New Tag(tagsTagName, ArrayToString(Tags))
-        Dim roomsTag As New Tag(roomsTagName, ArrayToString(rooms))
+        Dim parametersTag As New Tag(TagsTagName, ArrayToString(Tags))
+        Dim roomsTag As New Tag(RoomsTagName, ArrayToString(Rooms))
 
         Return New Tag(Name, ArrayToString({parametersTag, roomsTag})).ToString
     End Function
 
+    Private Shared Function AreLevelsIdentical(l1 As Level, l2 As Level) As Boolean
+        If IsNothing(l1) Or IsNothing(l2) Then
+            Return IsNothing(l1) = IsNothing(l2)
+        Else
+            Dim result As Boolean = l1.Name = l2.Name And l1.RoomIndex = l2.RoomIndex
+            result = result And (IsNothing(l1.Rooms) = IsNothing(l2.Rooms))
+            result = result And (IsNothing(l1.Tags) = IsNothing(l2.Tags))
+
+            If result And Not IsNothing(l1.Rooms) And Not IsNothing(l1.Tags) Then
+                result = l1.Rooms Is l2.Rooms And l1.Tags Is l2.Tags
+            End If
+
+            Return result
+        End If
+    End Function
+
+    Public Shared Operator =(l1 As Level, l2 As Level) As Boolean
+        Return AreLevelsIdentical(l1, l2)
+    End Operator
+
+    Public Shared Operator <>(l1 As Level, l2 As Level) As Boolean
+        Return Not AreLevelsIdentical(l1, l2)
+    End Operator
 #End Region
 
 End Class

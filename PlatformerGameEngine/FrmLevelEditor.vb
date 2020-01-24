@@ -61,13 +61,17 @@ Public Class FrmLevelEditor
     Private Sub ToolBarFileOpen_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileOpen.Click
         'opens a level file selected by the user
 
-        If UnsavedChanges AndAlso MsgBox("Opening a new level will lead to loss of unsaved work. Continue?", MsgBoxStyle.OkCancel) = DialogResult.OK Then
-            Using openDialog As New OpenFileDialog With {.Filter = LevelFileFilter, .Title = "Open Level"}
-                If openDialog.ShowDialog() = DialogResult.OK Then
-                    LoadLevel(openDialog.FileName)
-                End If
-            End Using
+        If UnsavedChanges Then
+            If MsgBox("Opening a new level will lead to loss of unsaved work. Continue?", MsgBoxStyle.OkCancel) <> DialogResult.OK Then
+                Exit Sub    'doesn't continue onto open dialog
+            End If
         End If
+
+        Using openDialog As New OpenFileDialog With {.Filter = LevelFileFilter, .Title = "Open Level"}
+            If openDialog.ShowDialog() = DialogResult.OK Then
+                LoadLevel(openDialog.FileName)
+            End If
+        End Using
     End Sub
 
     Private Sub ToolBarFileSaveAs_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileSaveAs.Click
@@ -104,7 +108,7 @@ Public Class FrmLevelEditor
                 If savedLevelString <> _createdLevel.ToString Then
                     result = True
                 End If
-            ElseIf _createdLevel IsNot New Level Then
+            ElseIf _createdLevel <> New Level Then
                 'if changes have been made but no saves made then there are unsaved changes
                 result = True
             End If
@@ -195,7 +199,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmActorDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorDuplicate.Click
-        AddActor(_createdLevel.rooms(LstRooms.SelectedIndex).actors(LstActors.SelectedIndex))
+        AddActor(_createdLevel.Rooms(LstRooms.SelectedIndex).actors(LstActors.SelectedIndex))
     End Sub
 
     Private Sub AddActor(template As Actor)
@@ -521,10 +525,10 @@ Public Class FrmLevelEditor
 
     Private Property Rooms As Room()
         Get
-            Return _createdLevel.rooms
+            Return _createdLevel.Rooms
         End Get
         Set
-            _createdLevel.rooms = Value
+            _createdLevel.Rooms = Value
 
             RefreshEverything()
         End Set

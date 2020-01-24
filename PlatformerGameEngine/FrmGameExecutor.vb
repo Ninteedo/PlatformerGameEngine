@@ -52,8 +52,8 @@ Public Class FrmGameExecutor
 
     Public ReadOnly Property CurrentRoom As Room
         Get
-            If Not IsNothing(_currentLevel) AndAlso Not IsNothing(_currentLevel.rooms) AndAlso _currentLevel.RoomIndex >= 0 AndAlso _currentLevel.RoomIndex <= UBound(_currentLevel.rooms) Then
-                Return _currentLevel.rooms(_currentLevel.RoomIndex)
+            If Not IsNothing(_currentLevel) AndAlso Not IsNothing(_currentLevel.Rooms) AndAlso _currentLevel.RoomIndex >= 0 AndAlso _currentLevel.RoomIndex <= UBound(_currentLevel.Rooms) Then
+                Return _currentLevel.Rooms(_currentLevel.RoomIndex)
             Else
                 Return Nothing
             End If
@@ -264,7 +264,6 @@ Public Class FrmGameExecutor
         'TODO: take arguments instead of eventTag?
 
         If Not IsNothing(CurrentRoom) AndAlso Not IsNothing(CurrentRoom.actors) Then
-
             For index As Integer = 0 To UBound(CurrentRoom.actors)
                 Dim act As Actor = CurrentRoom.actors(index)
                 If Not IsNothing(act.Tags) Then
