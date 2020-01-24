@@ -173,7 +173,7 @@ Public Class FrmLevelEditor
         Using actorMaker As New FrmActorMaker(Nothing)
             actorMaker.ShowDialog()
 
-            If actorMaker.userFinished Then
+            If actorMaker.Finished Then
                 AddActor(actorMaker.createdActor)
             End If
         End Using
@@ -188,7 +188,7 @@ Public Class FrmLevelEditor
         Using actorMaker As New FrmActorMaker(SelectedActor)
             actorMaker.ShowDialog()
 
-            If actorMaker.userFinished Then
+            If actorMaker.Finished Then
                 SelectedActor = actorMaker.createdActor
             End If
         End Using

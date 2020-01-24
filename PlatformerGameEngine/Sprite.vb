@@ -5,7 +5,7 @@ Public Class Sprite
 
     Private _coloursUsed() As Color
     Private _colourIndices(,) As Integer
-    Private _bitmapVersion As Image
+    Private _bitmapVersion As Bitmap
 
 
 #Region "Contructors"
@@ -17,7 +17,7 @@ Public Class Sprite
         Dimensions = startSize
     End Sub
 
-    Public Sub New(ByVal spriteString As String)
+    Public Sub New(spriteString As String)
         'checks if the input is actually a file location
         If IO.File.Exists(spriteString) Then
             spriteString = ReadFile(spriteString)
@@ -74,7 +74,7 @@ Public Class Sprite
 
 #Region "Bitmap"
 
-    Public ReadOnly Property Bitmap As Image
+    Public ReadOnly Property Bitmap As Bitmap
         Get
             If IsNothing(_bitmapVersion) Then
                 _bitmapVersion = ToBitmap()
@@ -117,7 +117,7 @@ Public Class Sprite
 
 #Region "Pixels"
 
-    Public Function GetPixelColour(ByVal coords As Point) As Color
+    Public Function GetPixelColour(coords As Point) As Color
         'returns the colour of the pixel at the specified coordinates
 
         If ValidCoords(coords) Then
@@ -125,11 +125,11 @@ Public Class Sprite
         End If
     End Function
 
-    Public Function GetPixelColour(ByVal x As Integer, ByVal y As Integer) As Color
+    Public Function GetPixelColour(x As Integer, y As Integer) As Color
         Return GetPixelColour(New Point(x, y))
     End Function
 
-    Public Sub SetPixelColour(ByVal coords As Point, ByVal newColour As Color)
+    Public Sub SetPixelColour(coords As Point, newColour As Color)
         'sets the colour of a single pixel at the specified coordinates
 
         If ValidCoords(coords) Then
@@ -151,17 +151,17 @@ Public Class Sprite
         End If
     End Sub
 
-    Public Sub SetPixelColour(ByVal x As Integer, ByVal y As Integer, ByVal newColour As Color)
+    Public Sub SetPixelColour(x As Integer, y As Integer, newColour As Color)
         SetPixelColour(New Point(x, y), newColour)
     End Sub
 
-    Public Function ValidCoords(ByVal coords As Point) As Boolean
+    Public Function ValidCoords(coords As Point) As Boolean
         'returns whether provided coords are within range of the grid
 
         Return Not IsNothing(_colourIndices) AndAlso (coords.X >= 0 And coords.X < Dimensions.Width And coords.Y >= 0 And coords.Y < Dimensions.Height)
     End Function
 
-    Public Function ValidCoords(ByVal x As Integer, ByVal y As Integer) As Boolean
+    Public Function ValidCoords(x As Integer, y As Integer) As Boolean
         Return ValidCoords(New Point(x, y))
     End Function
 
@@ -169,8 +169,8 @@ Public Class Sprite
         Get
             Return _coloursUsed
         End Get
-        Set(value As Color())
-            _coloursUsed = value
+        Set
+            _coloursUsed = Value
             BitmapModified()
         End Set
     End Property
@@ -179,8 +179,8 @@ Public Class Sprite
         Get
             Return _colourIndices
         End Get
-        Set(value As Integer(,))
-            _colourIndices = value
+        Set
+            _colourIndices = Value
             BitmapModified()
         End Set
     End Property
@@ -216,10 +216,10 @@ Public Class Sprite
                 Return New Size(0, 0)
             End If
         End Get
-        Set(value As Size)
+        Set
             'resizes the sprite, preserving pixels within the old size of the sprite
             Dim oldIndices(,) As Integer = _colourIndices
-            ReDim Indices(value.Width - 1, value.Height - 1)
+            ReDim Indices(Value.Width - 1, Value.Height - 1)
 
             For index1 As Integer = 0 To Indices.GetUpperBound(0)
                 For index2 As Integer = 0 To Indices.GetUpperBound(1)

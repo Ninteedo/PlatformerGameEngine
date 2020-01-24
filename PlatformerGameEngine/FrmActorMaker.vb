@@ -6,69 +6,34 @@ Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmActorMaker
 
-    Public createdActor As Actor          'the user's created actor
-    Private ReadOnly originalString As String       'used to see if any changes have been made
-
-#Region "Initialisation"
-
-    Private Sub FrmActorMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Initialisation()
-    End Sub
-
-    Private Sub Initialisation()
-        LayoutInitialisation()
-    End Sub
-
-    Private Sub LayoutInitialisation()
-        'moves everything around as appropriate
-
-        'tblControlLayout.Location = New Point(pnlFramePreview.Right + 10, pnlFramePreview.Top)
-        'Me.Size = New Size(tblControlLayout.Right + 20, tblControlLayout.Bottom + 50)
-
-        'RefreshControlsEnabled()
-    End Sub
-
-#End Region
-
 #Region "Constructors"
 
-    Public Sub New(ByVal actorToModify As Actor)
+    Public Sub New(actorToModify As Actor)
 
         ' This call is required by the designer.
         InitializeComponent()
 
         ' Add any initialization after the InitializeComponent() call.
 
+        _renderer = New RenderEngine(PnlPreview)
         If Not IsNothing(actorToModify) Then
-            createdActor = actorToModify.Clone()
+            CreatedActor = actorToModify.Clone()
         Else
-            createdActor = New Actor(Nothing)
+            CreatedActor = New Actor
         End If
-        originalString = createdActor.ToString
-        renderer = New RenderEngine(PnlPreview)
-        RefreshSpritesList()
-    End Sub
-
-    Private Sub UserCloseForm(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        'displays a warning to the user if they have unsaved work when they close the form
-
-        'checks if user hasn't finished the created actor is identical to the original one
-        If Not userFinished And createdActor.ToString = originalString Then
-            If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
-                e.Cancel = True
-            End If
-        End If
+        _originalString = CreatedActor.ToString
     End Sub
 
 #End Region
 
 #Region "Finishing"
 
-    Public userFinished As Boolean = False      'remains false until the user presses done
+    Public Finished As Boolean = False      'remains false until the user presses done
+    ReadOnly _originalString As String       'used to see if any changes have been made
 
-    Private Sub BtnCancel_Click(sender As Object, e As EventArgs) Handles BtnCancel.Click
+    Private Sub BtnCancel_Click(sender As Button, e As EventArgs) Handles BtnCancel.Click
         'displays a warning if there are unsaved changes, giving the user the option to cancel the cancel
-        If createdActor.ToString <> originalString Then
+        If CreatedActor.ToString <> _originalString Then
             If MsgBox("Are you sure you wish to cancel with unsaved work?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
                 Exit Sub
             End If
@@ -77,14 +42,37 @@ Public Class FrmActorMaker
         Close()
     End Sub
 
-    Private Sub BtnDone_Click(sender As Object, e As EventArgs) Handles BtnDone.Click
-        userFinished = True
-        'original = result
-
+    Private Sub BtnDone_Click(sender As Button, e As EventArgs) Handles BtnDone.Click
+        Finished = True
         Close()
     End Sub
 
+    Private Sub UserCloseForm(sender As FrmActorMaker, e As FormClosingEventArgs) Handles Me.FormClosing
+        'displays a warning to the user if they have unsaved work when they close the form
+
+        'checks if user hasn't finished the created actor is identical to the original one
+        If Not Finished And CreatedActor.ToString = _originalString Then
+            If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
+                e.Cancel = True
+            End If
+        End If
+    End Sub
+
 #End Region
+
+#Region "Actor"
+
+    Dim _createdActor As Actor          'the user's created actor
+
+    Public Property CreatedActor As Actor
+        Get
+            Return _createdActor
+        End Get
+        Set
+            _createdActor = Value
+            RefreshSpritesList()
+        End Set
+    End Property
 
 #Region "Sprites"
 
@@ -102,7 +90,7 @@ Public Class FrmActorMaker
         RefreshList(LstSprites, items)
     End Sub
 
-    Private Sub LstSprites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LstSprites.SelectedIndexChanged
+    Private Sub LstSprites_SelectedIndexChanged(sender As ListBox, e As EventArgs) Handles LstSprites.SelectedIndexChanged
         If LstSprites.SelectedIndex > -1 Then
             DrawSpritePreview(ActorSprites(LstSprites.SelectedIndex))
         Else
@@ -112,15 +100,12 @@ Public Class FrmActorMaker
 
 #Region "Loading"
 
-    Dim loadedSprites() As Sprite
-
     Private Property ActorSprites As Sprite()
         Get
-            Return loadedSprites
+            Return CreatedActor.Sprites
         End Get
         Set
-            loadedSprites = Value
-            createdActor.Sprites = Value
+            CreatedActor.Sprites = Value
 
             RefreshSpritesList()
         End Set
@@ -131,10 +116,7 @@ Public Class FrmActorMaker
 
         If IO.File.Exists(fileLocation) Then
             Dim newSprite As New Sprite(fileLocation)
-
-            If Not IsNothing(newSprite.Indices) And Not IsNothing(newSprite.Colours) Then
-                ActorSprites = InsertItem(ActorSprites, newSprite)
-            End If
+            ActorSprites = InsertItem(ActorSprites, newSprite)
         End If
     End Sub
 
@@ -183,7 +165,7 @@ Public Class FrmActorMaker
 
 #Region "Render"
 
-    ReadOnly renderer As RenderEngine
+    ReadOnly _renderer As RenderEngine
 
     Private Sub DrawSpritePreview(spriteToDraw As Sprite)
         'draws the given frame in the preview box
@@ -193,20 +175,14 @@ Public Class FrmActorMaker
                 .Name = "SpritePreview",
                 .Sprites = {spriteToDraw}
                 }
-            renderer.RenderResolution = spriteToDraw.Dimensions
-            LayoutInitialisation()
-
-            renderer.DoGameRender({previewActor})
+            _renderer.RenderResolution = spriteToDraw.Dimensions
+            _renderer.DoGameRender({previewActor})
         Else
-            renderer.DoGameRender({})       'renders nothing
+            _renderer.DoGameRender({})       'renders nothing
         End If
     End Sub
 
 #End Region
-
-#Region "Other Controls"
-
-
 
 #End Region
 
