@@ -29,16 +29,12 @@ Public Class FrmLevelEditor
     Private Sub LoadLevel(fileLocation As String)
         'loads a level and sets the interface up
 
-        If IO.File.Exists(fileLocation) Then
-            _levelSaveLocation = fileLocation
-            Dim levelString As String = ReadFile(_levelSaveLocation)
-            _createdLevel = New Level(levelString)
+        _levelSaveLocation = fileLocation
+        Dim levelString As String = ReadFile(_levelSaveLocation)
+        _createdLevel = New Level(levelString)
 
-            RefreshEverything()
-            RefreshControlsEnabled()
-        Else
-            DisplayError("No file found at " & fileLocation)
-        End If
+        RefreshEverything()
+        RefreshControlsEnabled()
     End Sub
 
     Private Sub SaveLevel()
@@ -61,10 +57,8 @@ Public Class FrmLevelEditor
     Private Sub ToolBarFileOpen_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileOpen.Click
         'opens a level file selected by the user
 
-        If UnsavedChanges Then
-            If MsgBox("Opening a new level will lead to loss of unsaved work. Continue?", MsgBoxStyle.OkCancel) <> DialogResult.OK Then
-                Exit Sub    'doesn't continue onto open dialog
-            End If
+        If UnsavedChanges AndAlso MsgBox("Opening a new level will lead to loss of unsaved work. Continue?", MsgBoxStyle.OkCancel) <> DialogResult.OK Then
+            Exit Sub    'doesn't continue onto open dialog
         End If
 
         Using openDialog As New OpenFileDialog With {.Filter = LevelFileFilter, .Title = "Open Level"}
@@ -102,6 +96,7 @@ Public Class FrmLevelEditor
         Get
             'checks if the saved level matches the level currently in the level editor
             Dim result As Boolean = False
+
             If IO.File.Exists(_levelSaveLocation) Then
                 Dim savedLevelString As String = ReadFile(_levelSaveLocation)
 
