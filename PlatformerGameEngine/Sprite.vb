@@ -108,8 +108,8 @@ Public Class Sprite
         Return result
     End Function
 
-    Private Sub BitmapModified()
-        'sets the bitmap to nothing if the colours or colourIndices are changed so the bitmap isn't outdated
+    Private Sub ResetBitmap()
+        'sets the bitmap to nothing if the colours or indices are changed so the bitmap isn't outdated
         _bitmapVersion = Nothing
     End Sub
 
@@ -171,7 +171,7 @@ Public Class Sprite
         End Get
         Set
             _coloursUsed = Value
-            BitmapModified()
+            ResetBitmap()
         End Set
     End Property
 
@@ -181,7 +181,7 @@ Public Class Sprite
         End Get
         Set
             _colourIndices = Value
-            BitmapModified()
+            ResetBitmap()
         End Set
     End Property
 

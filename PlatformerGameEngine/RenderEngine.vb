@@ -4,13 +4,13 @@
 
 Public Class RenderEngine
 
-    Private ReadOnly RenderPanel As Panel
+    ReadOnly _renderPanel As Panel
     Public RenderResolution As New Size(640, 480)      'how many pixels the game is played at, scaled on render to the size of the render panel
 
 #Region "Constructors"
 
     Public Sub New(renderPanel As Panel, Optional renderResolution As Size = Nothing)
-        Me.RenderPanel = renderPanel
+        _renderPanel = renderPanel
         If Not renderResolution.IsEmpty Then
             Me.RenderResolution = renderResolution
         End If
@@ -25,15 +25,15 @@ Public Class RenderEngine
         'this uses double buffering to render the result to a buffer, which is eventually rendered to the user
         'this eliminates flickering caused by directly rendering one actor at a time
 
-        Using canvas As New PaintEventArgs(RenderPanel.CreateGraphics, New Rectangle(New Point(0, 0), RenderPanel.Size))
+        Using canvas As New PaintEventArgs(_renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), _renderPanel.Size))
             canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
             Using context As BufferedGraphicsContext = BufferedGraphicsManager.Current
-                context.MaximumBuffer = RenderPanel.Size
+                context.MaximumBuffer = _renderPanel.Size
                 Using renderLayer As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
                     renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
 
                     'fills the background with white
-                    renderLayer.Graphics.FillRectangle(New SolidBrush(Color.White), New RectangleF(New PointF(0, 0), RenderPanel.Size))
+                    renderLayer.Graphics.FillRectangle(New SolidBrush(Color.White), New RectangleF(New PointF(0, 0), _renderPanel.Size))
 
                     If Not IsNothing(actorList) Then
                         'sorts actorList by layer ascending using an insertion sort
@@ -59,8 +59,8 @@ Public Class RenderEngine
                                 Dim renderSprite As Sprite = currentActor.Sprites(currentActor.SpriteIndex)
                                 Dim actHitbox As RectangleF = currentActor.Hitbox 'New RectangleF(currentActor.Hitbox.Location, New SizeF(currentActor.Hitbox.Width + 0.5, currentActor.Hitbox.Height + 0.5))
                                 Dim renderArea As RectangleF = ScaleRect(actHitbox, RenderScale)
-                                'renderArea.Offset(ScaleSize(RenderScale, currentActor.Scale * 0))
-                                'renderArea.Inflate(ScaleSize(RenderScale, currentActor.Scale * 0.5))
+                                renderArea.Offset(ScaleSize(RenderScale, currentActor.Scale * 0.25))
+                                renderArea.Inflate(ScaleSize(RenderScale, currentActor.Scale * 0.25))
                                 renderLayer.Graphics.DrawImage(renderSprite.Bitmap, renderArea)
                             End If
                         Next actorIndex
@@ -81,7 +81,7 @@ Public Class RenderEngine
 
     Public ReadOnly Property RenderScale As SizeF   'the render scaling used by the renderer
         Get
-            Return New SizeF(RenderPanel.Size.Width / RenderResolution.Width, RenderPanel.Size.Height / RenderResolution.Height)
+            Return New SizeF(_renderPanel.Size.Width / RenderResolution.Width, _renderPanel.Size.Height / RenderResolution.Height)
         End Get
     End Property
 

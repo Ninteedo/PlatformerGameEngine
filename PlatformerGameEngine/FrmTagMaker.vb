@@ -57,11 +57,11 @@ Public Class FrmTagMaker
         'uses basic tag maker instead since this one is a mess
         Using basicTagMaker As New FrmTagMakerBasic With {.TagCreated = CreatedTag}
             basicTagMaker.ShowDialog()
-            If basicTagMaker.userFinished Then
+            If basicTagMaker.UserFinished Then
                 arguments = basicTagMaker.TagCreated.argument
                 tagInCreation = basicTagMaker.TagCreated
             End If
-            userFinished = basicTagMaker.userFinished
+            userFinished = basicTagMaker.UserFinished
             Me.Close()
         End Using
     End Sub
@@ -190,7 +190,7 @@ Public Class FrmTagMaker
         Using basicTagMaker As New FrmTagMakerBasic With {.TagCreated = tagInCreation}
             basicTagMaker.ShowDialog()
 
-            If basicTagMaker.userFinished Then
+            If basicTagMaker.UserFinished Then
                 tagInCreation = basicTagMaker.TagCreated
                 RefreshArgumentsList()
                 txtName.Text = tagInCreation.name

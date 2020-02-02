@@ -81,7 +81,7 @@ Public Class TagContainer
         End If
     End Sub
 
-#Region "Key Propertys"
+#Region "Key Properties"
 
     Protected Function GetProperty(Of t)(tagName As String, defaultVal As t) As t
         'returns the value of a property with a given name, or if it doesn't have a value then the default value

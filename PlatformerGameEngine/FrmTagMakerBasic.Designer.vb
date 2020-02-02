@@ -22,22 +22,22 @@ Partial Class FrmTagMakerBasic
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.txtJSON = New System.Windows.Forms.TextBox()
+        Me.TxtJson = New System.Windows.Forms.TextBox()
         Me.btnFinish = New System.Windows.Forms.Button()
         Me.btnCancel = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'txtJSON
         '
-        Me.txtJSON.AcceptsReturn = True
-        Me.txtJSON.AcceptsTab = True
-        Me.txtJSON.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtJSON.Location = New System.Drawing.Point(13, 13)
-        Me.txtJSON.Multiline = True
-        Me.txtJSON.Name = "txtJSON"
-        Me.txtJSON.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
-        Me.txtJSON.Size = New System.Drawing.Size(775, 344)
-        Me.txtJSON.TabIndex = 1
+        Me.TxtJson.AcceptsReturn = True
+        Me.TxtJson.AcceptsTab = True
+        Me.TxtJson.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TxtJson.Location = New System.Drawing.Point(13, 13)
+        Me.TxtJson.Multiline = True
+        Me.TxtJson.Name = "txtJSON"
+        Me.TxtJson.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
+        Me.TxtJson.Size = New System.Drawing.Size(775, 344)
+        Me.TxtJson.TabIndex = 1
         '
         'btnFinish
         '
@@ -67,7 +67,7 @@ Partial Class FrmTagMakerBasic
         Me.ClientSize = New System.Drawing.Size(800, 450)
         Me.Controls.Add(Me.btnCancel)
         Me.Controls.Add(Me.btnFinish)
-        Me.Controls.Add(Me.txtJSON)
+        Me.Controls.Add(Me.TxtJson)
         Me.Name = "FrmTagMakerBasic"
         Me.Text = "FrmTagMakerBasic"
         Me.ResumeLayout(False)
@@ -75,7 +75,7 @@ Partial Class FrmTagMakerBasic
 
     End Sub
 
-    Friend WithEvents txtJSON As TextBox
+    Friend WithEvents TxtJson As TextBox
     Friend WithEvents btnFinish As Button
     Friend WithEvents btnCancel As Button
 End Class

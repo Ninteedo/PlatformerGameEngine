@@ -17,6 +17,7 @@ Public Module JsonHandler
         End If
         Return result
     End Function
+
     Public Function JsonToTag(json As String) As Tag
         'converts a JSON string into a tag
 
@@ -170,7 +171,7 @@ Public Module JsonHandler
 
 #Region "Misc String Handling"
 
-    Public Function ArrayToString(ByVal input As Object) As String
+    Public Function ArrayToString(input As Object) As String
         'turns an array into a string e.g. "[63,-34,87]"
 
         Dim result As String = Nothing
@@ -312,6 +313,8 @@ Public Module JsonHandler
             If Not inString Then
                 If c = """" Then
                     inString = True
+                Else
+                    result += c
                 End If
             Else
                 If Not escaped Then
@@ -319,8 +322,6 @@ Public Module JsonHandler
                         escaped = True
                     ElseIf c = """" Then
                         inString = False
-                    Else
-                        result += c
                     End If
                 Else
                     escaped = False

@@ -21,7 +21,7 @@ Public Class FrmScoreboard
             Close()
         Else
             LblGameName.Text = input
-            GetScores(input)
+            ShowScores(input)
         End If
     End Sub
 
@@ -33,28 +33,28 @@ Public Class FrmScoreboard
         ' Add any initialization after the InitializeComponent() call.
 
         LblGameName.Text = gameName
-        GetScores(gameName)
+        ShowScores(gameName)
     End Sub
 
 #End Region
 
 #Region "Query"
 
-    Private Sub GetScores(gameName As String)
+    Private Sub ShowScores(gameName As String)
         'displays either top 10 scores or 10 scores around the search initials to the user
 
         Try
             Using conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
                 conn.Open()
 
-                Const query As String =
+                Const query As String = '"SELECT initials AS 'Player', MAX(points) AS 'Score' FROM Score WHERE gameName = @gameName GROUP BY initials ORDER BY MAX(points) DESC;"
                 "SELECT initials AS 'Player', MAX(points) AS 'Score'
                 FROM Score
                 WHERE gameName = @gameName
                 GROUP BY initials                    
                 ORDER BY MAX(points) DESC;"
 
-                'uses preparing to prevent SQL injection attacks (injection possible for game name and possibly initials)
+                'uses preparing to prevent SQL injection attacks (injection would've been possible for game name and possibly initials)
                 Using cmd As New MySqlCommand(query, conn)
                     'prepares query
                     cmd.Parameters.Add("@gameName", MySqlDbType.String, 64)

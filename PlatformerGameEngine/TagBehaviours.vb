@@ -306,7 +306,7 @@ Public Module TagBehaviours
     End Structure
 
     Private Sub ProjectPolygon(axis As Vector, shape As Polygon, ByRef min As Single, ByRef max As Single)
-        'https://www.metanetsoftware.com/technique/tutorialA.html#appendixA
+        'adapted from https://www.metanetsoftware.com/technique/tutorialA.html#appendixA
 
         Dim dp As Single = axis.DotProduct(shape.Points(0))
         min = dp
@@ -332,7 +332,7 @@ Public Module TagBehaviours
     End Function
 
     Private Function PolygonCollision(poly1 As Polygon, poly2 As Polygon, velocity As Vector) As PolygonCollisionResult
-        'https://www.codeproject.com/Articles/15573/2D-Polygon-Collision-Detection
+        'adapted from https://www.codeproject.com/Articles/15573/2D-Polygon-Collision-Detection
 
         Dim result As New PolygonCollisionResult
 
@@ -795,5 +795,58 @@ Public Module TagBehaviours
 
 #End Region
 
+#Region "Code"
+
+    Private Sub Code(input As String, ByRef act As Actor, ByRef game As FrmGameExecutor)
+        Dim lines() As String = JsonSplit(input, delimiter:=";")
+
+        If Not IsNothing(lines) Then
+            Dim structureLevel As Integer = 0
+
+            For index As Integer = 0 To UBound(lines)
+                Dim line As String = Trim(lines(index))
+                Dim varNames() As String = IdentifyVars(line)
+
+                For Each varName As String In varNames
+                    If line Like "$" & varName & "=*" Then
+                        AssignValue(varName, line.Remove(1, line.IndexOf("=")), act, game)
+                    ElseIf line Like "if (*) {" Then
+                        'get condition
+                        'assess condition
+                        'if true dont skip stuff in if structure
+                        'if false skip stuff in if structure
+                    End If
+                Next
+            Next
+        End If
+    End Sub
+
+    Private Function IdentifyVars(line As String) As String()
+        line = RemoveSubStrings(line)
+        Dim varNames() As String = Nothing
+        Dim alphaNumericChars As String = "abcdefghijklmnopqrstuvwxyz0123456789"    'variables can only have alphanumeric characters
+        Dim inVarName As Boolean
+
+        For cIndex As Integer = 0 To Len(line)
+            Dim c As String = line(cIndex)
+
+            If c = "$" Then
+                varNames = InsertItem(varNames, "")
+                inVarName = True
+            ElseIf Not alphaNumericChars.Contains(LCase(c)) Then
+                inVarName = False
+            ElseIf inVarName Then
+                varNames(UBound(varNames)) += c
+            End If
+        Next
+
+        Return varNames
+    End Function
+
+    Private Sub AssignValue(varName As String, valueString As String, ByRef act As Actor, ByRef game As FrmGameExecutor)
+        ProcessTag(New Tag("AddTag", New Tag(varName, valueString).ToString), act, game)
+    End Sub
+
+#End Region
 
 End Module
