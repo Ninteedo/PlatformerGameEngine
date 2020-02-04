@@ -99,7 +99,7 @@ Public Class Actor
     Property Location As PointF
         Get
             If HasTag(LocationTagName) Then
-                Return New Point(Val(FindTag(LocationTagName).InterpretArgument()(0)), Val(FindTag(LocationTagName).InterpretArgument()(1)))
+                Return New PointF(Val(FindTag(LocationTagName).InterpretArgument()(0)), Val(FindTag(LocationTagName).InterpretArgument()(1)))
             Else
                 Return New PointF(0, 0)
             End If

@@ -126,7 +126,7 @@
             Do
                 copyNumber += 1
                 If Not removeUnnecessary Or copyNumber > 1 Then
-                    generatedName = AddQuotes(name & "-" & Trim(Str(copyNumber)))
+                    generatedName = name & "-" & Trim(Str(copyNumber))
                 End If
                 nameUnique = True
 

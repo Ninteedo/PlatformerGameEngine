@@ -84,11 +84,13 @@ Public Module TagBehaviours
 
         If act.HasTag(collisionTagName) Then
             For Each otherAct As Actor In game.CurrentRoom.actors
-                If act.Name <> otherAct.Name Then
+                If act.Name <> otherAct.Name Then   'prevents actor colliding with itself
                     If otherAct.HasTag(collisionTagName) Then
-                        Dim collisionResult As PolygonCollisionResult = CheckPolygons(act, otherAct, velocity) ' + velocity2)
+                        Dim collisionResult As PolygonCollisionResult = CheckPolygons(act, otherAct, velocity)
 
+                        'checks that collision is occurring
                         If collisionResult.Intersecting Or collisionResult.WillIntersect Then
+                            'gets this actor's collision types
                             Dim entCollisionTypesTemp As Object = act.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
                             Dim entVulnerable As Boolean = False        'stores whether the actor is vulnerable
                             If Not IsNothing(entCollisionTypesTemp) Then
@@ -104,6 +106,7 @@ Public Module TagBehaviours
                                 End If
                             End If
 
+                            'gets other actor's collision types
                             Dim otherEntCollisionTypesTemp As Object = otherAct.FindTag(collisionTagName).InterpretArgument(collisionTypeTagName).InterpretArgument()
                             Dim otherEntEffect As Tag = Nothing
                             Dim otherEntSolid As Boolean = False
@@ -197,6 +200,10 @@ Public Module TagBehaviours
             'returns a copy of this vector with magnitude set to 1
 
             Return New Vector(X / Magnitude, Y / Magnitude)
+        End Function
+
+        Public Overrides Function ToString() As String
+            Return $"({X},{Y})"
         End Function
 
         Public Function DotProduct(otherVect As Vector) As Single

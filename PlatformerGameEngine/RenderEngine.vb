@@ -76,7 +76,7 @@ Public Class RenderEngine
         'renders the actor list, but the inputted actor list is not sorted like it is in the regular DoGameRender
         'used in the level editor because it causes the actors to move around when layers are changed
 
-        DoGameRender(actorList)
+        DoGameRender(If(Not IsNothing(actorList), actorList.Clone(), Nothing))
     End Sub
 
     Public ReadOnly Property RenderScale As SizeF   'the render scaling used by the renderer

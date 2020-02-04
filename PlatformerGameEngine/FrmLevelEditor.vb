@@ -121,7 +121,6 @@ Public Class FrmLevelEditor
     Private Sub RenderCurrentRoom()
         'renders the current room
         If Not IsNothing(_renderEngine) Then
-            '_renderEngine.renderPanel = PnlRender
             _renderEngine.DoGameRenderNoSort(SelectedRoom.actors)
         End If
     End Sub
