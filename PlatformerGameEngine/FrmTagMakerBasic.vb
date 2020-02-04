@@ -59,7 +59,7 @@ Public Class FrmTagMakerBasic
         Next
 
         If errorIndex = -1 Then
-            If Not IsNothing(openedBrackets) Then   'check for remaining opened brackets
+            If Not IsNothing(openedBrackets) AndAlso UBound(openedBrackets) > -1 Then   'check for remaining opened brackets
                 errorIndex = Len(TxtJson.Text) - 1
             End If
         End If

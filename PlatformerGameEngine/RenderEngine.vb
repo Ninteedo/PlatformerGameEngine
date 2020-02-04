@@ -26,11 +26,11 @@ Public Class RenderEngine
         'this eliminates flickering caused by directly rendering one actor at a time
 
         Using canvas As New PaintEventArgs(_renderPanel.CreateGraphics, New Rectangle(New Point(0, 0), _renderPanel.Size))
-            canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+            canvas.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor     'disables anti-aliasing
             Using context As BufferedGraphicsContext = BufferedGraphicsManager.Current
                 context.MaximumBuffer = _renderPanel.Size
                 Using renderLayer As BufferedGraphics = context.Allocate(canvas.Graphics, canvas.ClipRectangle)
-                    renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+                    renderLayer.Graphics.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor    'disables anti-aliasing
 
                     'fills the background with white
                     renderLayer.Graphics.FillRectangle(New SolidBrush(Color.White), New RectangleF(New PointF(0, 0), _renderPanel.Size))
@@ -53,8 +53,7 @@ Public Class RenderEngine
                         Next
 
                         'renders each actor in new sorted order
-                        For actorIndex As Integer = 0 To UBound(actorList)
-                            Dim currentActor As Actor = actorList(actorIndex)
+                        For Each currentActor As Actor In actorList
                             If Not IsNothing(currentActor.Sprites) And currentActor.SpriteIndex <= UBound(currentActor.Sprites) And currentActor.SpriteIndex >= 0 Then
                                 Dim renderSprite As Sprite = currentActor.Sprites(currentActor.SpriteIndex)
                                 Dim actHitbox As RectangleF = currentActor.Hitbox 'New RectangleF(currentActor.Hitbox.Location, New SizeF(currentActor.Hitbox.Width + 0.5, currentActor.Hitbox.Height + 0.5))
@@ -63,9 +62,10 @@ Public Class RenderEngine
                                 renderArea.Inflate(ScaleSize(RenderScale, currentActor.Scale * 0.25))
                                 renderLayer.Graphics.DrawImage(renderSprite.Bitmap, renderArea)
                             End If
-                        Next actorIndex
+                        Next
                     End If
 
+                    'renders the buffer to the panel
                     renderLayer.Render()
                 End Using
             End Using
