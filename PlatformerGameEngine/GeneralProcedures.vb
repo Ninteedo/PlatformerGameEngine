@@ -1,12 +1,8 @@
-﻿Imports System.Data.OleDb
-Imports MySql.Data.MySqlClient
-Imports PlatformerGameEngine.My
-
-Module GeneralProcedures
+﻿Module GeneralProcedures
 
 #Region "Array Modifying"
 
-    Public Function RemoveItem(Of t)(ByVal array As t(), ByVal removeIndex As Integer) As t()
+    Public Function RemoveItem(Of t)(array As t(), removeIndex As Integer) As t()
         'removes the item at the given index from a given array of a given type
 
         If IsNothing(array) Then
@@ -20,14 +16,14 @@ Module GeneralProcedures
                 Next
                 ReDim Preserve array(UBound(array) - 1)
             Else        'if array length is 0 then removing the last item will remove last element of array
-                array = Nothing
+                array = {}
             End If
         End If
 
         Return array
     End Function
 
-    Public Function InsertItem(Of t)(ByVal array As t(), ByVal newItem As t, Optional ByVal insertIndex As Integer = -1) As t()
+    Public Function InsertItem(Of t)(array As t(), newItem As t, Optional insertIndex As Integer = -1) As t()
         'inserts the given item to the end of the given array of a given type
 
         If Not IsNothing(array) Then
@@ -52,10 +48,10 @@ Module GeneralProcedures
 
 #Region "File Handling"
 
-    Public Function ReadFile(ByVal fileLocation As String) As String
+    Public Function ReadFile(fileLocation As String) As String
         'returns the contents of a text file at a given location
 
-        If IO.File.Exists(fileLocation) = True Then
+        If IO.File.Exists(fileLocation) Then
             Dim reader As New IO.StreamReader(fileLocation)
             Dim fileText As String = reader.ReadToEnd()
             reader.Close()
@@ -67,7 +63,7 @@ Module GeneralProcedures
         End If
     End Function
 
-    Public Sub WriteFile(ByVal fileLocation As String, ByVal message As String)
+    Public Sub WriteFile(fileLocation As String, message As String)
         'writes a message to a file
 
         Dim writer As New IO.StreamWriter(fileLocation)
@@ -79,27 +75,11 @@ Module GeneralProcedures
         writer.Close()
     End Sub
 
-    Public Function FindProperty(ByVal fileText As String, ByVal propertyName As String) As String     'returns the property in a file with a given name, property: value
-        'TODO: is it possible to make this redundant
-
-        Dim lines() As String = fileText.Split(Environment.NewLine)
-
-        For Each line As String In lines
-            Dim currentProperty As String = line.Split(":")(0).Replace(vbLf, "")
-
-            If currentProperty = propertyName Then
-                Return Trim(line.Split(":")(1))         'issue: cant have colons anywhere else in the line
-            End If
-        Next line
-
-        Return Nothing
-    End Function
-
 #End Region
 
 #Region "Error Handling"
 
-    Public Sub DisplayError(ByVal message As String)
+    Public Sub DisplayError(message As String)
         'displays a given error message to the user
 
         MsgBox(message, MsgBoxStyle.Exclamation)
@@ -133,7 +113,7 @@ Module GeneralProcedures
         End If
     End Sub
 
-    Public Function MakeNameUnique(ByVal name As String, otherNames() As String, removeUnnecessary As Boolean) As String
+    Public Function MakeNameUnique(name As String, otherNames() As String, removeUnnecessary As Boolean) As String
         'returns a name with a number appended to it so the name is unique
 
         name = RemoveQuotes(name)
@@ -164,70 +144,6 @@ Module GeneralProcedures
             Return name & If(Not removeUnnecessary, "-1", "")
         End If
     End Function
-
-#End Region
-
-#Region "Database Connections"
-
-    Public Sub SqlTest()
-        Try
-            Dim sqlReader As OleDbDataReader
-            'creates and opens connection to database
-            'Dim conType As String = "Provider=Microsoft.ACE.OLEDB.12.0;"
-            'Dim fileLocation As String = $"Data Source=F:\School\Higher\Computing\Visual Basic\PlatformerGameEngine\resources\games\Robotic Escape\Test.accdb"
-            Dim conn As New OleDbConnection("Provider = Microsoft.Jet.OLEDB.4.0;Data Source=""F:\School\Higher\Computing\Visual Basic\PlatformerGameEngine\resources\games\Robotic Escape\Test.mdb""")
-            conn.Open()
-
-            Dim query As String = "SELECT * FROM [Customers]"
-            Dim command As New OleDbCommand(query, conn)
-            sqlReader = command.ExecuteReader
-
-            If sqlReader.HasRows Then
-                Dim output As String = ""
-                While sqlReader.Read
-                    output += sqlReader("ID") & " " & sqlReader("Firstname") & " " & sqlReader("Surname") & vbCrLf
-                End While
-                MsgBox(output)
-            Else
-                DisplayError("No Results Returned")
-            End If
-
-            conn.Close()
-        Catch ex As Exception
-            DisplayError(ex.ToString)
-        End Try
-    End Sub
-
-    Public Sub MySqlTest()
-        Try
-            Dim sqlReader As MySqlDataReader
-            'creates and opens connection to database
-            Dim conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
-            conn.Open()
-
-            Dim query As String = InputBox("Enter SQL Query") '"SELECT * FROM Score;"
-            Dim command As New MySqlCommand(query, conn)
-            sqlReader = command.ExecuteReader()
-
-            If sqlReader.HasRows Then
-                Dim output As String = ""
-                While sqlReader.Read
-                    output += sqlReader("ID") & " " & sqlReader("initials") & " " & sqlReader("points") & vbCrLf
-                End While
-                MsgBox(output)
-            Else
-                MsgBox("No results returned")
-            End If
-
-
-            'closes connection
-            conn.Close()
-        Catch ex As Exception
-            DisplayError(ex.ToString())
-        End Try
-    End Sub
-
-
 
 #End Region
 
