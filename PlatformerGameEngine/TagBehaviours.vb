@@ -612,123 +612,138 @@ Public Module TagBehaviours
     End Enum
 
     Private Function AssessCondition(condition As String, Optional act As Actor = Nothing,
-                                     Optional ByRef game As FrmGameExecutor = Nothing) As Boolean
+                                        Optional ByRef game As FrmGameExecutor = Nothing) As Boolean
         'takes a condition in the form of a string and returns true or false
 
         'Try
         If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
-                condition = LCase(condition)    'conditions are not case sensitive
+            condition = LCase(condition)    'conditions are not case sensitive
 
-                Dim comparisonOperators() As String = {">=", "<=", "=", "<>", ">", "<"} _
-                'ordered so there are no conflicts (eg >= goes before > and =)
-                Dim logicOperators() As String = {" and ", " or "}
-                Const notOperator As String = "not "
+            Dim comparisonOperators() As String = {">=", "<=", "=", "<>", ">", "<"} _
+            'ordered so there are no conflicts (eg >= goes before > and =)
+            Dim logicOperators() As String = {" and ", " or "}
+            Const notOperator As String = "not "
 
-                Dim comparisons() As String = {condition}      'list of individual comparisons split by logic operators
-                Dim comparisonTypes() As LogicOp = Nothing      'list of the order of comparisons used
+            Dim comparisons() As String = {condition}      'list of individual comparisons split by logic operators
+            Dim comparisonTypes() As LogicOp = Nothing      'list of the order of comparisons used
 
-                'finds individual comparisons
-                For opIndex As Integer = 0 To UBound(logicOperators)
-                    Dim comIndex As Integer = 0
-                    Do While comIndex <= UBound(comparisons)
-                        Dim splits() As String = JsonSplit(comparisons(comIndex), 0, logicOperators(opIndex))
+            'finds individual comparisons
+            For opIndex As Integer = 0 To UBound(logicOperators)
+                Dim comIndex As Integer = 0
+                Do While comIndex <= UBound(comparisons)
+                    Dim splits() As String = JsonSplit(comparisons(comIndex), 0, logicOperators(opIndex))
 
-                        'checks if there was any split made
-                        If UBound(splits) > 0 Then
-                            'removes the overall comparison, then inserts the split version
-                            comparisons = RemoveItem(comparisons, comIndex)
-                            For splitIndex As Integer = 0 To UBound(splits)
-                                'adds the comparison type used if it is in the middle of 2 splits
-                                If splitIndex < UBound(splits) Then
-                                    comparisonTypes = InsertItem(comparisonTypes, opIndex, comIndex)
-                                End If
+                    'checks if there was any split made
+                    If UBound(splits) > 0 Then
+                        'removes the overall comparison, then inserts the split version
+                        comparisons = RemoveItem(comparisons, comIndex)
+                        For splitIndex As Integer = 0 To UBound(splits)
+                            'adds the comparison type used if it is in the middle of 2 splits
+                            If splitIndex < UBound(splits) Then
+                                comparisonTypes = InsertItem(comparisonTypes, opIndex, comIndex)
+                            End If
 
-                                comparisons = InsertItem(comparisons, splits(splitIndex), comIndex)
-                                comIndex += 1
-                            Next
-                        Else
-                            'if not split made then moves onto the next comparison
+                            comparisons = InsertItem(comparisons, splits(splitIndex), comIndex)
                             comIndex += 1
-                        End If
-                    Loop
-                Next
-
-                'evaluates each comparison to a boolean
-                For comIndex As Integer = 0 To UBound(comparisons)
-                    Dim leftPart As String = Nothing
-                    Dim rightPart As String = Nothing
-
-                    'finds which (if any) comparison operator is used
-                    Dim opIndex As Integer = 0
-                    Do While opIndex <= UBound(comparisonOperators)
-                        Dim splits() As String = JsonSplit(comparisons(comIndex), 0, comparisonOperators(opIndex))
-
-                        'checks if there are multiple parts when operator is used to split
-                        If UBound(splits) = 1 Then
-                            leftPart = Trim(splits(0))
-                            rightPart = Trim(splits(1))
-
-                            Exit Do
-                        ElseIf UBound(splits) > 1 Then
-                            'multiple comparisons used without a logic operators
-                            DisplayError("A condition used multiple comparisons without a logic operator" & vbCrLf & condition)
-                        Else
-                            opIndex += 1
-                        End If
-                    Loop
-
-                    'opIndex is set to -1 if no operator found
-                    If opIndex > UBound(comparisonOperators) Then
-                        opIndex = -1
-                        leftPart = comparisons(comIndex)
+                        Next
                     Else
-                        'processes the left and right parts
-                        leftPart = InterpretValue(leftPart, True, act, game)
-                        rightPart = InterpretValue(rightPart, True, act, game)
+                        'if not split made then moves onto the next comparison
+                        comIndex += 1
                     End If
+                Loop
+            Next
 
-                    Dim comResult As Boolean = False    'stores the result of this comparison
-                    'compares left and right part using the chosen operator
+            'evaluates each comparison to a boolean
+            For comIndex As Integer = 0 To UBound(comparisons)
+                Dim leftPart As String = Nothing
+                Dim rightPart As String = Nothing
+
+                'finds which (if any) comparison operator is used
+                Dim opIndex As Integer = 0
+                Do While opIndex <= UBound(comparisonOperators)
+                    Dim splits() As String = JsonSplit(comparisons(comIndex), 0, comparisonOperators(opIndex))
+
+                    'checks if there are multiple parts when operator is used to split
+                    If UBound(splits) = 1 Then
+                        leftPart = Trim(splits(0))
+                        rightPart = Trim(splits(1))
+
+                        Exit Do
+                    ElseIf UBound(splits) > 1 Then
+                        'multiple comparisons used without a logic operators
+                        DisplayError("A condition used multiple comparisons without a logic operator" & vbCrLf & condition)
+                    Else
+                        opIndex += 1
+                    End If
+                Loop
+
+                'opIndex is set to -1 if no operator found
+                If opIndex > UBound(comparisonOperators) Then
+                    opIndex = -1
+                    leftPart = comparisons(comIndex)
+                Else
+                    'processes the left and right parts
+                    leftPart = InterpretValue(leftPart, True, act, game)
+                    rightPart = InterpretValue(rightPart, True, act, game)
+                End If
+
+                Dim comResult As Boolean = False    'stores the result of this comparison
+                'compares left and right part using the chosen operator
+                If IsNumeric(leftPart) And IsNumeric(rightPart) Then
+                    'numeric comparisons
+                    Dim leftVal As Single = Val(leftPart)
+                    Dim rightVal As Single = Val(rightPart)
+
                     Select Case opIndex
                         Case CompareOp.EqualGreaterThan
-                            comResult = leftPart >= rightPart
+                            comResult = leftVal >= rightVal
                         Case CompareOp.EqualLessThan
-                            comResult = leftPart <= rightPart
+                            comResult = leftVal <= rightVal
+                        Case CompareOp.Equal
+                            comResult = leftVal = rightVal
+                        Case CompareOp.NotEqual
+                            comResult = leftVal <> rightVal
+                        Case CompareOp.GreaterThan
+                            comResult = leftVal > rightVal
+                        Case CompareOp.LessThan
+                            comResult = leftVal < rightVal
+                    End Select
+                Else
+                    'non numeric comparisons (eg strings)
+                    'only equal or not equal operators available
+                    Select Case opIndex
                         Case CompareOp.Equal
                             comResult = leftPart = rightPart
                         Case CompareOp.NotEqual
                             comResult = leftPart <> rightPart
-                        Case CompareOp.GreaterThan
-                            comResult = leftPart > rightPart
-                        Case CompareOp.LessThan
-                            comResult = leftPart < rightPart
                         Case Else
-                            comResult = CType(leftPart, Boolean)
+                            DisplayError("Tried to compare non numeric values" & vbCrLf & "Condition: " & comparisons(comIndex))
                     End Select
-
-                    'checks for a not operator
-                    If Left(leftPart, Len(notOperator)) = notOperator Then
-                        comResult = Not comResult
-                    End If
-
-                    comparisons(comIndex) = comResult.ToString
-                Next
-
-                'combines the comparisons into a single boolean using logic operators
-                Dim overall As Boolean = comparisons(0)
-                If Not IsNothing(comparisonTypes) Then
-                    For index As Integer = 0 To UBound(comparisonTypes)
-                        Select Case comparisonTypes(index)
-                            Case LogicOp.AndOp
-                                overall = overall And comparisons(index + 1)
-                            Case LogicOp.OrOp
-                                overall = overall Or comparisons(index + 1)
-                        End Select
-                    Next
                 End If
 
-                Return overall
+                'checks for a not operator
+                If Left(leftPart, Len(notOperator)) = notOperator Then
+                    comResult = Not comResult
+                End If
+
+                comparisons(comIndex) = comResult.ToString
+            Next
+
+            'combines the comparisons into a single boolean using logic operators
+            Dim overall As Boolean = comparisons(0)
+            If Not IsNothing(comparisonTypes) Then
+                For index As Integer = 0 To UBound(comparisonTypes)
+                    Select Case comparisonTypes(index)
+                        Case LogicOp.AndOp
+                            overall = overall And comparisons(index + 1)
+                        Case LogicOp.OrOp
+                            overall = overall Or comparisons(index + 1)
+                    End Select
+                Next
             End If
+
+            Return overall
+        End If
         'Catch ex As Exception
         '    DisplayError("An error occured whilst assessing condition:" & vbCrLf & condition)
         'End Try
