@@ -6,13 +6,12 @@ Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmGameExecutor
 
+
 #Region "Disposing"
 
-    Protected Overrides Sub OnFormClosed(e As FormClosedEventArgs)
-        'used to prevent an error occuring when the user closes the form
-
-        _frameTimer.Stop()
-        MyBase.OnFormClosed(e)
+    Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
+        _endGameLoop = True
+        MyBase.OnFormClosing(e)
     End Sub
 
 #End Region
@@ -28,10 +27,10 @@ Public Class FrmGameExecutor
 
         _renderer = New RenderEngine(pnlGame)
         _currentLevel = New Level(levelTagString)
-        _frameTimer = New Timer() With {.Interval = 1000 / _frameRate}   'interval is delay between ticks in ms
+    End Sub
 
-        AddHandler _frameTimer.Tick, AddressOf GameTick
-        _frameTimer.Start()
+    Private Sub FormLoad(sender As Object, e As EventArgs) Handles MyBase.Shown
+        GameLoop()
     End Sub
 
 #End Region
@@ -40,9 +39,6 @@ Public Class FrmGameExecutor
 
     ReadOnly _renderer As RenderEngine
     ReadOnly _currentLevel As Level
-
-    ReadOnly _frameTimer As Timer
-    ReadOnly _frameRate As Integer = 60
 
     Public ReadOnly Property CurrentLevel As Level
         Get
@@ -61,6 +57,35 @@ Public Class FrmGameExecutor
     End Property
 
 #Region "Timer Control"
+
+    Dim _frameStopwatch As Stopwatch
+    Dim _endGameLoop As Boolean = False
+
+    Private Sub GameLoop()
+        'https://www.dreamincode.net/forums/topic/140697-creating-games-with-vbnet/
+        'continuously loops, delaying each loop for approx 16ms
+
+        _frameStopwatch = New Stopwatch
+        Const interval As Integer = 16
+        Dim startTick As Long
+
+        _frameStopwatch.Start()
+        Do While Not _endGameLoop
+            startTick = _frameStopwatch.ElapsedMilliseconds
+
+            If Not _paused Then
+                GameTick()
+            End If
+
+            Application.DoEvents()
+
+            'delay
+            Do While _frameStopwatch.ElapsedMilliseconds - startTick < interval
+                Threading.Thread.Sleep(1)   'reduces CPU usage
+            Loop
+        Loop
+        _frameStopwatch.Stop()
+    End Sub
 
     Private Sub GameTick()
         'advances the game state by 1 frame, with respect to keys held and actor Tags
@@ -98,22 +123,24 @@ Public Class FrmGameExecutor
         End If
     End Sub
 
+#Region "Pausing"
+
+    Dim _paused As Boolean = False
+
     Public Sub Pause()
         'pauses the game
 
-        ToggleGamePause(True)
+        _paused = True
         ResetKeysHeld()
     End Sub
 
     Public Sub Unpause()
         'unpauses the game
 
-        ToggleGamePause(False)
+        _paused = False
     End Sub
 
-    Private Sub ToggleGamePause(paused As Boolean)
-        _frameTimer.Enabled = Not paused
-    End Sub
+#End Region
 
 #End Region
 
