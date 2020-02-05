@@ -32,18 +32,7 @@ Public Module TagBehaviours
                 game.BroadcastEvent(New Tag(inputTag.InterpretArgument.ToString))
 
             Case "if"
-                Const ifConditionName As String = "con"
-                Const ifThenName As String = "then"
-                Const ifElseName As String = "else"
-                Dim condition As String = inputTag.FindSubTag(IfConditionName).InterpretArgument()
-                'assesses condition then executes either "then" or "else" part of the if
-                Dim executePart As Tag
-                If AssessCondition(condition, act, game) Then
-                    executePart = inputTag.FindSubTag(IfThenName)
-                Else
-                    executePart = inputTag.FindSubTag(IfElseName)
-                End If
-                ProcessSubTags(executePart, act, game)
+                IfTagHandling(inputTag, act, game)
 
             Case "savescore"
                 Dim points As String = inputTag.FindSubTag("points").InterpretArgument()
@@ -203,7 +192,7 @@ Public Module TagBehaviours
         End Function
 
         Public Overrides Function ToString() As String
-            Return $"({X},{Y})"
+            Return "(" & X & "," & Y & ")"
         End Function
 
         Public Function DotProduct(otherVect As Vector) As Single
@@ -618,7 +607,20 @@ Public Module TagBehaviours
         LessThan
     End Enum
 
-    Private Function AssessCondition(condition As String, Optional act As Actor = Nothing,
+    Private Function IfTagHandling(ifTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
+        Dim condition As String = ifTag.FindSubTag("con").argument
+        Dim executeTag As Tag
+
+        'assesses condition then executes either "then" or "else" part of the if
+        If AssessCondition(condition, act, game) Then
+            executeTag = ifTag.FindSubTag("then")
+        Else
+            executeTag = ifTag.FindSubTag("else")
+        End If
+        ProcessSubTags(executeTag, act, game)
+    End Function
+
+    Private Function AssessCondition(condition As String, Optional ByRef act As Actor = Nothing,
                                         Optional ByRef game As FrmGameExecutor = Nothing) As Boolean
         'takes a condition in the form of a string and returns true or false
 

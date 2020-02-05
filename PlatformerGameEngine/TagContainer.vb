@@ -34,7 +34,7 @@ Public Class TagContainer
         End If
     End Function
 
-    Private Function FindTags(tagName As String) As Tag()
+    Public Function FindTags(tagName As String) As Tag()
         'returns all the tags this container has which match a given name
         'useful for things such as listeners where there are multiple tags with the same name
 

@@ -30,6 +30,8 @@ Public Class FrmGameExecutor
     End Sub
 
     Private Sub FormLoad(sender As Object, e As EventArgs) Handles MyBase.Shown
+        'seperate from constructor because the game loop shouldn't begin until the form is actually shown to the player
+        
         GameLoop()
     End Sub
 
@@ -59,7 +61,7 @@ Public Class FrmGameExecutor
 #Region "Timer Control"
 
     Dim _frameStopwatch As Stopwatch
-    Dim _endGameLoop As Boolean = False
+    Dim _endGameLoop As Boolean = False     'true when the user presses close
 
     Private Sub GameLoop()
         'https://www.dreamincode.net/forums/topic/140697-creating-games-with-vbnet/
@@ -81,7 +83,7 @@ Public Class FrmGameExecutor
 
             'delay
             Do While _frameStopwatch.ElapsedMilliseconds - startTick < interval
-                Threading.Thread.Sleep(1)   'reduces CPU usage
+                Threading.Thread.Sleep(0)   'reduces CPU usage
             Loop
         Loop
         _frameStopwatch.Stop()
@@ -290,19 +292,17 @@ Public Class FrmGameExecutor
         'broadcasts a single event to all actors with a listener for the event
         'TODO: take arguments instead of eventTag?
 
-        If Not IsNothing(CurrentRoom) AndAlso Not IsNothing(CurrentRoom.actors) Then
-            For index As Integer = 0 To UBound(CurrentRoom.actors)
-                Dim act As Actor = CurrentRoom.actors(index)
-                If Not IsNothing(act.Tags) Then
-                    For tagIndex As Integer = 0 To UBound(act.Tags)
-                        If LCase(act.Tags(tagIndex).name) = ListenerTagName AndAlso
-                        act.Tags(tagIndex).InterpretArgument(NameTagName) = eventTag.InterpretArgument(NameTagName) Then
-                            ReceiveEvent(act, act.Tags(tagIndex))
-                        End If
-                    Next
-                End If
+        Dim eventName As String = eventTag.InterpretArgument(NameTagName)
 
-                CurrentRoom.actors(index) = act
+        If Not IsNothing(CurrentRoom) AndAlso Not IsNothing(CurrentRoom.actors) Then
+            For Each act As Actor In CurrentRoom.actors
+                Dim listeners() As Tag = act.FindTags(ListenerTagName)
+                For Each listener As Tag In listeners
+                    Dim listenerName As String = listener.InterpretArgument(NameTagName)
+                    If LCase(listenerName) = LCase(eventName) Then
+                        ReceiveEvent(act, listener)
+                    End If
+                Next
             Next
         End If
     End Sub
