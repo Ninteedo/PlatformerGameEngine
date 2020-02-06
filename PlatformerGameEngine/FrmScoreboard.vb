@@ -12,9 +12,9 @@ Public Class FrmScoreboard
 
         ' Add any initialization after the InitializeComponent() call.
 
-        'gets the game name from the user
+        'gets the game Name from the user
 
-        Dim input As String = InputBox("Enter the name of the game for which the scoreboard will be shown", "Enter Game Name", "Game Name")
+        Dim input As String = InputBox("Enter the Name of the game for which the scoreboard will be shown", "Enter Game Name", "Game Name")
 
         'if cancel pressed then close the form
         If IsNothing(input) OrElse input = "" Then
@@ -54,7 +54,7 @@ Public Class FrmScoreboard
                 GROUP BY initials                    
                 ORDER BY MAX(points) DESC;"
 
-                'uses preparing to prevent SQL injection attacks (injection would've been possible for game name and possibly initials)
+                'uses preparing to prevent SQL injection attacks (injection would've been possible for game Name and possibly initials)
                 Using cmd As New MySqlCommand(query, conn)
                     'prepares query
                     cmd.Parameters.Add("@gameName", MySqlDbType.String, 64)
@@ -115,7 +115,7 @@ Public Class FrmScoreboard
         Dim searchTerm As String = UCase(TxtFind.Text)
         If Len(searchTerm) = 3 Then
             For index As Integer = 0 To LstScoreboard.Items.Count - 1
-                'selects the item if the name matches
+                'selects the item if the Name matches
                 Dim match As Boolean = LstScoreboard.Items(index).SubItems(1).Text = searchTerm
                 LstScoreboard.Items(index).Selected = match
 

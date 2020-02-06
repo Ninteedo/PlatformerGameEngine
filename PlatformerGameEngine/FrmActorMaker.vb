@@ -79,7 +79,7 @@ Public Class FrmActorMaker
     Private Sub RefreshSpritesList()
         'empties and refills the sprites list
 
-        Dim items() As String = Nothing
+        Dim items() As String = {}
         If Not IsNothing(ActorSprites) Then
             ReDim items(UBound(ActorSprites))
             For index As Integer = 0 To UBound(ActorSprites)
@@ -124,7 +124,7 @@ Public Class FrmActorMaker
 
 #Region "List Manipulation"
 
-    Private Sub BtnSpriteLoad_Click(sender As Object, e As EventArgs) Handles BtnSpriteLoad.Click
+    Private Sub BtnSpriteLoad_Click(sender As Button, e As EventArgs) Handles BtnSpriteLoad.Click
         'loads the user selected sprites
 
         Using openDialog As New OpenFileDialog With {.Filter = SpriteFileFilter, .Multiselect = True}
@@ -136,7 +136,7 @@ Public Class FrmActorMaker
         End Using
     End Sub
 
-    Private Sub NumSpriteIndex_ValueChanged(sender As Object, e As EventArgs) Handles NumSpriteIndex.ValueChanged
+    Private Sub NumSpriteIndex_ValueChanged(sender As NumericUpDown, e As EventArgs) Handles NumSpriteIndex.ValueChanged
         'swaps the locations in loadedSprites of the selected sprite and the entered new sprite index
 
         If LstSprites.SelectedIndex > -1 Then
@@ -151,7 +151,7 @@ Public Class FrmActorMaker
         End If
     End Sub
 
-    Private Sub MenuLstSpriteDelete_Click(sender As Object, e As EventArgs) Handles MenuLstSpriteDelete.Click
+    Private Sub MenuLstSpriteDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles MenuLstSpriteDelete.Click
         'deletes the sprite that the user has selected
 
         If LstSprites.SelectedIndex > -1 Then

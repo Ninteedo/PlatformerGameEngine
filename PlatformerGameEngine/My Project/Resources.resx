@@ -60,118 +60,118 @@
             : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xsd:element name="root" msdata:IsDataSet="true">
+    <xsd:import Namespace="http://www.w3.org/XML/1998/Namespace" />
+    <xsd:element Name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
-          <xsd:element name="metadata">
+          <xsd:element Name="metadata">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+                <xsd:element Name="value" type="xsd:string" minOccurs="0" />
               </xsd:sequence>
-              <xsd:attribute name="name" use="required" type="xsd:string" />
-              <xsd:attribute name="type" type="xsd:string" />
-              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute Name="Name" use="required" type="xsd:string" />
+              <xsd:attribute Name="type" type="xsd:string" />
+              <xsd:attribute Name="mimetype" type="xsd:string" />
               <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
-          <xsd:element name="assembly">
+          <xsd:element Name="assembly">
             <xsd:complexType>
-              <xsd:attribute name="alias" type="xsd:string" />
-              <xsd:attribute name="name" type="xsd:string" />
+              <xsd:attribute Name="alias" type="xsd:string" />
+              <xsd:attribute Name="Name" type="xsd:string" />
             </xsd:complexType>
           </xsd:element>
-          <xsd:element name="data">
+          <xsd:element Name="data">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+                <xsd:element Name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element Name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute Name="Name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute Name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute Name="mimetype" type="xsd:string" msdata:Ordinal="4" />
               <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
-          <xsd:element name="resheader">
+          <xsd:element Name="resheader">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element Name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute Name="Name" type="xsd:string" use="required" />
             </xsd:complexType>
           </xsd:element>
         </xsd:choice>
       </xsd:complexType>
     </xsd:element>
   </xsd:schema>
-  <resheader name="resmimetype">
+  <resheader Name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
-  <resheader name="version">
+  <resheader Name="version">
     <value>2.0</value>
   </resheader>
-  <resheader name="reader">
+  <resheader Name="reader">
     <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <resheader name="writer">
+  <resheader Name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ActorTagName" xml:space="preserve">
-    <value>actors</value>
+  <data Name="ActorTagName" xml:space="preserve">
+    <value>Actors</value>
   </data>
-  <data name="CurrentSpriteTagName" xml:space="preserve">
+  <data Name="CurrentSpriteTagName" xml:space="preserve">
     <value>currentSprite</value>
   </data>
-  <data name="LayerTagName" xml:space="preserve">
+  <data Name="LayerTagName" xml:space="preserve">
     <value>layer</value>
   </data>
-  <data name="LocationTagName" xml:space="preserve">
+  <data Name="LocationTagName" xml:space="preserve">
     <value>location</value>
   </data>
-  <data name="NameTagName" xml:space="preserve">
-    <value>name</value>
+  <data Name="NameTagName" xml:space="preserve">
+    <value>Name</value>
   </data>
-  <data name="OpacityTagName" xml:space="preserve">
+  <data Name="OpacityTagName" xml:space="preserve">
     <value>opacity</value>
   </data>
-  <data name="RoomIndexTagName" xml:space="preserve">
+  <data Name="RoomIndexTagName" xml:space="preserve">
     <value>roomIndex</value>
   </data>
-  <data name="RoomsTagName" xml:space="preserve">
+  <data Name="RoomsTagName" xml:space="preserve">
     <value>rooms</value>
   </data>
-  <data name="ScaleTagName" xml:space="preserve">
+  <data Name="ScaleTagName" xml:space="preserve">
     <value>scale</value>
   </data>
-  <data name="SpriteFileFilter" xml:space="preserve">
+  <data Name="SpriteFileFilter" xml:space="preserve">
     <value>Sprite file (*.sprt)|*.sprt</value>
   </data>
-  <data name="SpritesTagName" xml:space="preserve">
+  <data Name="SpritesTagName" xml:space="preserve">
     <value>sprites</value>
   </data>
-  <data name="TagsTagName" xml:space="preserve">
+  <data Name="TagsTagName" xml:space="preserve">
     <value>tags</value>
   </data>
-  <data name="LevelFileFilter" xml:space="preserve">
+  <data Name="LevelFileFilter" xml:space="preserve">
     <value>Level file (*.lvl)|*.lvl</value>
   </data>
-  <data name="BehaviourTagName" xml:space="preserve">
+  <data Name="BehaviourTagName" xml:space="preserve">
     <value>behaviour</value>
   </data>
-  <data name="ColoursTagName" xml:space="preserve">
+  <data Name="ColoursTagName" xml:space="preserve">
     <value>colours</value>
   </data>
-  <data name="EventTagName" xml:space="preserve">
+  <data Name="EventTagName" xml:space="preserve">
     <value>event</value>
   </data>
-  <data name="ListenerTagName" xml:space="preserve">
+  <data Name="ListenerTagName" xml:space="preserve">
     <value>listener</value>
   </data>
-  <data name="PixelsTagName" xml:space="preserve">
+  <data Name="PixelsTagName" xml:space="preserve">
     <value>pixels</value>
   </data>
-  <data name="SpriteTagName" xml:space="preserve">
+  <data Name="SpriteTagName" xml:space="preserve">
     <value>sprite</value>
   </data>
 </root>

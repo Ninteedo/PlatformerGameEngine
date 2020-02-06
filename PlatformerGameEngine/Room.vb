@@ -1,13 +1,15 @@
 ﻿Public Class Room
-    'a room is a collection of actors which are all rendered at once
+    'a room is a collection of Actors which are all rendered at once
 
-    Public actors() As Actor    'the actors which are used in the game, modified copies of the defaults
-    Public name As String
+    Public Actors() As Actor    'the Actors which are used in the game, modified copies of the defaults
+    Public Name As String
+
 
 #Region "Constructors"
 
-    Public Sub New(Optional actors As Actor() = Nothing)
-        Me.actors = actors
+    Public Sub New(actors() As Actor, Optional name As String = "Unnamed")
+        Me.Actors = actors
+        Me.Name = name
     End Sub
 
     Public Sub New(roomString As String)
@@ -16,16 +18,16 @@
             Dim roomTag As New Tag(roomString)
             If Not IsNothing(roomTag) Then
                 'loads the room name
-                name = roomTag.name
+                Name = roomTag.Name
 
                 'loads each actor
                 Dim actorsTag As Tag = roomTag.FindSubTag(My.Resources.ActorTagName)
                 If Not IsNothing(actorsTag) Then
                     Dim temp As Object = actorsTag.InterpretArgument
                     If IsArray(temp) Then
-                        ReDim actors(UBound(temp))
+                        ReDim Actors(UBound(temp))
                         For index As Integer = 0 To UBound(temp)
-                            actors(index) = New Actor(temp(index).ToString)
+                            Actors(index) = New Actor(temp(index).ToString)
                         Next
                     End If
                 End If
@@ -43,7 +45,7 @@
     Public Overrides Function ToString() As String
         'updated version of room ToString which makes better use of tags
 
-        Return New Tag(name, ArrayToString({New Tag(My.Resources.ActorTagName, ArrayToString(actors)).ToString})).ToString
+        Return New Tag(Name, ArrayToString({New Tag(My.Resources.ActorTagName, ArrayToString(Actors)).ToString})).ToString
     End Function
 
 #End Region

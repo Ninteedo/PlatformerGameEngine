@@ -61,7 +61,7 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to actors.
+        '''  Looks up a localized string similar to Actors.
         '''</summary>
         Friend ReadOnly Property ActorTagName() As String
             Get
@@ -142,7 +142,7 @@ Namespace My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to name.
+        '''  Looks up a localized string similar to Name.
         '''</summary>
         Friend ReadOnly Property NameTagName() As String
             Get

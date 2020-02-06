@@ -11,9 +11,9 @@ Public Module JsonHandler
 
     Public Function TagToJson(inputTag As Tag) As String
         Dim result As String = ""
-        If Not IsNothing(inputTag.name) Then
-            result = "{" & AddQuotes(inputTag.name) &
-                If(Not IsNothing(inputTag.argument) AndAlso Len(inputTag.argument) > 0, ":" & inputTag.argument & "}", "}")
+        If Not IsNothing(inputTag.Name) Then
+            result = "{" & AddQuotes(inputTag.Name) &
+                If(Not IsNothing(inputTag.Argument) AndAlso Len(inputTag.Argument) > 0, ":" & inputTag.Argument & "}", "}")
         End If
         Return result
     End Function
@@ -143,7 +143,7 @@ Public Module JsonHandler
                         Dim resultTag As Tag = New Tag(valueString)
 
                         If fullInterpret Then
-                            resultTag.SetArgument(InterpretValue(resultTag.argument, fullInterpret, act, game))
+                            resultTag.SetArgument(InterpretValue(resultTag.Argument, fullInterpret, act, game))
                         End If
 
                         result = resultTag

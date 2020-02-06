@@ -33,7 +33,7 @@ Public Class FrmTagMakerBasic
 
         Dim valid As Boolean = True
 
-        Dim openedBrackets() As String = Nothing    'stores an ordered list of currently opened brackets: { or [
+        Dim openedBrackets() As String = {}    'stores an ordered list of currently opened brackets: { or [
         Dim tagString As String = RemoveSubStrings(TxtJson.Text)
         Dim errorIndex As Integer = -1
 

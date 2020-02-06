@@ -2,22 +2,22 @@
 
     Implements ICloneable
 
-    Public name As String
-    Public argument As String
+    Public ReadOnly Name As String
+    Public Argument As String
 
 #Region "Constructors"
 
     Public Sub New(Optional ByVal name As String = Nothing, Optional ByVal argument As String = Nothing)
-        Me.name = name
-        Me.argument = argument
+        Me.Name = name
+        Me.Argument = argument
     End Sub
 
     Public Sub New(tagString As String)
         'creates a tag from a string
 
         Dim newTag As Tag = JsonToTag(tagString)
-        name = newTag.name
-        argument = newTag.argument
+        Name = newTag.Name
+        Argument = newTag.Argument
     End Sub
 
 #End Region
@@ -26,7 +26,7 @@
 
     Public Function InterpretArgument(Optional subTagName As String = Nothing) As Object
         If IsNothing(subTagName) Then
-            Return InterpretValue(argument)
+            Return InterpretValue(Argument)
         Else
             Return FindSubTag(subTagName)
         End If
@@ -40,14 +40,14 @@
         If IsArray(subTagsTemp) Then
             For index As Integer = 0 To UBound(subTagsTemp)
                 Dim subTag As Tag = TryCast(subTagsTemp(index), Tag)
-                If Not IsNothing(subTag) AndAlso subTag.name = subTagName Then
+                If Not IsNothing(subTag) AndAlso LCase(subTag.Name) = LCase(subTagName) Then
                     Return subTag
                 End If
             Next
         ElseIf Not IsNothing(subTagsTemp) Then
             'checks if a single tag was given instead of an array, and returns it if the name matches
             If subTagsTemp.GetType() = GetType(Tag) Then
-                If CType(subTagsTemp, Tag).name = subTagName Then
+                If CType(subTagsTemp, Tag).Name = subTagName Then
                     Return CType(subTagsTemp, Tag)
                 End If
             End If
@@ -58,7 +58,7 @@
     End Function
 
     Public Sub SetArgument(newValue As Object)
-        argument = ArrayToString(newValue)
+        Argument = ArrayToString(newValue)
     End Sub
 
 #End Region
@@ -71,9 +71,8 @@
         If IsNothing(tag1) Or IsNothing(tag2) Then
             Return IsNothing(tag1) = IsNothing(tag2)
         Else
-            Return LCase(tag1.name) = LCase(tag2.name) AndAlso tag1.argument = tag2.argument
+            Return LCase(tag1.Name) = LCase(tag2.Name) AndAlso tag1.Argument = tag2.Argument
         End If
-
     End Function
 
     Public Shared Operator =(tag1 As Tag, tag2 As Tag) As Boolean
@@ -95,7 +94,7 @@
     Public Function Clone() As Object Implements ICloneable.Clone
         'returns a deep clone of this tag
 
-        Return New Tag(name.Clone, argument.Clone)
+        Return New Tag(Name.Clone, Argument.Clone)
     End Function
 
 #End Region

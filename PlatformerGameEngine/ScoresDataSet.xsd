@@ -66,22 +66,22 @@
       </DataSource>
     </xs:appinfo>
   </xs:annotation>
-  <xs:element name="ScoresDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="True" msprop:Generator_DataSetName="ScoresDataSet" msprop:Generator_UserDSName="ScoresDataSet">
+  <xs:element Name="ScoresDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="True" msprop:Generator_DataSetName="ScoresDataSet" msprop:Generator_UserDSName="ScoresDataSet">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:element name="score" msprop:Generator_TableClassName="scoreDataTable" msprop:Generator_TableVarName="tablescore" msprop:Generator_TablePropName="score" msprop:Generator_RowDeletingName="scoreRowDeleting" msprop:Generator_RowChangingName="scoreRowChanging" msprop:Generator_RowEvHandlerName="scoreRowChangeEventHandler" msprop:Generator_RowDeletedName="scoreRowDeleted" msprop:Generator_UserTableName="score" msprop:Generator_RowChangedName="scoreRowChanged" msprop:Generator_RowEvArgName="scoreRowChangeEvent" msprop:Generator_RowClassName="scoreRow">
+        <xs:element Name="score" msprop:Generator_TableClassName="scoreDataTable" msprop:Generator_TableVarName="tablescore" msprop:Generator_TablePropName="score" msprop:Generator_RowDeletingName="scoreRowDeleting" msprop:Generator_RowChangingName="scoreRowChanging" msprop:Generator_RowEvHandlerName="scoreRowChangeEventHandler" msprop:Generator_RowDeletedName="scoreRowDeleted" msprop:Generator_UserTableName="score" msprop:Generator_RowChangedName="scoreRowChanged" msprop:Generator_RowEvArgName="scoreRowChangeEvent" msprop:Generator_RowClassName="scoreRow">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="id" msprop:Generator_ColumnVarNameInTable="columnid" msprop:Generator_ColumnPropNameInRow="id" msprop:Generator_ColumnPropNameInTable="idColumn" msprop:Generator_UserColumnName="id" type="xs:unsignedInt" />
-              <xs:element name="initials" msprop:Generator_ColumnVarNameInTable="columninitials" msprop:Generator_ColumnPropNameInRow="initials" msprop:Generator_ColumnPropNameInTable="initialsColumn" msprop:Generator_UserColumnName="initials">
+              <xs:element Name="id" msprop:Generator_ColumnVarNameInTable="columnid" msprop:Generator_ColumnPropNameInRow="id" msprop:Generator_ColumnPropNameInTable="idColumn" msprop:Generator_UserColumnName="id" type="xs:unsignedInt" />
+              <xs:element Name="initials" msprop:Generator_ColumnVarNameInTable="columninitials" msprop:Generator_ColumnPropNameInRow="initials" msprop:Generator_ColumnPropNameInTable="initialsColumn" msprop:Generator_UserColumnName="initials">
                 <xs:simpleType>
                   <xs:restriction base="xs:string">
                     <xs:maxLength value="3" />
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
-              <xs:element name="points" msprop:Generator_ColumnVarNameInTable="columnpoints" msprop:Generator_ColumnPropNameInRow="points" msprop:Generator_ColumnPropNameInTable="pointsColumn" msprop:Generator_UserColumnName="points" type="xs:int" />
-              <xs:element name="gameName" msprop:Generator_ColumnVarNameInTable="columngameName" msprop:Generator_ColumnPropNameInRow="gameName" msprop:Generator_ColumnPropNameInTable="gameNameColumn" msprop:Generator_UserColumnName="gameName">
+              <xs:element Name="points" msprop:Generator_ColumnVarNameInTable="columnpoints" msprop:Generator_ColumnPropNameInRow="points" msprop:Generator_ColumnPropNameInTable="pointsColumn" msprop:Generator_UserColumnName="points" type="xs:int" />
+              <xs:element Name="gameName" msprop:Generator_ColumnVarNameInTable="columngameName" msprop:Generator_ColumnPropNameInRow="gameName" msprop:Generator_ColumnPropNameInTable="gameNameColumn" msprop:Generator_UserColumnName="gameName">
                 <xs:simpleType>
                   <xs:restriction base="xs:string">
                     <xs:maxLength value="64" />
@@ -93,7 +93,7 @@
         </xs:element>
       </xs:choice>
     </xs:complexType>
-    <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+    <xs:unique Name="Constraint1" msdata:PrimaryKey="true">
       <xs:selector xpath=".//mstns:score" />
       <xs:field xpath="mstns:id" />
     </xs:unique>

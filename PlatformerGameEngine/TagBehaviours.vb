@@ -10,18 +10,18 @@ Public Module TagBehaviours
     Public Sub ProcessTag(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
         'processes a single tag and modifies the actor accordingly
 
-        Select Case LCase(inputTag.name)
+        Select Case LCase(inputTag.Name)
             Case "velocity"     '[xChange,yChange]
-                Dim velocityTemp As Object = InterpretValue(inputTag.argument, True, act, game)
+                Dim velocityTemp As Object = InterpretValue(inputTag.Argument, True, act, game)
                 Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
                 VelocityHandling(act, velocity, game)
 
             Case "addtag"
-                Dim newTag As Tag = InterpretValue(inputTag.argument, True, act, game)
+                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
                 act.AddTag(newTag, True)
             Case "addparam"
-                Dim newTag As Tag = InterpretValue(inputTag.argument, True, act, game)
+                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
                 game.CurrentLevel.AddTag(newTag, True)
             Case "removetag"
                 act.RemoveTag(inputTag.InterpretArgument())
@@ -72,7 +72,7 @@ Public Module TagBehaviours
         Const solidTagName As String = "solid"
 
         If act.HasTag(collisionTagName) Then
-            For Each otherAct As Actor In game.CurrentRoom.actors
+            For Each otherAct As Actor In game.CurrentRoom.Actors
                 If act.Name <> otherAct.Name Then   'prevents actor colliding with itself
                     If otherAct.HasTag(collisionTagName) Then
                         Dim collisionResult As PolygonCollisionResult = CheckPolygons(act, otherAct, velocity)
@@ -244,7 +244,7 @@ Public Module TagBehaviours
                     Edges(index) = point2 - point1
                 Next
             Else
-                Edges = Nothing
+                Edges = {}
             End If
         End Sub
 
@@ -323,7 +323,7 @@ Public Module TagBehaviours
         If min1 < min2 Then
             Return min2 - max1
         Else
-            Return  min1 - max2
+            Return min1 - max2
         End If
     End Function
 
@@ -607,8 +607,8 @@ Public Module TagBehaviours
         LessThan
     End Enum
 
-    Private Function IfTagHandling(ifTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
-        Dim condition As String = ifTag.FindSubTag("con").argument
+    Private Sub IfTagHandling(ifTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
+        Dim condition As String = ifTag.FindSubTag("con").Argument
         Dim executeTag As Tag
 
         'assesses condition then executes either "then" or "else" part of the if
@@ -618,7 +618,7 @@ Public Module TagBehaviours
             executeTag = ifTag.FindSubTag("else")
         End If
         ProcessSubTags(executeTag, act, game)
-    End Function
+    End Sub
 
     Private Function AssessCondition(condition As String, Optional ByRef act As Actor = Nothing,
                                         Optional ByRef game As FrmGameExecutor = Nothing) As Boolean
@@ -634,7 +634,7 @@ Public Module TagBehaviours
             Const notOperator As String = "not "
 
             Dim comparisons() As String = {condition}      'list of individual comparisons split by logic operators
-            Dim comparisonTypes() As LogicOp = Nothing      'list of the order of comparisons used
+            Dim comparisonTypes() As LogicOp = {}      'list of the order of comparisons used
 
             'finds individual comparisons
             For opIndex As Integer = 0 To UBound(logicOperators)
@@ -847,7 +847,7 @@ Public Module TagBehaviours
 
     Private Function IdentifyVars(line As String) As String()
         line = RemoveSubStrings(line)
-        Dim varNames() As String = Nothing
+        Dim varNames() As String = {}
         Dim alphaNumericChars As String = "abcdefghijklmnopqrstuvwxyz0123456789"    'variables can only have alphanumeric characters
         Dim inVarName As Boolean
 

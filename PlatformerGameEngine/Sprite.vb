@@ -63,7 +63,7 @@ Public Class Sprite
                     DisplayError("Unable to find colours in a sprite")
                 End If
             Else
-                DisplayError("Invalid colour argument: " & coloursTag.argument)
+                DisplayError("Invalid colour argument: " & coloursTag.Argument)
             End If
         Else
             DisplayError("Unable to find tag for colours in a sprite")

@@ -9,13 +9,12 @@ Public Class Level
 
 #Region "Constructors"
 
-    Public Sub New(Optional rooms() As Room = Nothing)
+    Public Sub New(rooms() As Room)
         Me.Rooms = rooms
     End Sub
 
     Public Sub New(levelString As String)
-        Tags = Nothing
-        Rooms = Nothing
+        Rooms = {}
 
         Dim levelTag As New Tag(levelString)
         If Not IsNothing(levelTag) Then

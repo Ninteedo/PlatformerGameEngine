@@ -14,7 +14,7 @@ Public Class FrmLevelEditor
 
     Private Sub Initialization()
         _renderEngine = New RenderEngine(PnlRender)
-        _createdLevel = New Level
+        _createdLevel = New Level({})
 
         RefreshControlsEnabled()
     End Sub
@@ -44,7 +44,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub SaveAsPrompt()
-        'asks the user for a name to save the level
+        'asks the user for a Name to save the level
 
         Using saveDialog As New SaveFileDialog With {.Filter = LevelFileFilter}
             If saveDialog.ShowDialog() = DialogResult.OK Then        'checks that the user actually entered something
@@ -103,7 +103,7 @@ Public Class FrmLevelEditor
                 If savedLevelString <> _createdLevel.ToString Then
                     result = True
                 End If
-            ElseIf _createdLevel <> New Level Then
+            ElseIf _createdLevel <> New Level({}) Then
                 'if changes have been made but no saves made then there are unsaved changes
                 result = True
             End If
@@ -121,7 +121,7 @@ Public Class FrmLevelEditor
     Private Sub RenderCurrentRoom()
         'renders the current room
         If Not IsNothing(_renderEngine) Then
-            _renderEngine.DoGameRenderNoSort(SelectedRoom.actors)
+            _renderEngine.DoGameRenderNoSort(SelectedRoom.Actors)
         End If
     End Sub
 
@@ -137,10 +137,10 @@ Public Class FrmLevelEditor
 
     Private Property Actors As Actor()
         Get
-            Return SelectedRoom.actors
+            Return SelectedRoom.Actors
         End Get
         Set
-            SelectedRoom.actors = Value
+            SelectedRoom.Actors = Value
 
             RefreshActorsList()
             RefreshTagsList()
@@ -151,14 +151,14 @@ Public Class FrmLevelEditor
     Private Property SelectedActor As Actor
         Get
             If LstActors.SelectedIndex > -1 Then
-                Return SelectedRoom.actors(LstActors.SelectedIndex)
+                Return SelectedRoom.Actors(LstActors.SelectedIndex)
             Else
                 Return _unselectedActor
             End If
         End Get
         Set
             If LstActors.SelectedIndex > -1 Then
-                SelectedRoom.actors(LstActors.SelectedIndex) = Value
+                SelectedRoom.Actors(LstActors.SelectedIndex) = Value
             Else
                 DisplayError("Tried to modify an actor but none were selected")
             End If
@@ -172,7 +172,7 @@ Public Class FrmLevelEditor
             actorMaker.ShowDialog()
 
             If actorMaker.Finished Then
-                AddActor(actorMaker.createdActor)
+                AddActor(actorMaker.CreatedActor)
             End If
         End Using
     End Sub
@@ -187,13 +187,13 @@ Public Class FrmLevelEditor
             actorMaker.ShowDialog()
 
             If actorMaker.Finished Then
-                SelectedActor = actorMaker.createdActor
+                SelectedActor = actorMaker.CreatedActor
             End If
         End Using
     End Sub
 
     Private Sub ItmActorDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorDuplicate.Click
-        AddActor(_createdLevel.Rooms(LstRooms.SelectedIndex).actors(LstActors.SelectedIndex))
+        AddActor(_createdLevel.Rooms(LstRooms.SelectedIndex).Actors(LstActors.SelectedIndex))
     End Sub
 
     Private Sub AddActor(template As Actor)
@@ -294,7 +294,7 @@ Public Class FrmLevelEditor
         _disableTagChangedEvent = True
 
         If IsNothing(displayActor) Then      'if no actor provided then uses an empty actor
-            displayActor = New Actor       'this doesn't work as actors have some default properties
+            displayActor = New Actor       'this doesn't work as Actors have some default properties
             'ToggleTagControls(False)
         End If
 
@@ -336,7 +336,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmTagsDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmTagsDelete.Click
-        If MsgBox("Are you sure you wish to delete tag " & SelectedTag.name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+        If MsgBox("Are you sure you wish to delete tag " & SelectedTag.Name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
             Tags = RemoveItem(Tags, LstActorTags.SelectedIndex)
         End If
     End Sub
@@ -372,7 +372,7 @@ Public Class FrmLevelEditor
 
         If Not IsNothing(Actors) Then
             'finds which instances the mouse is over
-            Dim possibleInstanceIndices() As Integer = Nothing
+            Dim possibleInstanceIndices() As Integer = {}
             For index As Integer = 0 To UBound(Actors)
                 Dim instanceArea As RectangleF = Actors(index).Hitbox()
 
@@ -493,7 +493,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmParameterDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmParameterDelete.Click
-        If MsgBox("Are you sure you wish to delete parameter " & SelectedParameter.name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+        If MsgBox("Are you sure you wish to delete parameter " & SelectedParameter.Name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
             Parameters = RemoveItem(Parameters, LstLevelParams.SelectedIndex)
         End If
     End Sub
@@ -515,7 +515,7 @@ Public Class FrmLevelEditor
 
 #Region "Rooms"
 
-    ReadOnly _unselectedRoom As New Room With {.name = "UnselectedRoom"}
+    ReadOnly _unselectedRoom As New Room({})
 
     Private Property Rooms As Room()
         Get
@@ -548,7 +548,7 @@ Public Class FrmLevelEditor
         If Not IsNothing(Rooms) Then
             Dim items(UBound(Rooms)) As String
             For index As Integer = 0 To UBound(Rooms)
-                items(index) = Rooms(index).name
+                items(index) = Rooms(index).Name
             Next
 
             RefreshList(LstRooms, items)
@@ -566,25 +566,25 @@ Public Class FrmLevelEditor
     Private Sub BtnRoomAdd_Click(sender As Button, e As EventArgs) Handles BtnRoomAdd.Click
         'a new room is added to the level
 
-        Dim roomName As String = InputBox("Please enter a name for the new room")
+        Dim roomName As String = InputBox("Please enter a Name for the new room")
 
         If Not IsNothing(roomName) AndAlso roomName.Length > 0 Then
-            Rooms = InsertItem(Rooms, New Room With {.name = roomName})
+            Rooms = InsertItem(Rooms, New Room({}, roomName))
             LstRooms.SelectedIndex = UBound(Rooms)      'automatically selects the new room
         End If
     End Sub
 
     Private Sub ItmRoomDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmRoomDelete.Click
-        If MsgBox("Are you sure you wish to delete room " & SelectedRoom.name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+        If MsgBox("Are you sure you wish to delete room " & SelectedRoom.Name & "?", MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
             Rooms = RemoveItem(Rooms, LstRooms.SelectedIndex)
         End If
     End Sub
 
     Private Sub ItmRoomEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmRoomEdit.Click
-        Dim newName As String = InputBox("Please enter the new name for " & SelectedRoom.name)
+        Dim newName As String = InputBox("Please enter the new Name for " & SelectedRoom.Name)
 
         If Not IsNothing(newName) AndAlso newName.Length > 0 Then
-            SelectedRoom.name = newName
+            SelectedRoom.Name = newName
             RefreshEverything()
         End If
     End Sub

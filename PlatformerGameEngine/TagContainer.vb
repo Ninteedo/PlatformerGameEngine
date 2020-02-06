@@ -8,7 +8,11 @@ Public Class TagContainer
 
 #Region "Constructors"
 
-    Protected Sub New(Optional tags() As Tag = Nothing)
+    Protected Sub New()
+        Me.Tags = {}
+    End Sub
+
+    Protected Sub New(tags() As Tag)
         Me.Tags = tags
     End Sub
 
@@ -25,7 +29,7 @@ Public Class TagContainer
 
         Dim matchingTags() As Tag = FindTags(tagName)
 
-        If Not IsNothing(matchingTags) Then
+        If Not IsNothing(matchingTags) AndAlso UBound(matchingTags) > -1 Then
             'returns first matching tag
             Return matchingTags(0)
         Else
@@ -38,11 +42,11 @@ Public Class TagContainer
         'returns all the tags this container has which match a given name
         'useful for things such as listeners where there are multiple tags with the same name
 
-        Dim result() As Tag = Nothing
+        Dim result() As Tag = {}
 
         If Not IsNothing(Tags) Then
             For index As Integer = 0 To UBound(Tags)
-                If LCase(Tags(index).name) = LCase(tagName) Then
+                If LCase(Tags(index).Name) = LCase(tagName) Then
                     result = InsertItem(result, Tags(index))
                 End If
             Next
@@ -55,7 +59,7 @@ Public Class TagContainer
         'adds the given tag to the end of the tag list
 
         If removeDuplicates Then
-            RemoveTag(newTag.name)
+            RemoveTag(newTag.Name)
         End If
 
         Tags = InsertItem(Tags, newTag)
@@ -67,7 +71,7 @@ Public Class TagContainer
         If Not IsNothing(Tags) AndAlso UBound(Tags) >= 0 Then
             Dim tagIndex As Integer = 0
             Do While tagIndex <= UBound(Tags)
-                If Tags(tagIndex).name = tagName Then
+                If Tags(tagIndex).Name = tagName Then
                     Tags = RemoveItem(Tags, tagIndex)
 
                     'breaks out of for if there are no elements left in the tag array

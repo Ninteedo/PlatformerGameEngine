@@ -109,8 +109,8 @@ Public Class FrmGameExecutor
 
         'processes each actor's tags
         If Not IsNothing(CurrentRoom) Then
-            If Not IsNothing(CurrentRoom.actors) Then
-                For Each act As Actor In CurrentRoom.actors
+            If Not IsNothing(CurrentRoom.Actors) Then
+                For Each act As Actor In CurrentRoom.Actors
                     'processes the actor's actions for this tick
                     Dim tagIndex As Integer = 0
                     'TODO: how to deal with this list changing, tag IDs?
@@ -121,7 +121,7 @@ Public Class FrmGameExecutor
                 Next
             End If
 
-            _renderer.DoGameRender(CurrentRoom.actors)
+            _renderer.DoGameRender(CurrentRoom.Actors)
         End If
     End Sub
 
@@ -162,69 +162,6 @@ Public Class FrmGameExecutor
         Dim parts() As String = JsonSplit(refString, 0, ".")    'reference delimited by "."
         Dim result As Object = Nothing
 
-        Dim startArrayCharIndex As Integer = 0
-        Dim endArrayCharIndex As Integer = 0
-
-        'find object (actor or room) which the reference is coming from
-        'Select Case LCase(parts(0))
-        '    Case "me"
-        '        result = act
-
-        '        If UBound(parts) >= 1 Then
-        '            If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
-        '                Dim temp As String = parts(1).Remove(startArrayCharIndex)
-        '                result = act.FindTag(temp)
-        '            Else
-        '                result = act.FindTag(parts(1))
-        '            End If
-        '        End If
-        '    Case "level"
-        '        'result = currentRoom.FindTag(parts(1))
-        '        result = _currentLevel
-        '    Case Else
-        '        For index As Integer = 0 To UBound(CurrentRoom.actors)
-        '            If CurrentRoom.actors(index).Name = parts(0) Then
-        '                result = CurrentRoom.actors(index)
-
-        '                If UBound(parts) >= 1 Then
-        '                    If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
-        '                        Dim temp As String = parts(1).Remove(startArrayCharIndex)
-        '                        result = result.FindTag(temp)
-        '                    Else
-        '                        result = result.FindTag(parts(1))
-        '                    End If
-        '                End If
-        '            End If
-        '        Next
-        'End Select
-
-        ''finds what (in the object being referenced) is being referenced
-        'If Not IsNothing(result) Then
-        '    If UBound(parts) > 1 Then
-        '        For index As Integer = 1 To UBound(parts)
-        '            If GetArrayCharIndices(parts(index), startArrayCharIndex, endArrayCharIndex) Then
-        '                Dim arrayIndex As Integer = ProcessCalculation(
-        '                    Mid(parts(index), startArrayCharIndex + 2, endArrayCharIndex - startArrayCharIndex - 1), act,
-        '                    Me)
-        '                result = result.InterpretArgument(parts(index).Remove(startArrayCharIndex))
-        '                result = result(arrayIndex)
-        '            Else
-        '                result = result.InterpretArgument(parts(index))
-        '            End If
-        '        Next
-
-        '    ElseIf UBound(parts) = 1 Then
-        '        'TODO: is this part needed?
-        '        If GetArrayCharIndices(parts(1), startArrayCharIndex, endArrayCharIndex) Then
-        '            Dim start As Integer = startArrayCharIndex + 2
-        '            Dim length As Integer = endArrayCharIndex - startArrayCharIndex - 1
-        '            Dim arrayIndex As Integer = Int(ProcessCalculation(Mid(parts(1), start, length), act, Me))
-        '            result = result.InterpretArgument()(arrayIndex)
-        '        Else
-        '            result = result.InterpretArgument()
-        '        End If
-        '    End If
-        'End If
 
         Select Case LCase(parts(0))
             Case "me"
@@ -232,7 +169,7 @@ Public Class FrmGameExecutor
             Case "level"
                 result = _currentLevel
             Case Else
-                For Each otherAct As Actor In CurrentRoom.actors
+                For Each otherAct As Actor In CurrentRoom.Actors
                     If LCase(otherAct.Name) = LCase(parts(0)) Then
                         result = otherAct
                         Exit For
@@ -243,6 +180,9 @@ Public Class FrmGameExecutor
         If Not IsNothing(result) Then
             For index As Integer = 1 To UBound(parts)
                 Dim partString As String = parts(index)
+
+                Dim startArrayCharIndex As Integer = 0
+                Dim endArrayCharIndex As Integer = 0
 
                 'gets array index
                 Dim arrayIndex As Integer = -1
@@ -289,16 +229,16 @@ Public Class FrmGameExecutor
 #Region "Events"
 
     Public Sub BroadcastEvent(eventTag As Tag)
-        'broadcasts a single event to all actors with a listener for the event
+        'broadcasts a single event to all Actors with a listener for the event
         'TODO: take arguments instead of eventTag?
 
-        Dim eventName As String = eventTag.InterpretArgument(NameTagName)
+        Dim eventName As String = eventTag.FindSubTag(NameTagName).Argument
 
-        If Not IsNothing(CurrentRoom) AndAlso Not IsNothing(CurrentRoom.actors) Then
-            For Each act As Actor In CurrentRoom.actors
+        If Not IsNothing(CurrentRoom) AndAlso Not IsNothing(CurrentRoom.Actors) Then
+            For Each act As Actor In CurrentRoom.Actors
                 Dim listeners() As Tag = act.FindTags(ListenerTagName)
                 For Each listener As Tag In listeners
-                    Dim listenerName As String = listener.InterpretArgument(NameTagName)
+                    Dim listenerName As String = listener.FindSubTag(NameTagName).Argument
                     If LCase(listenerName) = LCase(eventName) Then
                         ReceiveEvent(act, listener)
                     End If
@@ -362,7 +302,7 @@ Public Class FrmGameExecutor
     Private Sub ResetKeysHeld()
         'removes all keys from the list of keys held
 
-        _keysHeld = Nothing
+        _keysHeld = {}
     End Sub
 
 #End Region

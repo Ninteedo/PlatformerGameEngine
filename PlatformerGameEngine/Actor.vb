@@ -11,8 +11,7 @@ Public Class Actor
 #Region "Constructors"
 
     Public Sub New()
-        _spritesList = Nothing
-        Tags = Nothing
+        _spritesList = {}
     End Sub
 
     Public Sub New(actorString As String)
@@ -65,11 +64,11 @@ Public Class Actor
                 _spritesList = newSprites
             Else
                 If Not IsNothing(Sprites) Then
-                    _spritesList = Nothing
+                    _spritesList = {}
                 End If
             End If
         Else
-            _spritesList = Nothing
+            _spritesList = {}
         End If
     End Sub
 
@@ -171,7 +170,7 @@ Public Class Actor
         Dim newClone As Actor = Nothing
 
         If Not IsNothing(Me) Then
-            Dim clonedTags() As Tag = Nothing
+            Dim clonedTags() As Tag = {}
 
             'clones each tag
             If Not IsNothing(Tags) Then

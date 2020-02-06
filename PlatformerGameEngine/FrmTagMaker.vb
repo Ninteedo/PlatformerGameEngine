@@ -41,14 +41,14 @@ Public Class FrmTagMaker
 
         tagInCreation = startTag
 
-        arguments = InterpretValue(tagInCreation.argument)
+        arguments = InterpretValue(tagInCreation.Argument)
 
         'For argIndex As Integer = 0 To UBound(arguments)
         '    AddArgument(arguments(argIndex))
         'Next argIndex
 
-        RefreshArgumentsList()
-        txtName.Text = RemoveQuotes(tagInCreation.name)
+        'RefreshArgumentsList()
+        txtName.Text = RemoveQuotes(tagInCreation.Name)
     End Sub
 
     Private Sub FrmTagMaker_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -58,13 +58,15 @@ Public Class FrmTagMaker
         Using basicTagMaker As New FrmTagMakerBasic With {.TagCreated = CreatedTag}
             basicTagMaker.ShowDialog()
             If basicTagMaker.UserFinished Then
-                arguments = basicTagMaker.TagCreated.argument
+                arguments = basicTagMaker.TagCreated.Argument
                 tagInCreation = basicTagMaker.TagCreated
             End If
             userFinished = basicTagMaker.UserFinished
             Me.Close()
         End Using
     End Sub
+
+#If False Then
 
     Private Sub lstArguments_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstArguments.SelectedIndexChanged
         'if the user hasn't selected an argument then remove argument button is disabled
@@ -123,9 +125,9 @@ Public Class FrmTagMaker
     Private Sub btnFinish_Click(sender As Object, e As EventArgs) Handles btnFinish.Click
         'pressed by the user when they are done creating the tag
 
-        tagInCreation.name = txtName.Text
+        tagInCreation.Name = txtName.Text
 
-        If Len(tagInCreation.name) > 0 Then            'not a valid tag if it doesn't have a name
+        If Len(tagInCreation.Name) > 0 Then            'not a valid tag if it doesn't have a Name
             userFinished = True
         End If
         Me.Close()
@@ -193,8 +195,11 @@ Public Class FrmTagMaker
             If basicTagMaker.UserFinished Then
                 tagInCreation = basicTagMaker.TagCreated
                 RefreshArgumentsList()
-                txtName.Text = tagInCreation.name
+                txtName.Text = tagInCreation.Name
             End If
         End Using
     End Sub
+
+#End If
+
 End Class

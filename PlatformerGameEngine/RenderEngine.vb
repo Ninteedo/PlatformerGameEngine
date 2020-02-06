@@ -21,7 +21,7 @@ Public Class RenderEngine
 #Region "Rendering"
 
     Public Sub DoGameRender(ByRef actorList As Actor())
-        'renders a list of actors
+        'renders a list of Actors
         'this uses double buffering to render the result to a buffer, which is eventually rendered to the user
         'this eliminates flickering caused by directly rendering one actor at a time
 
@@ -45,7 +45,7 @@ Public Class RenderEngine
                                     j += 1
                                 Loop
 
-                                'moves the actor to its new index, shifting actors in between along
+                                'moves the actor to its new index, shifting Actors in between along
                                 Dim temp As Actor = actorList(i).Clone()
                                 actorList = RemoveItem(actorList, i)
                                 actorList = InsertItem(actorList, temp, j)
@@ -74,7 +74,7 @@ Public Class RenderEngine
 
     Public Sub DoGameRenderNoSort(ByVal actorList As Actor())
         'renders the actor list, but the inputted actor list is not sorted like it is in the regular DoGameRender
-        'used in the level editor because it causes the actors to move around when layers are changed
+        'used in the level editor because it causes the Actors to move around when layers are changed
 
         DoGameRender(If(Not IsNothing(actorList), actorList.Clone(), Nothing))
     End Sub
