@@ -17,9 +17,25 @@ Public Module TagBehaviours
 
                 VelocityHandling(act, velocity, game)
 
-            Case "addtag"
+            Case "settag"
+                'all tags in the actor with a given tag name have the argument set to what is provided
                 Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
-                act.AddTag(newTag, True)
+                Dim tagName As String = newTag.Name
+                Dim tagSet As Boolean = False
+                For Each currentTag As Tag In act.Tags
+                    If currentTag.Name = tagName Then
+                        currentTag.Argument = newTag.Argument
+                        tagSet = True
+                    End If
+                Next
+
+                If Not tagSet Then
+                    act.AddTag(newTag)
+                End If
+            Case "addtag"
+                'adds a tag to the actor
+                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
+                act.AddTag(newTag)
             Case "addparam"
                 Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
                 game.CurrentLevel.AddTag(newTag, True)
@@ -773,8 +789,9 @@ Public Module TagBehaviours
         Dim initials As String = Nothing
         Do While IsNothing(initials) OrElse Len(initials) <> 3
             initials = InputBox("Enter initials for " & gameName & " scoreboard" & vbCrLf _
+            & "Score: " & points & vbCrLf _
             & "Press cancel if you don't want your score saved",
-            "Enter Initials")
+            "Save Score")
 
             If Len(initials) = 0 Then
                 'doesn't insert score if user presses cancel
