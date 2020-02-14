@@ -121,7 +121,7 @@ Public Class FrmGameExecutor
                 Next
             End If
 
-            _renderer.DoGameRender(CurrentRoom.Actors)
+            _renderer.DoGameRender(CurrentRoom.Actors, CurrentLevel.Scroll)
         End If
     End Sub
 

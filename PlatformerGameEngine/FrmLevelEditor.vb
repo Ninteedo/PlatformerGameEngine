@@ -121,7 +121,7 @@ Public Class FrmLevelEditor
     Private Sub RenderCurrentRoom()
         'renders the current room
         If Not IsNothing(_renderEngine) Then
-            _renderEngine.DoGameRenderNoSort(SelectedRoom.Actors)
+            _renderEngine.DoGameRenderNoSort(SelectedRoom.Actors, _createdLevel.Scroll)
         End If
     End Sub
 
@@ -427,8 +427,6 @@ Public Class FrmLevelEditor
 
 #Region "Parameters"
 
-
-
     Private Property Parameters As Tag()
         Get
             Return _createdLevel.Tags
@@ -449,7 +447,7 @@ Public Class FrmLevelEditor
             End If
         End Get
         Set
-            If LstLevelParams.SelectedIndex > -1 And LstLevelParams.SelectedIndex < UBound(Parameters) Then
+            If LstLevelParams.SelectedIndex > -1 And LstLevelParams.SelectedIndex <= UBound(Parameters) Then
                 _createdLevel.Tags(LstLevelParams.SelectedIndex) = Value
 
                 RefreshEverything()

@@ -20,7 +20,7 @@ Public Class RenderEngine
 
 #Region "Rendering"
 
-    Public Sub DoGameRender(ByRef actorList As Actor())
+    Public Sub DoGameRender(ByRef actorList As Actor(), Optional offset As PointF = Nothing)
         'renders a list of Actors
         'this uses double buffering to render the result to a buffer, which is eventually rendered to the user
         'this eliminates flickering caused by directly rendering one actor at a time
@@ -55,9 +55,10 @@ Public Class RenderEngine
                         'renders each actor in new sorted order
                         For Each currentActor As Actor In actorList
                             If Not IsNothing(currentActor.Sprites) And currentActor.SpriteIndex <= UBound(currentActor.Sprites) And currentActor.SpriteIndex >= 0 Then
-                                Dim renderSprite As Sprite = currentActor.Sprites(currentActor.SpriteIndex)
+                                Dim renderSprite As Sprite = currentActor.GetCurrentSprite()
                                 Dim actHitbox As RectangleF = currentActor.Hitbox 'New RectangleF(currentActor.Hitbox.Location, New SizeF(currentActor.Hitbox.Width + 0.5, currentActor.Hitbox.Height + 0.5))
                                 Dim renderArea As RectangleF = ScaleRect(actHitbox, RenderScale)
+                                renderArea.Offset(offset)
                                 renderArea.Offset(ScaleSize(RenderScale, currentActor.Scale * 0.25))
                                 renderArea.Inflate(ScaleSize(RenderScale, currentActor.Scale * 0.25))
                                 renderLayer.Graphics.DrawImage(renderSprite.Bitmap, renderArea)
@@ -72,11 +73,11 @@ Public Class RenderEngine
         End Using
     End Sub
 
-    Public Sub DoGameRenderNoSort(ByVal actorList As Actor())
+    Public Sub DoGameRenderNoSort(ByVal actorList As Actor(), Optional offset As PointF = Nothing)
         'renders the actor list, but the inputted actor list is not sorted like it is in the regular DoGameRender
         'used in the level editor because it causes the Actors to move around when layers are changed
 
-        DoGameRender(If(Not IsNothing(actorList), actorList.Clone(), Nothing))
+        DoGameRender(If(Not IsNothing(actorList), actorList.Clone(), Nothing), offset)
     End Sub
 
     Public ReadOnly Property RenderScale As SizeF   'the render scaling used by the renderer

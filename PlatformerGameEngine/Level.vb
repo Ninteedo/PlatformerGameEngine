@@ -66,6 +66,21 @@ Public Class Level
         End Set
     End Property
 
+    Public Property Scroll As PointF
+        Get
+            Dim def As Object = {0, 0}
+            Dim temp As Object = GetProperty("scroll", def)
+            If IsArray(temp) AndAlso UBound(temp) = 1 Then
+                Return New SizeF(temp(0), temp(1))
+            Else
+                Return New SizeF(0, 0)
+            End If
+        End Get
+        Set
+            SetProperty("scroll", ArrayToString({Scroll.X, Scroll.Y}))
+        End Set
+    End Property
+
 #End Region
 
 #Region "Other"
