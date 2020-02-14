@@ -56,9 +56,9 @@ Public Class Actor
 
             If Not IsNothing(spritesArgument) Then
                 Dim newSprites(UBound(spritesArgument)) As Sprite
-                For spriteIndex As Integer = 0 To UBound(spritesArgument)
-                    Dim spriteTag As New Tag(spritesArgument(spriteIndex).ToString)
-                    newSprites(spriteIndex) = New Sprite(spriteTag.ToString)
+                For index As Integer = 0 To UBound(spritesArgument)
+                    Dim spriteTag As New Tag(spritesArgument(index).ToString)
+                    newSprites(index) = New Sprite(spriteTag.ToString)
                 Next
 
                 _spritesList = newSprites
@@ -97,10 +97,12 @@ Public Class Actor
 
     Property Location As PointF
         Get
-            If HasTag(LocationTagName) Then
-                Return New PointF(Val(FindTag(LocationTagName).InterpretArgument()(0)), Val(FindTag(LocationTagName).InterpretArgument()(1)))
+            Dim def As Object = {0, 0}
+            Dim temp As Object = GetProperty("location", def)
+            If IsArray(temp) AndAlso UBound(temp) = 1 Then
+                Return New PointF(temp(0), temp(1))
             Else
-                Return New PointF(0, 0)
+                Return New PointF
             End If
         End Get
         Set
