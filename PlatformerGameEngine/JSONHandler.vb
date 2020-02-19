@@ -79,44 +79,6 @@ Public Module JsonHandler
 
 #Region "Value/String Interpreting"
 
-    Public Function InterpretString(rawString As String) As String
-        'handles breaked characters such as \n
-
-        Dim result As String = ""
-
-        If Not IsNothing(rawString) AndAlso Len(rawString) > 0 Then
-            Dim cIndex As Integer = 0
-
-            Do
-                Dim c As String = rawString(cIndex)
-
-                If c = "\" Then     'used for special things such as \n for new line
-                    cIndex += 1
-                    c = rawString(cIndex)
-
-                    Select Case c
-                        Case "\"
-                            result += "\"
-                        Case """"
-                            result += """"
-                        Case "n"
-                            result += vbCrLf
-                        Case "t"
-                            result += vbTab
-                    End Select
-                    'ElseIf c = """" Then
-                    '    Return result
-                ElseIf c <> """" Then   'ignores quotes, may cause issues
-                    result += c
-                End If
-
-                cIndex += 1
-            Loop Until cIndex > Len(rawString) - 1
-        End If
-
-        Return result
-    End Function
-
     Public Function InterpretValue(valueString As String, Optional fullInterpret As Boolean = False, Optional act As Actor = Nothing, Optional ByRef game As FrmGameExecutor = Nothing) As Object
         'interprets a value from JSON
         'full interpret means that for tags and arrays the arguments are also interpreted

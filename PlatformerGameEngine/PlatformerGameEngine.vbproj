@@ -139,12 +139,6 @@
     <Compile Include="FrmTagMaker.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FrmTagMakerBasic.Designer.vb">
-      <DependentUpon>FrmTagMakerBasic.vb</DependentUpon>
-    </Compile>
-    <Compile Include="FrmTagMakerBasic.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="JsonHandler.vb" />
     <Compile Include="Level.vb" />
@@ -196,9 +190,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmTagMaker.resx">
       <DependentUpon>FrmTagMaker.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="FrmTagMakerBasic.resx">
-      <DependentUpon>FrmTagMakerBasic.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
