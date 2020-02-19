@@ -1,11 +1,11 @@
 ﻿Imports PlatformerGameEngine.My.Resources
 
 Public Class Level
-    'class to store actor defaults and rooms
 
     Inherits TagContainer
 
     Public Rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
+
 
 #Region "Constructors"
 

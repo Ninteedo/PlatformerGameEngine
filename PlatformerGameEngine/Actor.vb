@@ -6,12 +6,12 @@ Public Class Actor
 
     Implements ICloneable
 
-    Private _spritesList() As Sprite
+    Private _spriteList() As Sprite
 
 #Region "Constructors"
 
     Public Sub New()
-        _spritesList = {}
+        _spriteList = {}
     End Sub
 
     Public Sub New(actorString As String)
@@ -37,13 +37,13 @@ Public Class Actor
 
     Public Property Sprites As Sprite()
         Get
-            If IsNothing(_spritesList) Then
+            If IsNothing(_spriteList) Then
                 RefreshSpritesList()
             End If
-            Return _spritesList
+            Return _spriteList
         End Get
         Set
-            _spritesList = Value
+            _spriteList = Value
             RefreshSpritesTag()
         End Set
     End Property
@@ -61,21 +61,21 @@ Public Class Actor
                     newSprites(index) = New Sprite(spriteTag.ToString)
                 Next
 
-                _spritesList = newSprites
+                _spriteList = newSprites
             Else
                 If Not IsNothing(Sprites) Then
-                    _spritesList = {}
+                    _spriteList = {}
                 End If
             End If
         Else
-            _spritesList = {}
+            _spriteList = {}
         End If
     End Sub
 
     Private Sub RefreshSpritesTag()
-        'changes the "sprites" tag to match what is in framesList()
+        'changes the "sprites" tag to match what is in _spriteList()
 
-        AddTag(New Tag(SpritesTagName, ArrayToString(_spritesList)), True)
+        SetTag(New Tag(SpritesTagName, ArrayToString(_spriteList)))
     End Sub
 
     Public Function GetCurrentSprite() As Sprite

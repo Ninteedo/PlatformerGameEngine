@@ -1,5 +1,4 @@
 ﻿Public Class Room
-    'a room is a collection of Actors which are all rendered at once
 
     Public Actors() As Actor    'the Actors which are used in the game, modified copies of the defaults
     Public Name As String

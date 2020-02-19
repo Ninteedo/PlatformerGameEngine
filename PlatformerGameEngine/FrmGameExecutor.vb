@@ -6,7 +6,6 @@ Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmGameExecutor
 
-
 #Region "Disposing"
 
     Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)

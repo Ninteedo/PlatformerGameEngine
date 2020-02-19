@@ -352,7 +352,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmTagsDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmTagsDuplicate.Click
-        SelectedActor.AddTag(SelectedTag, False)
+        SelectedActor.AddTag(SelectedTag)
         RefreshTagsList()
         LstActorTags.SelectedIndex = UBound(Tags)
     End Sub
@@ -506,7 +506,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmParameterDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmParameterDuplicate.Click
-        _createdLevel.AddTag(SelectedParameter, False)
+        _createdLevel.AddTag(SelectedParameter)
     End Sub
 
 #End Region

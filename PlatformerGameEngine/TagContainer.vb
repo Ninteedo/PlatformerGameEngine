@@ -1,8 +1,4 @@
-﻿''' <summary>
-''' A superclass used for Level and Actor classes which contains a list of Tags and ways to manipulate them
-''' </summary>
-
-Public Class TagContainer
+﻿Public Class TagContainer
 
     Public Tags() As Tag
 
@@ -17,6 +13,8 @@ Public Class TagContainer
     End Sub
 
 #End Region
+
+#Region "Tags List Handling"
 
     Public Function HasTag(tagName As String) As Boolean
         'returns whether or not this container has a tag which matches a given name
@@ -65,6 +63,23 @@ Public Class TagContainer
         Tags = InsertItem(Tags, newTag)
     End Sub
 
+    Public Sub SetTag(newTag As Tag)
+        'changes the argument of any tags with a name matching the new tag, adds tag instead if tag previously missing
+
+        Dim tagName As String = newTag.Name
+        Dim tagSet As Boolean = False
+        For Each currentTag As Tag In Tags
+            If currentTag.Name = tagName Then
+                currentTag.Argument = newTag.Argument
+                tagSet = True
+            End If
+        Next
+
+        If Not tagSet Then
+            AddTag(newTag)
+        End If
+    End Sub
+
     Public Sub RemoveTag(tagName As String)
         'removes all tags with the given name
 
@@ -85,6 +100,8 @@ Public Class TagContainer
         End If
     End Sub
 
+#End Region
+
 #Region "Key Properties"
 
     Protected Function GetProperty(Of t)(tagName As String, defaultVal As t) As t
@@ -97,7 +114,7 @@ Public Class TagContainer
     End Function
 
     Protected Sub SetProperty(tagName As String, argument As String)
-        AddTag(New Tag(tagName, argument), removeDuplicates:=True)
+        SetTag(New Tag(tagName, argument))
     End Sub
 
 #End Region

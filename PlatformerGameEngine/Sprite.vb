@@ -1,7 +1,6 @@
 ﻿Imports PlatformerGameEngine.My.Resources
 
 Public Class Sprite
-    'sprites loaded from sprite files and used to create frames
 
     Private _coloursUsed() As Color
     Private _colourIndices(,) As Integer

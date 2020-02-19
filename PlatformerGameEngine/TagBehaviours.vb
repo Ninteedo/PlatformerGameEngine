@@ -20,27 +20,22 @@ Public Module TagBehaviours
             Case "settag"
                 'all tags in the actor with a given tag name have the argument set to what is provided
                 Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
-                Dim tagName As String = newTag.Name
-                Dim tagSet As Boolean = False
-                For Each currentTag As Tag In act.Tags
-                    If currentTag.Name = tagName Then
-                        currentTag.Argument = newTag.Argument
-                        tagSet = True
-                    End If
-                Next
-
-                If Not tagSet Then
-                    act.AddTag(newTag)
-                End If
+                act.SetTag(newTag)
             Case "addtag"
                 'adds a tag to the actor
                 Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
                 act.AddTag(newTag)
-            Case "addparam"
-                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
-                game.CurrentLevel.AddTag(newTag, True)
             Case "removetag"
                 act.RemoveTag(inputTag.InterpretArgument())
+            Case "addparam"
+                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
+                game.CurrentLevel.AddTag(newTag)
+            Case "setparam"
+                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
+                game.CurrentLevel.SetTag(newTag)
+            Case "removeparam"
+                game.CurrentLevel.RemoveTag(inputTag.InterpretArgument())
+
             Case "execute"
                 ProcessTag(New Tag(inputTag.InterpretArgument.ToString), act, game)
 
@@ -146,7 +141,7 @@ Public Module TagBehaviours
 
                 End If
             Next
-            act.AddTag(New Tag("velocity", ArrayToString({velocity.X, velocity.Y})), True)      'changes the actor's velocity
+            act.SetTag(New Tag("velocity", ArrayToString({velocity.X, velocity.Y})))      'changes the actor's velocity
         End If
 
         act.Location = New PointF(act.Location.X + velocity.X, act.Location.Y + velocity.Y)
