@@ -29,9 +29,9 @@ Public Class FrmGameExecutor
         _currentLevel = New Level(levelTagString)
     End Sub
 
-    Private Sub FormLoad(sender As Object, e As EventArgs) Handles MyBase.Shown
-        'seperate from constructor because the game loop shouldn't begin until the form is actually shown to the player
-        
+    Private Sub FormShown(sender As FrmGameExecutor, e As EventArgs) Handles MyBase.Shown
+        'separate from constructor because the game loop shouldn't begin until the form is actually shown to the player
+
         GameLoop()
     End Sub
 
@@ -133,6 +133,7 @@ Public Class FrmGameExecutor
         'pauses the game
 
         _paused = True
+        LblPause.Visible = True
         ResetKeysHeld()
     End Sub
 
@@ -140,6 +141,15 @@ Public Class FrmGameExecutor
         'unpauses the game
 
         _paused = False
+        LblPause.Visible = False
+    End Sub
+
+    Public Sub TogglePause()
+        If _paused Then
+            Unpause()
+        Else
+            Pause()
+        End If
     End Sub
 
 #End Region
@@ -150,10 +160,6 @@ Public Class FrmGameExecutor
 
 #Region "References"
 
-    'find what contains the reference (me, level, other actor)
-    'for each other part
-    '   
-
     Public Function FindReference(act As Actor, refString As String) As Object
         'finds what a reference is referring to
         'e.g. "ExampleActor.velocity[0]" may return 5
@@ -161,7 +167,6 @@ Public Class FrmGameExecutor
 
         Dim parts() As String = JsonSplit(refString, 0, ".")    'reference delimited by "."
         Dim result As Object = Nothing
-
 
         Select Case LCase(parts(0))
             Case "me"
@@ -268,6 +273,12 @@ Public Class FrmGameExecutor
 
     Private Sub FrmGame_KeyDown(sender As FrmGameExecutor, e As KeyEventArgs) Handles MyBase.KeyDown
         'if the key is pressed down then it is added to the list of held keys
+
+        If e.KeyCode = Keys.Escape Then
+            'toggles pause when escape is pressed
+            TogglePause()
+            Exit Sub
+        End If
 
         'checks that key isn't already in keys held list, not sure how it could occur but I added this for safety
         Dim addedToList As Boolean = False
