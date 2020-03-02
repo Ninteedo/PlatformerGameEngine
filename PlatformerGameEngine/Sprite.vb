@@ -2,9 +2,9 @@
 
 Public Class Sprite
 
-    Private _coloursUsed() As Color
-    Private _colourIndices(,) As Integer
-    Private _bitmapVersion As Bitmap
+    Dim _coloursUsed() As Color
+    Dim _colourIndices(,) As Integer
+    Dim _bitmapVersion As Bitmap
 
 
 #Region "Contructors"

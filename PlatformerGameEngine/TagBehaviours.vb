@@ -44,9 +44,11 @@ Public Module TagBehaviours
 
             Case "if"
                 IfTagHandling(inputTag, act, game)
+            Case "for"
+                ForTagHandling(inputTag, act, game)
 
             Case "savescore"
-                Dim points As String = inputTag.FindSubTag("points").InterpretArgument()
+                Dim points As String = InterpretValue(inputTag.FindSubTag("points").Argument, True, act, game)
                 Dim gameName As String = inputTag.FindSubTag("gameName").InterpretArgument()
 
                 game.Pause()
@@ -72,6 +74,41 @@ Public Module TagBehaviours
             End If
         End If
     End Sub
+
+#Region "Code Structures"
+
+#Region "If"
+
+    Private Sub IfTagHandling(ifTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
+        Dim condition As String = ifTag.FindSubTag("con").Argument
+        Dim executeTag As Tag
+
+        'assesses condition then executes either "then" or "else" part of the if
+        If AssessCondition(condition, act, game) Then
+            executeTag = ifTag.FindSubTag("then")
+        Else
+            executeTag = ifTag.FindSubTag("else")
+        End If
+        ProcessSubTags(executeTag, act, game)
+    End Sub
+
+#End Region
+
+#Region "For"
+
+    Private Sub ForTagHandling(forTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
+        Dim repeats As UInteger = forTag.FindSubTag("repeats").InterpretArgument
+        Dim executeTag As Tag = forTag.FindSubTag("do")
+
+        For index As Integer = 0 To repeats - 1
+            ProcessSubTags(executeTag, act, game)
+        Next
+    End Sub
+
+#End Region
+
+#End Region
+
 
 #Region "Collision Detection"
 
@@ -618,18 +655,6 @@ Public Module TagBehaviours
         LessThan
     End Enum
 
-    Private Sub IfTagHandling(ifTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
-        Dim condition As String = ifTag.FindSubTag("con").Argument
-        Dim executeTag As Tag
-
-        'assesses condition then executes either "then" or "else" part of the if
-        If AssessCondition(condition, act, game) Then
-            executeTag = ifTag.FindSubTag("then")
-        Else
-            executeTag = ifTag.FindSubTag("else")
-        End If
-        ProcessSubTags(executeTag, act, game)
-    End Sub
 
     Private Function AssessCondition(condition As String, Optional ByRef act As Actor = Nothing,
                                         Optional ByRef game As FrmGameExecutor = Nothing) As Boolean
@@ -823,6 +848,8 @@ Public Module TagBehaviours
 
                 'closes connection
                 conn.Close()
+
+                MsgBox("Successfully added your score to " & gameName & "'s scoreboard")
             End Using
         Catch ex As Exception
             DisplayError("An error has occured so your score couldn't be saved" & vbCrLf & ex.ToString())

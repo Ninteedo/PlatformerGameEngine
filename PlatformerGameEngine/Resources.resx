@@ -130,7 +130,7 @@
     <value>location</value>
   </data>
   <data name="NameTagName" xml:space="preserve">
-    <value>Name</value>
+    <value>name</value>
   </data>
   <data name="OpacityTagName" xml:space="preserve">
     <value>opacity</value>

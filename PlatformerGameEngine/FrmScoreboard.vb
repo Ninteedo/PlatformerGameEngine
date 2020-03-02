@@ -12,9 +12,8 @@ Public Class FrmScoreboard
 
         ' Add any initialization after the InitializeComponent() call.
 
-        'gets the game Name from the user
-
-        Dim input As String = InputBox("Enter the Name of the game for which the scoreboard will be shown", "Enter Game Name", "Game Name")
+        'gets the game name from the user
+        Dim input As String = InputBox("Enter the name of the game the scoreboard", "Enter Game Name", "Game Name")
 
         'if cancel pressed then close the form
         If IsNothing(input) OrElse input = "" Then
@@ -47,12 +46,12 @@ Public Class FrmScoreboard
             Using conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
                 conn.Open()
 
-                Const query As String = '"SELECT initials AS 'Player', MAX(points) AS 'Score' FROM Score WHERE gameName = @gameName GROUP BY initials ORDER BY MAX(points) DESC;"
+                Const query As String = '"SELECT initials AS 'Player', MAX(points) AS 'Score' FROM Score WHERE gameName = @gameName GROUP BY initials ORDER BY MAX(points) DESC, id ASC"
                 "SELECT initials AS 'Player', MAX(points) AS 'Score'
                 FROM Score
                 WHERE gameName = @gameName
                 GROUP BY initials                    
-                ORDER BY MAX(points) DESC;"
+                ORDER BY MAX(points) DESC, id ASC"
 
                 'uses preparing to prevent SQL injection attacks (injection would've been possible for game Name and possibly initials)
                 Using cmd As New MySqlCommand(query, conn)

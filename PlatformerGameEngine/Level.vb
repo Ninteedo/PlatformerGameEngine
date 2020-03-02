@@ -4,7 +4,7 @@ Public Class Level
 
     Inherits TagContainer
 
-    Public Rooms() As Room                     'stores each room in a 1D array, indexed from the uppermost
+    Public Rooms() As Room
 
 
 #Region "Constructors"
@@ -68,7 +68,7 @@ Public Class Level
 
     Public Property Scroll As PointF
         Get
-            Dim def As Object = {0, 0}
+            Dim def As Object = {0.0, 0.0}
             Dim temp As Object = GetProperty("scroll", def)
             If IsArray(temp) AndAlso UBound(temp) = 1 Then
                 Return New SizeF(temp(0), temp(1))

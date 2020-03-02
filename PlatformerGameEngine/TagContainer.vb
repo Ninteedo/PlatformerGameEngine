@@ -4,12 +4,12 @@
 
 #Region "Constructors"
 
-    Protected Sub New()
-        Me.Tags = {}
-    End Sub
-
-    Protected Sub New(tags() As Tag)
-        Me.Tags = tags
+    Protected Sub New(Optional tags() As Tag = Nothing)
+        If IsNothing(tags) Then
+            Me.Tags = {}
+        Else
+            Me.Tags = tags
+        End If
     End Sub
 
 #End Region
@@ -53,12 +53,8 @@
         Return result
     End Function
 
-    Public Sub AddTag(newTag As Tag, Optional removeDuplicates As Boolean = False)
+    Public Sub AddTag(newTag As Tag)
         'adds the given tag to the end of the tag list
-
-        If removeDuplicates Then
-            RemoveTag(newTag.Name)
-        End If
 
         Tags = InsertItem(Tags, newTag)
     End Sub

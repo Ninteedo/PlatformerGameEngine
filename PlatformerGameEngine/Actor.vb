@@ -97,7 +97,7 @@ Public Class Actor
 
     Property Location As PointF
         Get
-            Dim def As Object = {0, 0}
+            Dim def As Object = {0.0, 0.0}
             Dim temp As Object = GetProperty("location", def)
             If IsArray(temp) AndAlso UBound(temp) = 1 Then
                 Return New PointF(temp(0), temp(1))
