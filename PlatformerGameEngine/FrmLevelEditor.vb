@@ -6,15 +6,16 @@ Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmLevelEditor
 
-#Region "Initialisation"
+#Region "Constructors"
 
-    Private Sub FrmLevelEditor_Load(sender As FrmLevelEditor, e As EventArgs) Handles MyBase.Load
-        Initialization()
-    End Sub
+    Public Sub New()
 
-    Private Sub Initialization()
-        _renderEngine = New RenderEngine(PnlRender)
+        ' This call is required by the designer.
+        InitializeComponent()
+
+        ' Add any initialization after the InitializeComponent() call.
         _createdLevel = New Level({})
+        _renderEngine = New RenderEngine(PnlRender)
 
         RefreshControlsEnabled()
     End Sub
@@ -202,11 +203,7 @@ Public Class FrmLevelEditor
         Dim newActor As Actor = template.Clone()
 
         If Not IsNothing(Actors) Then
-            Dim usedNames(UBound(Actors)) As String
-            For index As Integer = 0 To UBound(usedNames)
-                usedNames(index) = Actors(index).Name
-            Next
-            newActor.Name = MakeNameUnique(newActor.Name, usedNames, True)
+            newActor.Name = MakeActorNameUnique(newActor.Name)
         End If
 
         Actors = InsertItem(Actors, newActor)
@@ -314,7 +311,7 @@ Public Class FrmLevelEditor
         If Not _disableTagChangedEvent Then
             _disableTagChangedEvent = True
 
-            SelectedActor.Name = TxtActorName.Text
+            SelectedActor.Name = MakeActorNameUnique(TxtActorName.Text)
             SelectedActor.Location = New PointF(NumActorLocX.Value, NumActorLocY.Value)
             SelectedActor.Layer = NumActorLayer.Value
             SelectedActor.Scale = NumActorScale.Value
@@ -328,7 +325,7 @@ Public Class FrmLevelEditor
     Private Sub BtnAddActorTag_Click(sender As Button, e As EventArgs) Handles BtnAddActorTag.Click
         Using tagMaker As New FrmTagMaker
             tagMaker.ShowDialog()
-            If tagMaker.userFinished Then
+            If tagMaker.UserFinished Then
                 Tags = InsertItem(Tags, tagMaker.CreatedTag)
                 LstActorTags.SelectedIndex = UBound(Tags)
             End If
@@ -344,7 +341,7 @@ Public Class FrmLevelEditor
     Private Sub ItmTagsEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmTagsEdit.Click
         Using tagMaker As New FrmTagMaker(SelectedTag)
             tagMaker.ShowDialog()
-            If tagMaker.userFinished Then
+            If tagMaker.UserFinished Then
                 SelectedTag = tagMaker.CreatedTag
                 RefreshTagsList()
             End If
@@ -357,6 +354,19 @@ Public Class FrmLevelEditor
         LstActorTags.SelectedIndex = UBound(Tags)
     End Sub
 
+    Private Function MakeActorNameUnique(actorName As String) As String
+        If Not IsNothing(Actors) Then
+            Dim otherNames(UBound(Actors)) As String
+
+            For index As Integer = 0 To UBound(otherNames)
+                otherNames(index) = Rooms(index).Name
+            Next
+
+            Return MakeNameUnique(actorName, otherNames, True)
+        Else
+            Return actorName
+        End If
+    End Function
 
 #Region "Mouse Location Control"
 
@@ -383,7 +393,7 @@ Public Class FrmLevelEditor
             Next
 
             'finds which of the instances the mouse is over is on the highest layer
-            If Not IsNothing(possibleInstanceIndices) Then
+            If UBound(possibleInstanceIndices) >= 0 Then
                 'finds which instance has the highest index
                 Dim topMostInstanceIndex As Integer = possibleInstanceIndices(0)
                 For index As Integer = 0 To UBound(possibleInstanceIndices)
@@ -484,7 +494,7 @@ Public Class FrmLevelEditor
         'gets the user to create a parameter (same as a tag)
         Using tagMaker As New FrmTagMaker
             tagMaker.ShowDialog()
-            If tagMaker.userFinished Then
+            If tagMaker.UserFinished Then
                 Parameters = InsertItem(Parameters, tagMaker.CreatedTag)
             End If
         End Using
@@ -499,7 +509,7 @@ Public Class FrmLevelEditor
     Private Sub ItmParameterEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmParameterEdit.Click
         Using tagMaker As New FrmTagMaker(SelectedParameter)
             tagMaker.ShowDialog()
-            If tagMaker.userFinished Then
+            If tagMaker.UserFinished Then
                 SelectedParameter = tagMaker.CreatedTag
             End If
         End Using
@@ -517,7 +527,12 @@ Public Class FrmLevelEditor
 
     Private Property Rooms As Room()
         Get
-            Return _createdLevel.Rooms
+            If Not IsNothing(_createdLevel) Then
+                Return _createdLevel.Rooms
+            Else
+                Return Nothing
+            End If
+
         End Get
         Set
             _createdLevel.Rooms = Value
@@ -567,7 +582,7 @@ Public Class FrmLevelEditor
         Dim roomName As String = InputBox("Please enter a Name for the new room")
 
         If Not IsNothing(roomName) AndAlso roomName.Length > 0 Then
-            Rooms = InsertItem(Rooms, New Room({}, roomName))
+            Rooms = InsertItem(Rooms, New Room({}, MakeRoomNameUnique(roomName)))
             LstRooms.SelectedIndex = UBound(Rooms)      'automatically selects the new room
         End If
     End Sub
@@ -582,7 +597,7 @@ Public Class FrmLevelEditor
         Dim newName As String = InputBox("Please enter the new Name for " & SelectedRoom.Name)
 
         If Not IsNothing(newName) AndAlso newName.Length > 0 Then
-            SelectedRoom.Name = newName
+            SelectedRoom.Name = MakeRoomNameUnique(newName)
             RefreshEverything()
         End If
     End Sub
@@ -591,6 +606,20 @@ Public Class FrmLevelEditor
         Rooms = InsertItem(Rooms, SelectedRoom)
         LstRooms.SelectedIndex = UBound(Rooms)  'automatically selects the new room
     End Sub
+
+    Private Function MakeRoomNameUnique(roomName As String) As String
+        If Not IsNothing(Rooms) Then
+            Dim otherNames(UBound(Rooms)) As String
+
+            For index As Integer = 0 To UBound(otherNames)
+                otherNames(index) = Rooms(index).Name
+            Next
+
+            Return MakeNameUnique(roomName, otherNames, True)
+        Else
+            Return roomName
+        End If
+    End Function
 
 #End Region
 
