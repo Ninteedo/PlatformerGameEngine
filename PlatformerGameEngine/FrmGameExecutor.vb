@@ -110,7 +110,11 @@ Public Class FrmGameExecutor
                     Dim tagIndex As Integer = 0
                     'TODO: how to deal with this list changing, tag IDs?
                     Do
-                        ProcessTag(act.Tags(tagIndex), act, Me)
+                        If Not ProcessTag(act.Tags(tagIndex), act, Me) Then
+                            'error occured
+                            Me.Close()
+                            Exit For
+                        End If
                         tagIndex += 1
                     Loop Until tagIndex > UBound(act.Tags)
                 Next

@@ -3,60 +3,70 @@ Imports MySql.Data.MySqlClient
 
 Public Module TagBehaviours
 
-    Public Sub ProcessTag(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
+    Public Function ProcessTag(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor) As Boolean
         'processes a single tag and modifies the actor accordingly
+        'returns false if an error occured or true if no error occured
 
-        Select Case LCase(inputTag.Name)
-            Case "velocity"     '[xChange,yChange]
-                Dim velocityTemp As Object = InterpretValue(inputTag.Argument, True, act, game)
-                Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
+        Try
+            Select Case LCase(inputTag.Name)
+                Case "velocity"     '[xChange,yChange]
+                    Dim velocityTemp As Object = InterpretValue(inputTag.Argument, True, act, game)
+                    Dim velocity As New Vector(velocityTemp(0), velocityTemp(1))
 
-                VelocityHandling(act, velocity, game)
+                    VelocityHandling(act, velocity, game)
 
-            Case "settag"
-                'all tags in the actor with a given tag name have the argument set to what is provided
-                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
-                act.SetTag(newTag)
-            Case "addtag"
-                'adds a tag to the actor
-                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
-                act.AddTag(newTag)
-            Case "removetag"
-                act.RemoveTag(inputTag.InterpretArgument())
-            Case "addparam"
-                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
-                game.CurrentLevel.AddTag(newTag)
-            Case "setparam"
-                Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
-                game.CurrentLevel.SetTag(newTag)
-            Case "removeparam"
-                game.CurrentLevel.RemoveTag(inputTag.InterpretArgument())
+                Case "settag"
+                    'all tags in the actor with a given tag name have the argument set to what is provided
+                    Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
+                    act.SetTag(newTag)
+                Case "addtag"
+                    'adds a tag to the actor
+                    Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
+                    act.AddTag(newTag)
+                Case "removetag"
+                    act.RemoveTag(inputTag.InterpretArgument())
+                Case "addparam"
+                    Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
+                    game.CurrentLevel.AddTag(newTag)
+                Case "setparam"
+                    Dim newTag As Tag = InterpretValue(inputTag.Argument, True, act, game)
+                    game.CurrentLevel.SetTag(newTag)
+                Case "removeparam"
+                    game.CurrentLevel.RemoveTag(inputTag.InterpretArgument())
 
-            Case "execute"
-                ProcessTag(New Tag(inputTag.InterpretArgument.ToString), act, game)
+                Case "execute"
+                    ProcessTag(New Tag(inputTag.InterpretArgument.ToString), act, game)
 
-            Case "broadcast"
-                game.BroadcastEvent(New Tag(inputTag.InterpretArgument.ToString))
+                Case "broadcast"
+                    game.BroadcastEvent(New Tag(inputTag.InterpretArgument.ToString))
 
-            Case "if"
-                IfTagHandling(inputTag, act, game)
-            Case "for"
-                ForTagHandling(inputTag, act, game)
+                Case "if"
+                    IfTagHandling(inputTag, act, game)
+                Case "for"
+                    ForTagHandling(inputTag, act, game)
 
-            Case "savescore"
-                Dim points As String = InterpretValue(inputTag.FindSubTag("points").Argument, True, act, game)
-                Dim gameName As String = inputTag.FindSubTag("gameName").InterpretArgument()
+                Case "savescore"
+                    Dim points As String = InterpretValue(inputTag.FindSubTag("points").Argument, True, act, game)
+                    Dim gameName As String = inputTag.FindSubTag("gameName").InterpretArgument()
 
-                game.Pause()
-                SaveScore(points, gameName)
-                game.Unpause()
-        End Select
-    End Sub
+                    game.Pause()
+                    SaveScore(points, gameName)
+                    game.Unpause()
+            End Select
+
+            Return True
+        Catch ex As Exception
+            DisplayError("An error occured whilst trying to process the following tag: " & inputTag.ToString() &
+                         vbCrLf & "Game will now close" &
+                         vbCrLf & ex.ToString())
+            Return False    'ends game
+        End Try
+    End Function
 
     Public Sub ProcessSubTags(inputTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
         'calls ProcessTag on all the subtags in the input tag
         If Not IsNothing(inputTag) Then
-            Dim temp As Object = inputTag.InterpretArgument
+            Dim temp As Object = inputTag.InterpretArgument()
             If IsArray(temp) Then
                 For index As Integer = 0 To UBound(temp)
                     If temp(index).GetType() = GetType(Tag) Then   'checks that the temp is actually a tag before processing it
@@ -93,8 +103,8 @@ Public Module TagBehaviours
 #Region "For"
 
     Private Sub ForTagHandling(forTag As Tag, ByRef act As Actor, ByRef game As FrmGameExecutor)
-        Dim repeats As UInteger = forTag.FindSubTag("repeats").InterpretArgument
-        Dim executeTag As Tag = forTag.FindSubTag("do")
+        Dim repeats As UInteger = forTag.FindSubTag("repeats").InterpretArgument()
+        Dim executeTag As Tag = forTag.FindSubTag("do").InterpretArgument()
 
         For index As Integer = 0 To repeats - 1
             ProcessSubTags(executeTag, act, game)
@@ -211,11 +221,6 @@ Public Module TagBehaviours
             Me.Y = y
         End Sub
 
-        Public Sub New(point As PointF)
-            Me.X = point.X
-            Me.Y = point.Y
-        End Sub
-
         Public ReadOnly Property Magnitude As Single
             Get
                 Return Math.Sqrt(X ^ 2 + Y ^ 2)
@@ -228,12 +233,6 @@ Public Module TagBehaviours
             X /= Magnitude
             Y /= Magnitude
         End Sub
-
-        Public Function GetNormalized() As Vector
-            'returns a copy of this vector with magnitude set to 1
-
-            Return New Vector(X / Magnitude, Y / Magnitude)
-        End Function
 
         Public Overrides Function ToString() As String
             Return "(" & X & "," & Y & ")"
@@ -315,28 +314,6 @@ Public Module TagBehaviours
 
             CalculateEdges()
         End Sub
-
-        'Public Function ToRectangle() As RectangleF
-        '    'wont work with irregular quadrahedrons
-
-        '    If points.Length = 4 Then
-        '        Dim topLeft As Vector = points(0)
-        '        Dim bottomRight As Vector = points(0)
-
-        '        For pointIndex As Integer = 0 To UBound(points)
-        '            If points(pointIndex).X < topLeft.X And points(pointIndex).Y < topLeft.Y Then
-        '                topLeft = points(pointIndex)
-        '            ElseIf points(pointIndex).X > bottomRight.X And points(pointIndex).Y > bottomRight.Y Then
-        '                bottomRight = points(pointIndex)
-        '            End If
-        '        Next
-
-        '        Return New RectangleF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y)
-        '    Else
-        '        DisplayError("Tried to convert a polygon with " & points.Length & " sides to a polygon")
-        '        Return Nothing
-        '    End If
-        'End Function
     End Structure
 
     Private Structure PolygonCollisionResult
@@ -396,10 +373,7 @@ Public Module TagBehaviours
             axis.Normalize()
 
             'get the projection of the polygon on the axis
-            Dim min1 As Single
-            Dim max1 As Single
-            Dim min2 As Single
-            Dim max2 As Single
+            Dim min1, max1, min2, max2 As Single
             ProjectPolygon(axis, poly1, min1, max1)
             ProjectPolygon(axis, poly2, min2, max2)
 
@@ -445,26 +419,6 @@ Public Module TagBehaviours
         'finds the vector to prevent intersection
         If result.WillIntersect Then
             result.MinTranslationVect = translationAxis * minInterval
-        End If
-
-        Return result
-    End Function
-
-#End Region
-
-#Region "Tags to other Data Types"
-
-    Public Function TagToRectangleF(rectangleTag As Tag, Optional relativeLocation As PointF = Nothing, Optional scale As Single = 1) As RectangleF
-        'converts a rectangle tag into a rectangle
-
-        Dim result As RectangleF = Nothing
-
-        If Not IsNothing(rectangleTag) Then
-            Dim originTag As Tag = rectangleTag.InterpretArgument("origin")
-            Dim sizeTag As Tag = rectangleTag.InterpretArgument("size")
-
-            result = New RectangleF(New PointF(originTag.InterpretArgument()(0) * scale + relativeLocation.X, originTag.InterpretArgument()(1) * scale + relativeLocation.Y),
-                                    New SizeF(sizeTag.InterpretArgument()(0) * scale, sizeTag.InterpretArgument()(1) * scale))
         End If
 
         Return result
@@ -656,7 +610,6 @@ Public Module TagBehaviours
                                         Optional ByRef game As FrmGameExecutor = Nothing) As Boolean
         'takes a condition in the form of a string and returns true or false
 
-        'Try
         If Not IsNothing(condition) AndAlso Len(condition) > 0 Then
             condition = LCase(condition)    'conditions are not case sensitive
 
@@ -785,9 +738,6 @@ Public Module TagBehaviours
 
             Return overall
         End If
-        'Catch ex As Exception
-        '    DisplayError("An error occured whilst assessing condition:" & vbCrLf & condition)
-        'End Try
 
         'defaults to false
         Return False
@@ -802,8 +752,8 @@ Public Module TagBehaviours
         'uses a MySQL server running from XAMPP
 
         'gets initials from the user
-        Dim initials As String = Nothing
-        Do While IsNothing(initials) OrElse Len(initials) <> 3
+        Dim initials As String = ""
+        Do Until Len(initials) = 3
             initials = InputBox("Enter initials for " & gameName & " scoreboard" & vbCrLf _
             & "Score: " & points & vbCrLf _
             & "Press cancel if you don't want your score saved",
@@ -825,7 +775,7 @@ Public Module TagBehaviours
                 conn.Open()
 
                 'sql query
-                Dim query As String = "INSERT INTO Score (initials, points, gameName) VALUES (@initials, @points, @gameName);"
+                Const query As String = "INSERT INTO Score (initials, points, gameName) VALUES (@initials, @points, @gameName);"
 
                 'uses preparing to prevent SQL injection attacks (injection possible for game name and possibly initials)
                 Using cmd As New MySqlCommand(query, conn)
@@ -850,60 +800,6 @@ Public Module TagBehaviours
         Catch ex As Exception
             DisplayError("An error has occured so your score couldn't be saved" & vbCrLf & ex.ToString())
         End Try
-    End Sub
-
-#End Region
-
-#Region "Code"
-
-    Private Sub Code(input As String, ByRef act As Actor, ByRef game As FrmGameExecutor)
-        Dim lines() As String = JsonSplit(input, delimiter:=";")
-
-        If Not IsNothing(lines) Then
-            Dim structureLevel As Integer = 0
-
-            For index As Integer = 0 To UBound(lines)
-                Dim line As String = Trim(lines(index))
-                Dim varNames() As String = IdentifyVars(line)
-
-                For Each varName As String In varNames
-                    If line Like "$" & varName & "=*" Then
-                        AssignValue(varName, line.Remove(1, line.IndexOf("=")), act, game)
-                    ElseIf line Like "if (*) {" Then
-                        'get condition
-                        'assess condition
-                        'if true dont skip stuff in if structure
-                        'if false skip stuff in if structure
-                    End If
-                Next
-            Next
-        End If
-    End Sub
-
-    Private Function IdentifyVars(line As String) As String()
-        line = RemoveSubStrings(line)
-        Dim varNames() As String = {}
-        Dim alphaNumericChars As String = "abcdefghijklmnopqrstuvwxyz0123456789"    'variables can only have alphanumeric characters
-        Dim inVarName As Boolean
-
-        For cIndex As Integer = 0 To Len(line)
-            Dim c As String = line(cIndex)
-
-            If c = "$" Then
-                varNames = InsertItem(varNames, "")
-                inVarName = True
-            ElseIf Not alphaNumericChars.Contains(LCase(c)) Then
-                inVarName = False
-            ElseIf inVarName Then
-                varNames(UBound(varNames)) += c
-            End If
-        Next
-
-        Return varNames
-    End Function
-
-    Private Sub AssignValue(varName As String, valueString As String, ByRef act As Actor, ByRef game As FrmGameExecutor)
-        ProcessTag(New Tag("AddTag", New Tag(varName, valueString).ToString), act, game)
     End Sub
 
 #End Region
