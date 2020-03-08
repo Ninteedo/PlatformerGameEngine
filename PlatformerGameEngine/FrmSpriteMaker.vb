@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'20/03/2019
-'Sprite Maker
-
-Imports PlatformerGameEngine.My.Resources
+﻿Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmSpriteMaker
 
@@ -79,6 +75,7 @@ Public Class FrmSpriteMaker
             If openDialog.ShowDialog = DialogResult.OK Then
                 _saveLocation = openDialog.FileName
                 _createdSprite = New Sprite(_saveLocation)
+                SetSizeBoxesValues(_createdSprite.Dimensions)
                 DrawSavedPixels()
                 DisplayColourOptions(0)
             End If
@@ -209,12 +206,24 @@ Public Class FrmSpriteMaker
         End If
     End Sub
 
+    Dim _disableSpriteResize As Boolean = False
+
     Private Sub ResizeSprite(sender As NumericUpDown, e As EventArgs) Handles NumResizeW.ValueChanged, NumResizeH.ValueChanged
         'resizes the sprite according to the new width and height inputted by the user
 
-        If Not IsNothing(_createdSprite) Then
+        If Not IsNothing(_createdSprite) And Not _disableSpriteResize Then
             GridSize = New Size(NumResizeW.Value, NumResizeH.Value)
         End If
+    End Sub
+
+    Private Sub SetSizeBoxesValues(newSize As Size)
+        'sets the values of the width and height number boxes
+
+        _disableSpriteResize = True
+        NumResizeW.Value = newSize.Width
+        _disableSpriteResize = False
+        NumResizeH.Value = newSize.Height
+
     End Sub
 
 #End Region
