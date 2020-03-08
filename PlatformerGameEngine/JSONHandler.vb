@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'06/09/2019
-'Procedures for converting between tags and JSON
-
-Public Module JsonHandler
+﻿Public Module JsonHandler
 
     'uses standards shown at https://www.json.org/
     'may not be identical though
@@ -21,58 +17,62 @@ Public Module JsonHandler
     Public Function JsonToTag(json As String) As Tag
         'converts a JSON string into a tag
 
-        Dim cIndex As Integer           'current character index of json string
-        Dim name As String = ""
-        Dim argument As String = ""
-        Dim inString As Boolean         'is the current character in a string (includes quotation marks)
-        Dim stringEscaped As Boolean _
-        'has the string been 'escaped' (escaped by \, used for special cases such as \n for new line or \" for a quotation mark)
-        Dim inArgument As Boolean       'false: currently in name, true: currently in argument
+        If Not IsNothing(json) AndAlso Len(json) > 0 Then
+            Dim cIndex As Integer           'current character index of json string
+            Dim name As String = ""
+            Dim argument As String = ""
+            Dim inString As Boolean         'is the current character in a string (includes quotation marks)
+            Dim stringEscaped As Boolean _
+            'has the string been 'escaped' (escaped by \, used for special cases such as \n for new line or \" for a quotation mark)
+            Dim inArgument As Boolean       'false: currently in name, true: currently in argument
 
-        json = Trim(json)       'removes any leading or trailing whitespace
-        json = Mid(json, 2, Len(json) - 2)      'removes beginning and ending braces
+            json = Trim(json)       'removes any leading or trailing whitespace
+            json = Mid(json, 2, Len(json) - 2)      'removes beginning and ending braces
 
-        For cIndex = 0 To Len(json) - 1
-            Dim c As String = Mid(json, cIndex + 1, 1)      'current character
-            Dim addChar As Boolean = True       'if true then c is added to name/argument
+            For cIndex = 0 To Len(json) - 1
+                Dim c As String = Mid(json, cIndex + 1, 1)      'current character
+                Dim addChar As Boolean = True       'if true then c is added to name/argument
 
-            If inString Then
-                If stringEscaped Then
-                    stringEscaped = False
-                Else
-                    If c = "\" Then
-                        stringEscaped = True
+                If inString Then
+                    If stringEscaped Then
+                        stringEscaped = False
                     Else
-                        If c = """" Then        '4 quotes represents a quotation mark
-                            inString = False
+                        If c = "\" Then
+                            stringEscaped = True
+                        Else
+                            If c = """" Then        '4 quotes represents a quotation mark
+                                inString = False
+                            End If
+                        End If
+                    End If
+                Else
+                    If c = ":" Then
+                        If Not inArgument Then
+                            inArgument = True
+                            addChar = False
+                        End If
+                    Else
+                        If c = """" Then
+                            inString = True
+                        ElseIf Not inArgument Then
+                            addChar = False
                         End If
                     End If
                 End If
-            Else
-                If c = ":" Then
-                    If Not inArgument Then
-                        inArgument = True
-                        addChar = False
-                    End If
-                Else
-                    If c = """" Then
-                        inString = True
-                    ElseIf Not inArgument Then
-                        addChar = False
+
+                If addChar Then
+                    If inArgument Then
+                        argument += c
+                    Else
+                        name += c
                     End If
                 End If
-            End If
+            Next cIndex
 
-            If addChar Then
-                If inArgument Then
-                    argument += c
-                Else
-                    name += c
-                End If
-            End If
-        Next cIndex
-
-        Return New Tag(RemoveQuotes(name), RemoveQuotes(argument))
+            Return New Tag(RemoveQuotes(name), RemoveQuotes(argument))
+        Else
+            Return Nothing
+        End If
     End Function
 
 #End Region
@@ -210,7 +210,7 @@ Public Module JsonHandler
         'splits a JSON string into its tags
 
         If Len(input) > 1 Then
-            Dim result() As String = {""}
+            Dim result() As String = {}
             If input(0) = "[" And input(Len(input) - 1) = "]" Or input(0) = "{" And input(Len(input) - 1) = "}" Then
                 input = Mid(input, 2, Len(input) - 2)   'removes outermost {} or []
             End If
@@ -220,6 +220,10 @@ Public Module JsonHandler
 
             For cIndex As Integer = 0 To Len(input) - 1
                 Dim c As Char = input(cIndex)
+
+                If UBound(result) < 0 Then  'only triggers on first character
+                    result = {""}
+                End If
 
                 result(UBound(result)) += c
 
@@ -231,8 +235,6 @@ Public Module JsonHandler
                     subStructureLevel += 1
                 ElseIf Not inString And (c = "}" Or c = "]") Then
                     subStructureLevel -= 1
-                    'ElseIf subStructureLevel = subStructureLevelRequired And c = "[" Or c = "]" Then
-                    '    result(UBound(result)) = result(UBound(result)).Remove(Len(result(UBound(result))) - 1, 1)
                 End If
 
                 'only splits when not in a string and at the required substructure level

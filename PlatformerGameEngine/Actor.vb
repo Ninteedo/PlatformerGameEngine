@@ -148,7 +148,7 @@ Public Class Actor
 
     Public ReadOnly Property Hitbox As RectangleF
         Get
-            If Not IsNothing(Sprites) AndAlso Not IsNothing(Sprites(SpriteIndex)) Then
+            If UBound(Sprites) >= 0 Then
                 Return New RectangleF(Location,
                 ScaleSize(Sprites(SpriteIndex).Dimensions, Scale))
             Else
