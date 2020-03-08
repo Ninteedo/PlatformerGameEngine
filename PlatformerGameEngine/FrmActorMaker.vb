@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'24/03/2019
-'Actor creator for platformer game engine
-
-Imports PlatformerGameEngine.My.Resources
+﻿Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmActorMaker
 

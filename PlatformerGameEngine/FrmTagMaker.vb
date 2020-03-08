@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'24/03/2019
-'Tag editor
-
-Public Class FrmTagMaker
+﻿Public Class FrmTagMaker
 
     Public UserFinished As Boolean = False
 

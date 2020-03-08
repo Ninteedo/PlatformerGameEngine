@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'28/08/2019
-'Some predefined behaviours for specific tags
-
-Imports PlatformerGameEngine.My
+﻿Imports PlatformerGameEngine.My
 Imports MySql.Data.MySqlClient
 
 Public Module TagBehaviours

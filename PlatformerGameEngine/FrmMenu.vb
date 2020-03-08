@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'22/03/2019
-'Menu for platformer engine
-
-Imports PlatformerGameEngine.My.Resources
+﻿Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmMenu
 

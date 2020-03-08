@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'22/03/2019
-'Panel Render Engine
-
-Public Class RenderEngine
+﻿Public Class RenderEngine
 
     ReadOnly _renderPanel As Panel
     Public RenderResolution As New Size(640, 480)      'how many pixels the game is played at, scaled on render to the size of the render panel

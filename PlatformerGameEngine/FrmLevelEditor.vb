@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'29/03/2019
-'Level editor for platformer game engine
-
-Imports PlatformerGameEngine.My.Resources
+﻿Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmLevelEditor
 
@@ -359,7 +355,7 @@ Public Class FrmLevelEditor
             Dim otherNames(UBound(Actors)) As String
 
             For index As Integer = 0 To UBound(otherNames)
-                otherNames(index) = Rooms(index).Name
+                otherNames(index) = Actors(index).Name
             Next
 
             Return MakeNameUnique(actorName, otherNames, True)

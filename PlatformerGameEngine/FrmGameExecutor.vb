@@ -1,8 +1,4 @@
-﻿'Richard Holmes
-'23/03/2019
-'Game loader and executor, uses RenderEngine
-
-Imports PlatformerGameEngine.My.Resources
+﻿Imports PlatformerGameEngine.My.Resources
 
 Public Class FrmGameExecutor
 
