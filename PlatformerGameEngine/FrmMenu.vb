@@ -32,7 +32,6 @@ Public Class FrmMenu
         'the behaviours available for when a button is pressed
 
         LoadGame
-        OptionsMenu
         ToolsMenu
         SpriteMaker
         LevelEditor
@@ -44,22 +43,21 @@ Public Class FrmMenu
     End Sub
 
     Private Sub Initialisation()
-        _menuButtons = {btnMenu1, btnMenu2, btnMenu3}
+        _menuButtons = {BtnMenu1, BtnMenu2, BtnMenu3}
 
         'assigns the click event of all the menu buttons to the MenuButtonClicked procedure
-        For index As Integer = 0 To UBound(_menuButtons)
-            AddHandler _menuButtons(index).Click, AddressOf MenuButtonClicked
-        Next index
+        For Each btn As Button In _menuButtons
+            AddHandler btn.Click, AddressOf MenuButtonClicked
+        Next
 
         'sets up the menu layouts
         Dim mainMenu As New MenuOptions(
                     {New MenuItem("Load Game", MenuLink.LoadGame),
-                     New MenuItem("Options", MenuLink.OptionsMenu),
-                     New MenuItem("Tools", MenuLink.ToolsMenu)}, -1)
+                     New MenuItem("Tools", MenuLink.ToolsMenu),
+                     New MenuItem("Scoreboard", MenuLink.Scoreboard)}, -1)
         Dim toolsMenu As New MenuOptions(
                     {New MenuItem("Sprite Maker", MenuLink.SpriteMaker),
-                     New MenuItem("Level Editor", MenuLink.LevelEditor),
-                     New MenuItem("Scoreboard", MenuLink.Scoreboard)}, 0)
+                     New MenuItem("Level Editor", MenuLink.LevelEditor)}, 0)
 
         _menuLayouts = {mainMenu, toolsMenu}
 
@@ -88,14 +86,12 @@ Public Class FrmMenu
 
                     Using openDialog As New OpenFileDialog _
                                 With {.Filter = LevelFileFilter, .Title = "Select Level"}
-                        'MsgBox("Please select the level file")
                         If openDialog.ShowDialog() = DialogResult.OK Then
                             Using game As New FrmGameExecutor(ReadFile(openDialog.FileName))
                                 game.ShowDialog()
                             End Using
                         End If
                     End Using
-                Case MenuLink.OptionsMenu
 
                 Case MenuLink.ToolsMenu
                     'changes the menu layout to one relevant to the tools menu
@@ -144,15 +140,15 @@ Public Class FrmMenu
         Next index
 
         If layout.PreviousMenuIndex = -1 Then   'if on the top level menu then back is replaced by quit
-            btnMenuBack.Text = "Quit"
+            BtnMenuBack.Text = "Quit"
         Else
-            btnMenuBack.Text = "Back"
+            BtnMenuBack.Text = "Back"
         End If
 
         _currentMenuIndex = menuIndex
     End Sub
 
-    Private Sub BtnMenuBack_Click(sender As Object, e As EventArgs) Handles btnMenuBack.Click
+    Private Sub BtnMenuBack_Click(sender As Object, e As EventArgs) Handles BtnMenuBack.Click
         'code for the user pressing the back button
 
         _currentMenuIndex = _menuLayouts(_currentMenuIndex).PreviousMenuIndex

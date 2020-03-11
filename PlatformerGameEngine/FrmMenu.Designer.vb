@@ -22,75 +22,75 @@ Partial Class FrmMenu
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.btnMenu1 = New System.Windows.Forms.Button()
-        Me.btnMenu2 = New System.Windows.Forms.Button()
-        Me.btnMenu3 = New System.Windows.Forms.Button()
-        Me.btnMenuBack = New System.Windows.Forms.Button()
+        Me.BtnMenu1 = New System.Windows.Forms.Button()
+        Me.BtnMenu2 = New System.Windows.Forms.Button()
+        Me.BtnMenu3 = New System.Windows.Forms.Button()
+        Me.BtnMenuBack = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
-        'btnMenu1
+        'BtnMenu1
         '
-        Me.btnMenu1.BackColor = System.Drawing.Color.Silver
-        Me.btnMenu1.Location = New System.Drawing.Point(18, 108)
-        Me.btnMenu1.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
-        Me.btnMenu1.Name = "btnMenu1"
-        Me.btnMenu1.Size = New System.Drawing.Size(146, 72)
-        Me.btnMenu1.TabIndex = 1
-        Me.btnMenu1.Text = "1"
-        Me.btnMenu1.UseVisualStyleBackColor = False
+        Me.BtnMenu1.BackColor = System.Drawing.Color.Silver
+        Me.BtnMenu1.Location = New System.Drawing.Point(18, 108)
+        Me.BtnMenu1.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.BtnMenu1.Name = "BtnMenu1"
+        Me.BtnMenu1.Size = New System.Drawing.Size(146, 72)
+        Me.BtnMenu1.TabIndex = 1
+        Me.BtnMenu1.Text = "1"
+        Me.BtnMenu1.UseVisualStyleBackColor = False
         '
-        'btnMenu2
+        'BtnMenu2
         '
-        Me.btnMenu2.BackColor = System.Drawing.Color.Silver
-        Me.btnMenu2.Location = New System.Drawing.Point(18, 189)
-        Me.btnMenu2.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
-        Me.btnMenu2.Name = "btnMenu2"
-        Me.btnMenu2.Size = New System.Drawing.Size(146, 72)
-        Me.btnMenu2.TabIndex = 2
-        Me.btnMenu2.Text = "2"
-        Me.btnMenu2.UseVisualStyleBackColor = False
+        Me.BtnMenu2.BackColor = System.Drawing.Color.Silver
+        Me.BtnMenu2.Location = New System.Drawing.Point(18, 189)
+        Me.BtnMenu2.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.BtnMenu2.Name = "BtnMenu2"
+        Me.BtnMenu2.Size = New System.Drawing.Size(146, 72)
+        Me.BtnMenu2.TabIndex = 2
+        Me.BtnMenu2.Text = "2"
+        Me.BtnMenu2.UseVisualStyleBackColor = False
         '
-        'btnMenu3
+        'BtnMenu3
         '
-        Me.btnMenu3.BackColor = System.Drawing.Color.Silver
-        Me.btnMenu3.Location = New System.Drawing.Point(18, 271)
-        Me.btnMenu3.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
-        Me.btnMenu3.Name = "btnMenu3"
-        Me.btnMenu3.Size = New System.Drawing.Size(146, 72)
-        Me.btnMenu3.TabIndex = 3
-        Me.btnMenu3.Text = "3"
-        Me.btnMenu3.UseVisualStyleBackColor = False
+        Me.BtnMenu3.BackColor = System.Drawing.Color.Silver
+        Me.BtnMenu3.Location = New System.Drawing.Point(18, 271)
+        Me.BtnMenu3.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.BtnMenu3.Name = "BtnMenu3"
+        Me.BtnMenu3.Size = New System.Drawing.Size(146, 72)
+        Me.BtnMenu3.TabIndex = 3
+        Me.BtnMenu3.Text = "3"
+        Me.BtnMenu3.UseVisualStyleBackColor = False
         '
-        'btnMenuBack
+        'BtnMenuBack
         '
-        Me.btnMenuBack.BackColor = System.Drawing.Color.Silver
-        Me.btnMenuBack.Location = New System.Drawing.Point(18, 352)
-        Me.btnMenuBack.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
-        Me.btnMenuBack.Name = "btnMenuBack"
-        Me.btnMenuBack.Size = New System.Drawing.Size(146, 72)
-        Me.btnMenuBack.TabIndex = 4
-        Me.btnMenuBack.Text = "Back"
-        Me.btnMenuBack.UseVisualStyleBackColor = False
+        Me.BtnMenuBack.BackColor = System.Drawing.Color.Silver
+        Me.BtnMenuBack.Location = New System.Drawing.Point(18, 352)
+        Me.BtnMenuBack.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.BtnMenuBack.Name = "BtnMenuBack"
+        Me.BtnMenuBack.Size = New System.Drawing.Size(146, 72)
+        Me.BtnMenuBack.TabIndex = 4
+        Me.BtnMenuBack.Text = "Back"
+        Me.BtnMenuBack.UseVisualStyleBackColor = False
         '
         'FrmMenu
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.BackColor = System.Drawing.Color.DimGray
+        Me.BackColor = System.Drawing.SystemColors.ControlDark
         Me.ClientSize = New System.Drawing.Size(264, 455)
-        Me.Controls.Add(Me.btnMenuBack)
-        Me.Controls.Add(Me.btnMenu3)
-        Me.Controls.Add(Me.btnMenu2)
-        Me.Controls.Add(Me.btnMenu1)
+        Me.Controls.Add(Me.BtnMenuBack)
+        Me.Controls.Add(Me.BtnMenu3)
+        Me.Controls.Add(Me.BtnMenu2)
+        Me.Controls.Add(Me.BtnMenu1)
         Me.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
         Me.Name = "FrmMenu"
         Me.Text = "Platformer Engine"
         Me.ResumeLayout(False)
 
     End Sub
-    Friend WithEvents btnMenu1 As System.Windows.Forms.Button
-    Friend WithEvents btnMenu2 As System.Windows.Forms.Button
-    Friend WithEvents btnMenu3 As System.Windows.Forms.Button
-    Friend WithEvents btnMenuBack As System.Windows.Forms.Button
+    Friend WithEvents BtnMenu1 As System.Windows.Forms.Button
+    Friend WithEvents BtnMenu2 As System.Windows.Forms.Button
+    Friend WithEvents BtnMenu3 As System.Windows.Forms.Button
+    Friend WithEvents BtnMenuBack As System.Windows.Forms.Button
 
 End Class
