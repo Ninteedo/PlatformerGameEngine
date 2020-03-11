@@ -55,7 +55,6 @@
             Dim reader As New IO.StreamReader(fileLocation)
             Dim fileText As String = reader.ReadToEnd()
             reader.Close()
-
             Return fileText
         Else
             DisplayError("Couldn't find file " & fileLocation)
@@ -67,11 +66,9 @@
         'writes a message to a file
 
         Dim writer As New IO.StreamWriter(fileLocation)
-
         For Each c As Char In message
             writer.Write(c)
         Next c
-
         writer.Close()
     End Sub
 
@@ -92,24 +89,20 @@
     Public Sub RefreshList(list As ListBox, values() As String)
         'empties a list and fills it with given values
 
-        If Not IsNothing(list) Then
-            Dim startSelectedIndex As Integer = list.SelectedIndex
-            list.SelectedIndex = -1
-            list.Items.Clear()
+        Dim startSelectedIndex As Integer = list.SelectedIndex
+        list.SelectedIndex = -1
+        list.Items.Clear()
 
-            If Not IsNothing(values) Then
-                For Each value As String In values
-                    If Not IsNothing(value) Then
-                        list.Items.Add(value)
-                    End If
-                Next value
-
-                If startSelectedIndex < list.Items.Count Then
-                    list.SelectedIndex = startSelectedIndex
+        If Not IsNothing(values) Then
+            For Each value As String In values
+                If Not IsNothing(value) Then
+                    list.Items.Add(value)
                 End If
+            Next value
+
+            If startSelectedIndex < list.Items.Count Then
+                list.SelectedIndex = startSelectedIndex
             End If
-        Else
-            'DisplayError("A list tried to refresh but doesn't exist")
         End If
     End Sub
 
@@ -121,7 +114,7 @@
         If Not IsNothing(otherNames) Then
             Dim copyNumber As Integer = 0           'used to find which number needs to added to the end of the instance name so there aren't any duplicate names
             Dim generatedName As String = name
-            Dim nameUnique As Boolean = False
+            Dim nameUnique As Boolean 
 
             Do
                 copyNumber += 1

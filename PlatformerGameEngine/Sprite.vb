@@ -150,18 +150,10 @@ Public Class Sprite
         End If
     End Sub
 
-    Public Sub SetPixelColour(x As Integer, y As Integer, newColour As Color)
-        SetPixelColour(New Point(x, y), newColour)
-    End Sub
-
     Public Function ValidCoords(coords As Point) As Boolean
         'returns whether provided coords are within range of the grid
 
         Return Not IsNothing(_colourIndices) AndAlso (coords.X >= 0 And coords.X < Dimensions.Width And coords.Y >= 0 And coords.Y < Dimensions.Height)
-    End Function
-
-    Public Function ValidCoords(x As Integer, y As Integer) As Boolean
-        Return ValidCoords(New Point(x, y))
     End Function
 
     Public Property Colours As Color()
@@ -231,14 +223,6 @@ Public Class Sprite
                 Next
             Next
         End Set
-    End Property
-
-    Public ReadOnly Property Centre As PointF
-        'returns the location of the centre of the frame
-
-        Get
-            Return New PointF(Dimensions.Width / 2, Dimensions.Height / 2)
-        End Get
     End Property
 
 #End Region

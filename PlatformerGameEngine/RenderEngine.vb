@@ -41,22 +41,24 @@
                                     j += 1
                                 Loop
 
-                                'moves the actor to its new index, shifting Actors in between along
-                                Dim temp As Actor = actorList(i).Clone()
+                                'moves the actor to its new index, shifting actors in between along
+                                Dim swap As Actor = actorList(i).Clone()
                                 actorList = RemoveItem(actorList, i)
-                                actorList = InsertItem(actorList, temp, j)
+                                actorList = InsertItem(actorList, swap, j)
                             End If
                         Next
 
                         'renders each actor in new sorted order
                         For Each currentActor As Actor In actorList
-                            If Not IsNothing(currentActor.Sprites) And currentActor.SpriteIndex <= UBound(currentActor.Sprites) And currentActor.SpriteIndex >= 0 Then
+                            If Not IsNothing(currentActor.Sprites) AndAlso
+                                (currentActor.SpriteIndex <= UBound(currentActor.Sprites) And
+                                currentActor.SpriteIndex >= 0) Then
                                 Dim renderSprite As Sprite = currentActor.GetCurrentSprite()
-                                Dim actHitbox As RectangleF = currentActor.Hitbox 'New RectangleF(currentActor.Hitbox.Location, New SizeF(currentActor.Hitbox.Width + 0.5, currentActor.Hitbox.Height + 0.5))
+                                Dim actHitbox As RectangleF = currentActor.Hitbox
                                 Dim renderArea As RectangleF = ScaleRect(actHitbox, RenderScale)
-                                renderArea.Offset(offset)
-                                renderArea.Offset(ScaleSize(RenderScale, currentActor.Scale * 0.25))
-                                renderArea.Inflate(ScaleSize(RenderScale, currentActor.Scale * 0.25))
+                                renderArea.Offset(offset)       'scroll
+                                renderArea.Offset(ScaleSize(RenderScale, currentActor.Scale * 0.25))    'these two are here to try and fix...
+                                renderArea.Inflate(ScaleSize(RenderScale, currentActor.Scale * 0.25))       'incorrectly sized actor renders
                                 renderLayer.Graphics.DrawImage(renderSprite.Bitmap, renderArea)
                             End If
                         Next

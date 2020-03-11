@@ -261,11 +261,6 @@ Public Module TagBehaviours
         ReadOnly Points() As Vector
         Dim Edges() As Vector
 
-        Public Sub New(points() As Vector)
-            Me.Points = points
-            CalculateEdges()
-        End Sub
-
         Public Sub New(rect As RectangleF)
             Points = {New Vector(rect.Right, rect.Top), New Vector(rect.Right, rect.Bottom), New Vector(rect.Left, rect.Bottom), New Vector(rect.Left, rect.Top)}
             CalculateEdges()
@@ -304,16 +299,6 @@ Public Module TagBehaviours
                 Return New Vector(totalX / Points.Length, totalY / Points.Length)
             End Get
         End Property
-
-        Public Sub ChangeLocation(change As Vector)
-            'changes the location of the polygon by the given vector
-
-            For index As Integer = 0 To UBound(Points)
-                Points(index) += change
-            Next
-
-            CalculateEdges()
-        End Sub
     End Structure
 
     Private Structure PolygonCollisionResult
@@ -431,7 +416,6 @@ Public Module TagBehaviours
     Private Function ProcessCalcBrackets(calc As String, Optional ByRef act As Actor = Nothing,
                                          Optional ByRef game As FrmGameExecutor = Nothing) As String
         'processes each of the brackets in the calculation
-        'TODO: nested brackets
 
         Dim cIndex As Integer = 0
         Dim currentBracketIndent As Integer = 0         'total opened brackets - total closed brackets
@@ -544,7 +528,7 @@ Public Module TagBehaviours
                                 Dim leftVal As Single = Val(leftPart)
                                 Dim rightVal As Single = Val(rightPart)
 
-                                Select Case operatorSymbol      'TODO: replace references with strings
+                                Select Case operatorSymbol
                                     Case "^"
                                         newPart = leftVal ^ rightVal
                                     Case "/"

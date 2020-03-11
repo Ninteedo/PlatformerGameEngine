@@ -63,6 +63,20 @@
 
 #End Region
 
+#Region "Other"
+
+    Public Overrides Function ToString() As String
+        Return TagToJson(Me)
+    End Function
+
+    Public Function Clone() As Object Implements ICloneable.Clone
+        'returns a deep clone of this tag
+
+        Return New Tag(Name.Clone, Argument.Clone)
+    End Function
+
+#End Region
+
 #Region "Operators"
 
     Private Shared Function AreTagsIdentical(tag1 As Tag, tag2 As Tag) As Boolean
@@ -82,20 +96,6 @@
     Public Shared Operator <>(tag1 As Tag, tag2 As Tag) As Boolean
         Return Not AreTagsIdentical(tag1, tag2)
     End Operator
-
-#End Region
-
-#Region "Other"
-
-    Public Overrides Function ToString() As String
-        Return TagToJson(Me)
-    End Function
-
-    Public Function Clone() As Object Implements ICloneable.Clone
-        'returns a deep clone of this tag
-
-        Return New Tag(Name.Clone, Argument.Clone)
-    End Function
 
 #End Region
 
