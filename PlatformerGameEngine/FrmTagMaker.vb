@@ -30,13 +30,13 @@
     Private Sub BtnFinish_Click(sender As Button, e As EventArgs) Handles BtnFinish.Click
         If VerifyCreatedTag() Then
             UserFinished = True
-            Me.Close()
+            Close()
         End If
     End Sub
 
     Private Sub BtnCancel_Click(sender As Button, e As EventArgs) Handles BtnCancel.Click
         UserFinished = False
-        Me.Close()
+        Close()
     End Sub
 
 #End Region
@@ -71,10 +71,8 @@
             End If
         Next
 
-        If errorIndex = -1 Then
-            If Not IsNothing(openedBrackets) AndAlso UBound(openedBrackets) > -1 Then   'check for remaining opened brackets
-                errorIndex = Len(TxtJson.Text) - 1
-            End If
+        If errorIndex = -1 And (Not IsNothing(openedBrackets) AndAlso UBound(openedBrackets) > -1) Then   'check for remaining opened brackets
+            errorIndex = Len(TxtJson.Text) - 1
         End If
 
         If errorIndex <> -1 Then
