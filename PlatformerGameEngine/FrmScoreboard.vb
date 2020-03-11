@@ -16,23 +16,12 @@ Public Class FrmScoreboard
         Dim input As String = InputBox("Enter the name of the game the scoreboard", "Enter Game Name", "Game Name")
 
         'if cancel pressed then close the form
-        If IsNothing(input) OrElse input = "" Then
+        If input = "" Then
             Close()
         Else
             LblGameName.Text = input
             ShowScores(input)
         End If
-    End Sub
-
-    Public Sub New(gameName As String)
-
-        ' This call is required by the designer.
-        InitializeComponent()
-
-        ' Add any initialization after the InitializeComponent() call.
-
-        LblGameName.Text = gameName
-        ShowScores(gameName)
     End Sub
 
 #End Region
@@ -46,7 +35,7 @@ Public Class FrmScoreboard
             Using conn As New MySqlConnection(Settings.ProjectScoresConnectionString)
                 conn.Open()
 
-                Const query As String = '"SELECT initials AS 'Player', MAX(points) AS 'Score' FROM Score WHERE gameName = @gameName GROUP BY initials ORDER BY MAX(points) DESC, id ASC"
+                Const query As String =
                 "SELECT initials AS 'Player', MAX(points) AS 'Score'
                 FROM Score
                 WHERE gameName = @gameName
@@ -77,7 +66,7 @@ Public Class FrmScoreboard
                 conn.Close()
             End Using
         Catch ex As Exception
-            DisplayError("An error has occured so score couldn't be displayed" & vbCrLf & ex.ToString())
+            DisplayError("An error has occured whilst attempting to display scoreboard" & vbCrLf & ex.ToString())
             Close()
         End Try
     End Sub
