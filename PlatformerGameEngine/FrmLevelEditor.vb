@@ -27,8 +27,7 @@ Public Class FrmLevelEditor
         'loads a level and sets the interface up
 
         _levelSaveLocation = fileLocation
-        Dim levelString As String = ReadFile(_levelSaveLocation)
-        _createdLevel = New Level(levelString)
+        _createdLevel = New Level(ReadFile(fileLocation))
 
         RefreshEverything()
         RefreshControlsEnabled()
@@ -72,20 +71,19 @@ Public Class FrmLevelEditor
     Private Sub ToolBarFileSave_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ToolBarFileSave.Click
         'saves the level if there is a valid save location already or asks the user to save as
 
-        If Not IsNothing(_levelSaveLocation) Then
-            SaveLevel()
-        Else
+        If IsNothing(_levelSaveLocation) Then
             SaveAsPrompt()
+        Else
+            SaveLevel()
         End If
     End Sub
 
     Private Sub UserCloseForm(sender As FrmLevelEditor, e As FormClosingEventArgs) Handles Me.FormClosing
         'displays a warning to the user if they have unsaved work when they close the form
 
-        If UnsavedChanges Then
-            If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
-                e.Cancel = True
-            End If
+        If UnsavedChanges AndAlso
+           MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
+            e.Cancel = True
         End If
     End Sub
 
@@ -95,12 +93,10 @@ Public Class FrmLevelEditor
             Dim result As Boolean = False
 
             If IO.File.Exists(_levelSaveLocation) Then
-                Dim savedLevelString As String = ReadFile(_levelSaveLocation)
-
-                If savedLevelString <> _createdLevel.ToString Then
+                If ReadFile(_levelSaveLocation) <> _createdLevel.ToString Then
                     result = True
                 End If
-            ElseIf _createdLevel <> New Level({}) Then
+            ElseIf _createdLevel.ToString() <> New Level({}).ToString() Then
                 'if changes have been made but no saves made then there are unsaved changes
                 result = True
             End If
@@ -113,7 +109,7 @@ Public Class FrmLevelEditor
 
 #Region "Render"
 
-    Dim _renderEngine As RenderEngine
+    ReadOnly _renderEngine As RenderEngine
 
     Private Sub RenderCurrentRoom()
         'renders the current room
@@ -167,7 +163,6 @@ Public Class FrmLevelEditor
 
         Using actorMaker As New FrmActorMaker(New Actor())
             actorMaker.ShowDialog()
-
             If actorMaker.Finished Then
                 AddActor(actorMaker.CreatedActor)
             End If
@@ -176,13 +171,11 @@ Public Class FrmLevelEditor
 
     Private Sub ItmActorDelete_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorDelete.Click
         Actors = RemoveItem(Actors, LstActors.SelectedIndex)
-        RefreshActorsList()
     End Sub
 
     Private Sub ItmActorEdit_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorEdit.Click
         Using actorMaker As New FrmActorMaker(SelectedActor)
             actorMaker.ShowDialog()
-
             If actorMaker.Finished Then
                 SelectedActor = actorMaker.CreatedActor
             End If
@@ -190,7 +183,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub ItmActorDuplicate_Click(sender As ToolStripMenuItem, e As EventArgs) Handles ItmActorDuplicate.Click
-        AddActor(_createdLevel.Rooms(LstRooms.SelectedIndex).Actors(LstActors.SelectedIndex))
+        AddActor(SelectedActor)
     End Sub
 
     Private Sub AddActor(template As Actor)
@@ -209,11 +202,9 @@ Public Class FrmLevelEditor
     Private Sub RefreshActorsList()
         If Not IsNothing(Actors) Then
             Dim names(UBound(Actors)) As String
-
             For index As Integer = 0 To UBound(Actors)
                 names(index) = Actors(index).Name
             Next
-
             RefreshList(LstActors, names)
         Else
             RefreshList(LstActors, Nothing)
@@ -252,6 +243,8 @@ Public Class FrmLevelEditor
         Set
             If LstActorTags.SelectedIndex > -1 Then
                 Tags(LstActorTags.SelectedIndex) = Value
+            Else
+                DisplayError("Tried to modify a tag but none were selected")
             End If
         End Set
     End Property
@@ -281,17 +274,12 @@ Public Class FrmLevelEditor
         Next
     End Sub
 
-    Private Sub ShowActorTags(ByVal displayActor As Actor)
+    Private Sub ShowActorTags(displayActor As Actor)
         'changes the values displayed in the controls for tags to show values of the current actor
 
         _disableTagChangedEvent = True
 
-        If IsNothing(displayActor) Then      'if no actor provided then uses an empty actor
-            displayActor = New Actor       'this doesn't work as Actors have some default properties
-            'ToggleTagControls(False)
-        End If
-
-        TxtActorName.Text = RemoveQuotes(displayActor.Name)
+        TxtActorName.Text = displayActor.Name
         NumActorLocX.Value = displayActor.Location.X
         NumActorLocY.Value = displayActor.Location.Y
         NumActorLayer.Value = displayActor.Layer
@@ -307,7 +295,11 @@ Public Class FrmLevelEditor
         If Not _disableTagChangedEvent Then
             _disableTagChangedEvent = True
 
-            SelectedActor.Name = MakeActorNameUnique(TxtActorName.Text)
+            If SelectedActor.Name <> TxtActorName.Text Then
+                'condition added so that the name isn't made unique compared to itself which modifies the name unnecessarily 
+                SelectedActor.Name = MakeActorNameUnique(TxtActorName.Text)
+            End If
+
             SelectedActor.Location = New PointF(NumActorLocX.Value, NumActorLocY.Value)
             SelectedActor.Layer = NumActorLayer.Value
             SelectedActor.Scale = NumActorScale.Value
@@ -319,7 +311,7 @@ Public Class FrmLevelEditor
     End Sub
 
     Private Sub BtnAddActorTag_Click(sender As Button, e As EventArgs) Handles BtnAddActorTag.Click
-        Using tagMaker As New FrmTagMaker
+        Using tagMaker As New FrmTagMaker()
             tagMaker.ShowDialog()
             If tagMaker.UserFinished Then
                 Tags = InsertItem(Tags, tagMaker.CreatedTag)
@@ -353,11 +345,9 @@ Public Class FrmLevelEditor
     Private Function MakeActorNameUnique(actorName As String) As String
         If Not IsNothing(Actors) Then
             Dim otherNames(UBound(Actors)) As String
-
             For index As Integer = 0 To UBound(otherNames)
                 otherNames(index) = Actors(index).Name
             Next
-
             Return MakeNameUnique(actorName, otherNames, True)
         Else
             Return actorName
@@ -375,13 +365,13 @@ Public Class FrmLevelEditor
         'gets the relative mouse location in the game render
         Dim mouseLocationInRender As New PointF(e.X / _renderEngine.RenderScale.Width, e.Y / _renderEngine.RenderScale.Height)
 
-
         If Not IsNothing(Actors) Then
             'finds which instances the mouse is over
             Dim possibleInstanceIndices() As Integer = {}
             For index As Integer = 0 To UBound(Actors)
-                Dim instanceArea As RectangleF = Actors(index).Hitbox()
+                Dim instanceArea As RectangleF = Actors(index).Hitbox
 
+                'checks if mouse click overlaps with instanceArea
                 If mouseLocationInRender.X <= instanceArea.Right And mouseLocationInRender.X >= instanceArea.Left _
                     And mouseLocationInRender.Y >= instanceArea.Top And mouseLocationInRender.Y <= instanceArea.Bottom Then
                     possibleInstanceIndices = InsertItem(possibleInstanceIndices, index)
@@ -457,6 +447,8 @@ Public Class FrmLevelEditor
                 _createdLevel.Tags(LstLevelParams.SelectedIndex) = Value
 
                 RefreshEverything()
+            Else
+                DisplayError("Tried to modify a parameter but none were selected")
             End If
         End Set
     End Property
@@ -466,7 +458,6 @@ Public Class FrmLevelEditor
 
         If Not IsNothing(Parameters) Then
             Dim items(UBound(Parameters)) As String
-
             For index As Integer = 0 To UBound(items)
                 items(index) = Parameters(index).ToString
             Next index
@@ -476,18 +467,9 @@ Public Class FrmLevelEditor
         End If
     End Sub
 
-    Private Sub LstLevelParams_SelectedIndexChanged(sender As ListBox, e As EventArgs) Handles LstLevelParams.SelectedIndexChanged
-        'a different parameter is selected for editing/removing
-
-        If LstLevelParams.SelectedIndex > -1 Then
-
-        End If
-    End Sub
-
     Private Sub BtnAddLevelParam_Click(sender As Button, e As EventArgs) Handles BtnAddLevelParam.Click
         'user creates a new parameter using FrmTagMaker
 
-        'gets the user to create a parameter (same as a tag)
         Using tagMaker As New FrmTagMaker
             tagMaker.ShowDialog()
             If tagMaker.UserFinished Then
@@ -528,11 +510,9 @@ Public Class FrmLevelEditor
             Else
                 Return Nothing
             End If
-
         End Get
         Set
             _createdLevel.Rooms = Value
-
             RefreshEverything()
         End Set
     End Property
@@ -549,6 +529,8 @@ Public Class FrmLevelEditor
             If LstRooms.SelectedIndex > -1 And LstRooms.SelectedIndex <= UBound(Rooms) Then
                 Rooms(LstRooms.SelectedIndex) = Value
                 RefreshEverything()
+            Else
+                DisplayError("Tried to modify a room but none were selected")
             End If
         End Set
     End Property
@@ -559,7 +541,6 @@ Public Class FrmLevelEditor
             For index As Integer = 0 To UBound(Rooms)
                 items(index) = Rooms(index).Name
             Next
-
             RefreshList(LstRooms, items)
         End If
     End Sub
@@ -606,11 +587,9 @@ Public Class FrmLevelEditor
     Private Function MakeRoomNameUnique(roomName As String) As String
         If Not IsNothing(Rooms) Then
             Dim otherNames(UBound(Rooms)) As String
-
             For index As Integer = 0 To UBound(otherNames)
                 otherNames(index) = Rooms(index).Name
             Next
-
             Return MakeNameUnique(roomName, otherNames, True)
         Else
             Return roomName
@@ -619,7 +598,7 @@ Public Class FrmLevelEditor
 
 #End Region
 
-#Region "General Procedures"
+#Region "Other"
 
     Private Sub AnySelectionChanged(sender As ListBox, e As EventArgs) _
         Handles LstActors.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged, LstLevelParams.SelectedIndexChanged,
