@@ -3,6 +3,12 @@
     'uses standards shown at https://www.json.org/
     'may not be identical though
 
+    'these methods were largely designed with a slightly older version of tags in mind
+    'the strings in these older tags could use escape characters to display things like quotes
+    'this was removed from the design but much of the code is still here...
+    'because I didn't have long enough to re-implement this section
+    'lots of the code here was for handling escaped quote marks but are in practice irrelevant in this version
+
 #Region "JSON-Tag Conversions"
 
     Public Function TagToJson(inputTag As Tag) As String
