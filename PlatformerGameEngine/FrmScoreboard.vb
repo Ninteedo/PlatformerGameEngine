@@ -78,14 +78,12 @@ Public Class FrmScoreboard
     Private Sub DisplayScores(scores As MySqlDataReader)
         'displays each score from the query result
 
-        LstScoreboard.Items.Clear()
+        LstScoreboard.Items.Clear() 'clears the scoreboard, just in case there is anything already in it
 
         Dim place As Integer = 0    'the index of where the score appears
         Do While scores.Read()
             place += 1
-            Dim newItem As New ListViewItem({place, scores("Player"), scores("Score")})
-
-            LstScoreboard.Items.Add(newItem)
+            LstScoreboard.Items.Add(New ListViewItem({place, scores("Player"), scores("Score")}))
         Loop
     End Sub
 
@@ -107,9 +105,8 @@ Public Class FrmScoreboard
                 Dim match As Boolean = LstScoreboard.Items(index).SubItems(1).Text = searchTerm
                 LstScoreboard.Items(index).Selected = match
 
-                'scrolls the list to the matching item
                 If match Then
-                    LstScoreboard.EnsureVisible(index)
+                    LstScoreboard.EnsureVisible(index)  'scrolls the list to the matching item
                 End If
             Next
         End If
