@@ -18,16 +18,12 @@ Public Class Actor
         'creates a new actor from an actor string
 
         If Not IsNothing(actorString) Then
-            'Try
-            'loads the Tags
+            'loads all tags
             Dim temp As Object = New Tag(actorString).InterpretArgument()
             For index As Integer = 0 To UBound(temp)
                 AddTag(New Tag(temp(index).ToString))
             Next
             RefreshSpritesList()
-            'Catch ex As Exception
-            '    RenderEngine.DisplayError("An error occured whilst loading an actor" & vbCrLf & ex.ToString)
-            'End Try
         End If
     End Sub
 
@@ -49,7 +45,7 @@ Public Class Actor
     End Property
 
     Private Sub RefreshSpritesList()
-        'changes what is stored in spriteList() using the "sprites" tag
+        'changes what is stored in _spriteList using the "sprites" tag
 
         If HasTag(SpritesTagName) Then
             Dim spritesArgument As Object = FindTag(SpritesTagName).InterpretArgument()
@@ -114,8 +110,8 @@ Public Class Actor
         Get
             Return GetProperty(LayerTagName, 0)
         End Get
-        Set(value As Integer)
-            SetProperty(LayerTagName, value)
+        Set
+            SetProperty(LayerTagName, Value)
         End Set
     End Property
 
@@ -125,15 +121,6 @@ Public Class Actor
         End Get
         Set
             SetProperty(ScaleTagName, Value)
-        End Set
-    End Property
-
-    Property Opacity As Single
-        Get
-            Return GetProperty(OpacityTagName, 1.0)
-        End Get
-        Set
-            SetProperty(OpacityTagName, Value)
         End Set
     End Property
 
@@ -187,28 +174,6 @@ Public Class Actor
         End If
 
         Return newClone
-    End Function
-
-#End Region
-
-#Region "Operators"
-
-    Public Shared Operator =(ent1 As Actor, ent2 As Actor) As Boolean
-        Return AreActorsEqual(ent1, ent2)
-    End Operator
-
-    Public Shared Operator <>(ent1 As Actor, ent2 As Actor) As Boolean
-        Return Not AreActorsEqual(ent1, ent2)
-    End Operator
-
-    Private Shared Function AreActorsEqual(ent1 As Actor, ent2 As Actor) As Boolean
-        'returns whether 2 provided frames are identical
-
-        If IsNothing(ent1) Or IsNothing(ent2) Then
-            Return IsNothing(ent1) = IsNothing(ent2)
-        Else
-            Return Not (ent1.Tags IsNot ent2.Tags OrElse ent1.Sprites IsNot ent2.Sprites)
-        End If
     End Function
 
 #End Region
