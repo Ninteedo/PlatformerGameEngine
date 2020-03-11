@@ -21,7 +21,7 @@ Public Class FrmGameExecutor
         ' Add any initialization after the InitializeComponent() call.
 
         _renderer = New RenderEngine(pnlGame)
-        _currentLevel = New Level(levelTagString)
+        CurrentLevel = New Level(levelTagString)
     End Sub
 
     Private Sub FormShown(sender As FrmGameExecutor, e As EventArgs) Handles MyBase.Shown
@@ -35,18 +35,12 @@ Public Class FrmGameExecutor
 #Region "Render Control"
 
     ReadOnly _renderer As RenderEngine
-    ReadOnly _currentLevel As Level
-
-    Public ReadOnly Property CurrentLevel As Level
-        Get
-            Return _currentLevel
-        End Get
-    End Property
+    Public ReadOnly CurrentLevel As Level
 
     Public ReadOnly Property CurrentRoom As Room
         Get
-            If Not IsNothing(_currentLevel) AndAlso Not IsNothing(_currentLevel.Rooms) AndAlso _currentLevel.RoomIndex >= 0 AndAlso _currentLevel.RoomIndex <= UBound(_currentLevel.Rooms) Then
-                Return _currentLevel.Rooms(_currentLevel.RoomIndex)
+            If Not IsNothing(CurrentLevel) AndAlso Not IsNothing(CurrentLevel.Rooms) AndAlso CurrentLevel.RoomIndex >= 0 AndAlso CurrentLevel.RoomIndex <= UBound(CurrentLevel.Rooms) Then
+                Return CurrentLevel.Rooms(CurrentLevel.RoomIndex)
             Else
                 Return Nothing
             End If
@@ -59,12 +53,12 @@ Public Class FrmGameExecutor
     Dim _endGameLoop As Boolean = False     'true when the user presses close
 
     Private Sub GameLoop()
-        'https://www.dreamincode.net/forums/topic/140697-creating-games-with-vbnet/
+        'adapted from https://www.dreamincode.net/forums/topic/140697-creating-games-with-vbnet/
         'continuously loops, delaying each loop for approx 16ms
 
         _frameStopwatch = New Stopwatch
-        Const interval As Integer = 16
-        Dim startTick As Long
+        Const interval As Integer = 16 'ms
+        Dim startTick As Integer
 
         _frameStopwatch.Start()
         Do While Not _endGameLoop
@@ -92,23 +86,19 @@ Public Class FrmGameExecutor
         BroadcastEvent(New Tag(EventTagName, New Tag(NameTagName, AddQuotes("tick")).ToString))
 
         'broadcasts the key held event for each key currently held
-        If Not IsNothing(_keysHeld) Then
-            Dim kc As New KeysConverter     'used to convert the held key to a string
-            For Each keyHeld As Keys In _keysHeld
-                If keyHeld <> Keys.None Then
-                    BroadcastEvent(New Tag(EventTagName,
-                        New Tag(NameTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString))
-                End If
-            Next
-        End If
-
+        Dim kc As New KeysConverter     'used to convert the held key to a string
+        For Each keyHeld As Keys In _keysHeld
+            If keyHeld <> Keys.None Then
+                BroadcastEvent(New Tag(EventTagName,
+                    New Tag(NameTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString))
+            End If
+        Next
         'processes each actor's tags
         If Not IsNothing(CurrentRoom) Then
             If Not IsNothing(CurrentRoom.Actors) Then
                 For Each act As Actor In CurrentRoom.Actors
                     'processes the actor's actions for this tick
                     Dim tagIndex As Integer = 0
-                    'TODO: how to deal with this list changing, tag IDs?
                     Do
                         If Not ProcessTag(act.Tags(tagIndex), act, Me) Then
                             'error occured
@@ -162,7 +152,6 @@ Public Class FrmGameExecutor
     Public Function FindReference(act As Actor, refString As String) As Object
         'finds what a reference is referring to
         'e.g. "ExampleActor.velocity[0]" may return 5
-        'TODO: clean this up
 
         Dim parts() As String = JsonSplit(refString, 0, ".")    'reference delimited by "."
         Dim result As Object = Nothing
@@ -171,7 +160,7 @@ Public Class FrmGameExecutor
             Case "me"
                 result = act
             Case "level"
-                result = _currentLevel
+                result = CurrentLevel
             Case Else
                 For Each otherAct As Actor In CurrentRoom.Actors
                     If LCase(otherAct.Name) = LCase(parts(0)) Then
@@ -234,7 +223,6 @@ Public Class FrmGameExecutor
 
     Public Sub BroadcastEvent(eventTag As Tag)
         'broadcasts a single event to all Actors with a listener for the event
-        'TODO: take arguments instead of eventTag?
 
         Dim eventName As String = eventTag.FindSubTag(NameTagName).Argument
 
@@ -268,7 +256,7 @@ Public Class FrmGameExecutor
 
 #Region "Player Input"
 
-    Dim _keysHeld() As Keys  'a list of keys currently being held by the user
+    Dim _keysHeld() As Keys = {}  'a list of keys currently being held by the user
 
     Private Sub FrmGame_KeyDown(sender As FrmGameExecutor, e As KeyEventArgs) Handles MyBase.KeyDown
         'if the key is pressed down then it is added to the list of held keys
@@ -276,37 +264,31 @@ Public Class FrmGameExecutor
         If e.KeyCode = Keys.Escape Then
             'toggles pause when escape is pressed
             TogglePause()
-            Exit Sub
-        End If
-
-        'checks that key isn't already in keys held list, not sure how it could occur but I added this for safety
-        Dim addedToList As Boolean = False
-        If Not IsNothing(_keysHeld) Then
-            For index As Integer = 0 To UBound(_keysHeld)
-                If _keysHeld(index) = e.KeyCode Then
-                    _keysHeld(index) = e.KeyCode
-                    addedToList = True
+        Else
+            'checks that key isn't already in keys held list
+            Dim alreadyAdded As Boolean = False
+            For Each k As Keys In _keysHeld
+                If k = e.KeyCode Then
+                    alreadyAdded = True
                     Exit For
                 End If
             Next
-        End If
 
-        If Not addedToList Then
-            _keysHeld = InsertItem(_keysHeld, e.KeyCode)
+            If Not alreadyAdded Then
+                _keysHeld = InsertItem(_keysHeld, e.KeyCode)
+            End If
         End If
     End Sub
 
     Private Sub FrmGame_KeyUp(sender As FrmGameExecutor, e As KeyEventArgs) Handles MyBase.KeyUp
         'when the key is no longer being pressed by the user it is removed from the list of held keys
 
-        If Not IsNothing(_keysHeld) Then
-            For index As Integer = 0 To UBound(_keysHeld)
-                If _keysHeld(index) = e.KeyCode Then
-                    _keysHeld = RemoveItem(_keysHeld, index)
-                    Exit For
-                End If
-            Next
-        End If
+        For index As Integer = 0 To UBound(_keysHeld)
+            If _keysHeld(index) = e.KeyCode Then
+                _keysHeld = RemoveItem(_keysHeld, index)
+                Exit For
+            End If
+        Next
     End Sub
 
     Private Sub ResetKeysHeld()
