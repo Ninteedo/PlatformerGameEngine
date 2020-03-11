@@ -139,7 +139,6 @@
     <Compile Include="FrmTagMaker.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="JsonHandler.vb" />
     <Compile Include="Level.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
@@ -159,11 +158,6 @@
     </Compile>
     <Compile Include="RenderEngine.vb" />
     <Compile Include="Room.vb" />
-    <Compile Include="ScoresDataSet.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ScoresDataSet.xsd</DependentUpon>
-    </Compile>
     <Compile Include="Sprite.vb" />
     <Compile Include="Tag.vb" />
     <Compile Include="TagBehaviours.vb" />
@@ -209,17 +203,6 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="App.config" />
-    <None Include="ScoresDataSet.xsc">
-      <DependentUpon>ScoresDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="ScoresDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>ScoresDataSet.Designer.vb</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="ScoresDataSet.xss">
-      <DependentUpon>ScoresDataSet.xsd</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
