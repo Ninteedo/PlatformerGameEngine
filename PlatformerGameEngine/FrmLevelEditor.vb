@@ -165,7 +165,7 @@ Public Class FrmLevelEditor
     Private Sub BtnCreateActor_Click(sender As Button, e As EventArgs) Handles BtnCreateActor.Click
         'opens Actor Maker for user and adds created actor to room
 
-        Using actorMaker As New FrmActorMaker(Nothing)
+        Using actorMaker As New FrmActorMaker(New Actor())
             actorMaker.ShowDialog()
 
             If actorMaker.Finished Then

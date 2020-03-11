@@ -12,11 +12,7 @@ Public Class FrmActorMaker
         ' Add any initialization after the InitializeComponent() call.
 
         _renderer = New RenderEngine(PnlPreview)
-        If Not IsNothing(actorToModify) Then
-            CreatedActor = actorToModify.Clone()
-        Else
-            CreatedActor = New Actor
-        End If
+        CreatedActor = actorToModify.Clone()
         _originalString = CreatedActor.ToString
     End Sub
 
@@ -25,14 +21,13 @@ Public Class FrmActorMaker
 #Region "Finishing"
 
     Public Finished As Boolean = False      'remains false until the user presses done
-    ReadOnly _originalString As String       'used to see if any changes have been made
+    ReadOnly _originalString As String      'used to see if any changes have been made
 
     Private Sub BtnCancel_Click(sender As Button, e As EventArgs) Handles BtnCancel.Click
         'displays a warning if there are unsaved changes, giving the user the option to cancel the cancel
-        If CreatedActor.ToString <> _originalString Then
-            If MsgBox("Are you sure you wish to cancel with unsaved work?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
-                Exit Sub
-            End If
+        If CreatedActor.ToString <> _originalString AndAlso
+           MsgBox("Are you sure you wish to cancel with unsaved work?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
+            Exit Sub
         End If
 
         Close()
@@ -47,10 +42,9 @@ Public Class FrmActorMaker
         'displays a warning to the user if they have unsaved work when they close the form
 
         'checks if user hasn't finished the created actor is identical to the original one
-        If Not Finished And CreatedActor.ToString = _originalString Then
-            If MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
-                e.Cancel = True
-            End If
+        If Not Finished And CreatedActor.ToString = _originalString AndAlso
+            MsgBox("There are unsaved changes, do wish to close anyway?", MsgBoxStyle.OkCancel) = MsgBoxResult.Cancel Then
+            e.Cancel = True
         End If
     End Sub
 
@@ -102,7 +96,6 @@ Public Class FrmActorMaker
         End Get
         Set
             CreatedActor.Sprites = Value
-
             RefreshSpritesList()
         End Set
     End Property
@@ -125,9 +118,9 @@ Public Class FrmActorMaker
 
         Using openDialog As New OpenFileDialog With {.Filter = SpriteFileFilter, .Multiselect = True}
             If openDialog.ShowDialog = DialogResult.OK Then
-                For index As Integer = 0 To UBound(openDialog.FileNames)
-                    LoadSprite(openDialog.FileNames(index))
-                Next index
+                For Each fileName As String In openDialog.FileNames
+                    LoadSprite(fileName)
+                Next
             End If
         End Using
     End Sub
@@ -167,14 +160,11 @@ Public Class FrmActorMaker
         'draws the given frame in the preview box
 
         If Not IsNothing(spriteToDraw) Then
-            Dim previewActor As New Actor() With {
-                .Name = "SpritePreview",
-                .Sprites = {spriteToDraw}
-                }
+            Dim previewActor As New Actor() With {.Sprites = {spriteToDraw}}
             _renderer.RenderResolution = spriteToDraw.Dimensions
             _renderer.DoGameRender({previewActor})
         Else
-            _renderer.DoGameRender({})       'renders nothing
+            _renderer.DoGameRender({})
         End If
     End Sub
 
