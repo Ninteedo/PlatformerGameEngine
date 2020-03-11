@@ -22,20 +22,20 @@ Partial Class FrmGameExecutor
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Me.pnlGame = New System.Windows.Forms.Panel()
+        Me.PnlGame = New System.Windows.Forms.Panel()
         Me.LblPause = New System.Windows.Forms.Label()
-        Me.pnlGame.SuspendLayout()
+        Me.PnlGame.SuspendLayout()
         Me.SuspendLayout()
         '
-        'pnlGame
+        'PnlGame
         '
-        Me.pnlGame.BackColor = System.Drawing.Color.Black
-        Me.pnlGame.Controls.Add(Me.LblPause)
-        Me.pnlGame.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.pnlGame.Location = New System.Drawing.Point(0, 0)
-        Me.pnlGame.Name = "pnlGame"
-        Me.pnlGame.Size = New System.Drawing.Size(962, 738)
-        Me.pnlGame.TabIndex = 0
+        Me.PnlGame.BackColor = System.Drawing.Color.Black
+        Me.PnlGame.Controls.Add(Me.LblPause)
+        Me.PnlGame.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.PnlGame.Location = New System.Drawing.Point(0, 0)
+        Me.PnlGame.Name = "PnlGame"
+        Me.PnlGame.Size = New System.Drawing.Size(962, 738)
+        Me.PnlGame.TabIndex = 0
         '
         'LblPause
         '
@@ -59,17 +59,17 @@ Partial Class FrmGameExecutor
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlDark
         Me.ClientSize = New System.Drawing.Size(962, 738)
-        Me.Controls.Add(Me.pnlGame)
+        Me.Controls.Add(Me.PnlGame)
         Me.DoubleBuffered = True
         Me.Name = "FrmGameExecutor"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "Game Executor"
-        Me.pnlGame.ResumeLayout(False)
-        Me.pnlGame.PerformLayout()
+        Me.PnlGame.ResumeLayout(False)
+        Me.PnlGame.PerformLayout()
         Me.ResumeLayout(False)
 
     End Sub
 
-    Friend WithEvents pnlGame As Panel
+    Friend WithEvents PnlGame As Panel
     Friend WithEvents LblPause As Label
 End Class

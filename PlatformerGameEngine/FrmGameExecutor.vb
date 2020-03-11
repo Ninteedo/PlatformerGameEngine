@@ -5,7 +5,7 @@ Public Class FrmGameExecutor
 #Region "Disposing"
 
     Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
-        _endGameLoop = True
+        _endGameLoop = True     'form can't close without this due to otherwise infinite loop
         MyBase.OnFormClosing(e)
     End Sub
 
@@ -13,15 +13,15 @@ Public Class FrmGameExecutor
 
 #Region "Constructors"
 
-    Public Sub New(levelTagString As String)
+    Public Sub New(levelString As String)
 
         ' This call is required by the designer.
         InitializeComponent()
 
         ' Add any initialization after the InitializeComponent() call.
 
-        _renderer = New RenderEngine(pnlGame)
-        CurrentLevel = New Level(levelTagString)
+        _renderer = New RenderEngine(PnlGame)
+        CurrentLevel = New Level(levelString)
     End Sub
 
     Private Sub FormShown(sender As FrmGameExecutor, e As EventArgs) Handles MyBase.Shown
@@ -57,7 +57,7 @@ Public Class FrmGameExecutor
         'continuously loops, delaying each loop for approx 16ms
 
         _frameStopwatch = New Stopwatch
-        Const interval As Integer = 16 'ms
+        Const interval As Integer = 16  'delay between loops in milliseconds
         Dim startTick As Integer
 
         _frameStopwatch.Start()
@@ -68,11 +68,11 @@ Public Class FrmGameExecutor
                 GameTick()
             End If
 
-            Application.DoEvents()
+            Application.DoEvents()  'prevents the application from freezing up
 
             'delay
             Do While _frameStopwatch.ElapsedMilliseconds - startTick < interval
-                Threading.Thread.Sleep(0)   'reduces CPU usage
+                'running an empty while loop like this drastically increases CPU usage, which is not ideal
             Loop
         Loop
         _frameStopwatch.Stop()
@@ -93,16 +93,17 @@ Public Class FrmGameExecutor
                     New Tag(NameTagName, AddQuotes("key" & kc.ConvertToString(keyHeld))).ToString))
             End If
         Next
+
         'processes each actor's tags
         If Not IsNothing(CurrentRoom) Then
             If Not IsNothing(CurrentRoom.Actors) Then
                 For Each act As Actor In CurrentRoom.Actors
-                    'processes the actor's actions for this tick
+                    'processes the all of the actor's tags
                     Dim tagIndex As Integer = 0
                     Do
                         If Not ProcessTag(act.Tags(tagIndex), act, Me) Then
                             'error occured
-                            Me.Close()
+                            Close()
                             Exit For
                         End If
                         tagIndex += 1
@@ -187,11 +188,13 @@ Public Class FrmGameExecutor
                 End If
 
                 If result.GetType() = GetType(Tag) Then
+                    'tags
                     result = result.InterpretArgument(partString)
                     If arrayIndex > -1 Then
                         result = result(arrayIndex)
                     End If
                 ElseIf result.GetType() = GetType(Level) Or result.GetType() = GetType(Actor) Then
+                    'levels and actors
                     result = result.FindTag(partString).InterpretArgument()
                     If arrayIndex > -1 Then
                         result = result(arrayIndex)
@@ -243,13 +246,15 @@ Public Class FrmGameExecutor
         'processes a received event
 
         Dim behaviourArgument As Object = listenerTag.InterpretArgument(BehaviourTagName)
-        If IsArray(behaviourArgument) Then
-            For index As Integer = 0 To UBound(behaviourArgument)
-                ProcessSubTags(behaviourArgument(index), act, Me)
-            Next
-        ElseIf Not IsNothing(behaviourArgument) Then
-            ProcessSubTags(behaviourArgument, act, Me)
+
+        If Not IsArray(behaviourArgument) Then
+            'moves argument into an array on its own so it can work in the following for loop
+            behaviourArgument = {behaviourArgument}
         End If
+
+        For Each arg As Object In behaviourArgument
+            ProcessSubTags(arg, act, Me)
+        Next
     End Sub
 
 #End Region
